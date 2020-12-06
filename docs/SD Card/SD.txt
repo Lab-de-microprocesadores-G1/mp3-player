@@ -1,0 +1,6 @@
+1) Recordando cómo funciona FAT, File Allocation Table, para el formato de la SD con este video https://www.youtube.com/watch?v=V2Gxqv3bJCk
+
+* SDHC_HTCAPBLT información de las capacidades del periférico
+* SDHC_DATPORT lectura y escritura de las FIFO
+* SDHC_IRQSTAT flags con estados
+* SDHC_WML configuración del watermark de ambas read o write FIFO
