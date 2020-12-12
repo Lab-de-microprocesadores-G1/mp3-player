@@ -39,10 +39,11 @@ typedef enum {
 	SDHC_ERROR_CMD_END		= 0x00000040,
 	SDHC_ERROR_CMD_CRC		= 0x00000080,
 	SDHC_ERROR_CMD_TIMEOUT	= 0x00000100,
+	SDHC_ERROR_CMD_BUSY		= 0x00000200,
 
 	// Some errors can be grouped
 	SDHC_ERROR_DATA			= (SDHC_ERROR_DATA_END | SDHC_ERROR_DATA_CRC | SDHC_ERROR_DATA_TIMEOUT),
-	SDHC_ERROR_CMD			= (SDHC_ERROR_CMD_INDEX | SDHC_ERROR_CMD_END | SDHC_ERROR_CMD_CRC | SDHC_ERROR_CMD_TIMEOUT)
+	SDHC_ERROR_CMD			= (SDHC_ERROR_CMD_INDEX | SDHC_ERROR_CMD_END | SDHC_ERROR_CMD_CRC | SDHC_ERROR_CMD_TIMEOUT | SDHC_ERROR_CMD_BUSY)
 } sdhc_error_t;
 
 typedef enum {
@@ -153,6 +154,14 @@ bool sdhcIsTransferComplete(void);
  * @returns			Whether it could start the transfer process or not
  */
 bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data);
+
+/*
+ * @brief Run a blocking transfer process.
+ * @param command	Pointer to the command structure
+ * @param data		Pointer to data structure
+ * @returns			If the transfer was successful or if returned with some error
+ */
+sdhc_error_t sdhcTransfer(sdhc_command_t* command, sdhc_data_t* data);
 
 /********************
  * EVENT-DRIVEN API *

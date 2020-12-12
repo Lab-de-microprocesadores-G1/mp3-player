@@ -25,7 +25,8 @@
 static void onCardInserted(void);
 static void onCardRemoved(void);
 static void onButtonPressed(void);
-static void onTransferCompleted(void);
+
+bool sdCardInit(void);
 
 /*******************************************************************************
  * VARIABLES TYPES DEFINITIONS
@@ -35,6 +36,7 @@ static void onTransferCompleted(void);
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
+static bool start;
 static sdhc_command_t command;
 static sdhc_config_t config = {
 	.frequency = 400000,
@@ -65,18 +67,55 @@ void appInit (void)
 	sdhcInit(config);
 	sdhcOnCardInserted(onCardInserted);
 	sdhcOnCardRemoved(onCardRemoved);
-	sdhcOnTransferCompleted(onTransferCompleted);
+
+	/* Status led initialization */
+	if (sdhcIsCardInserted())
+	{
+		ledSet(LED_GREEN);
+	}
 }
 
 /* Called repeatedly in an infinite loop */
 void appRun (void)
 {
+	if (start)
+	{
+		start = false;
+		sdCardInit();
+	}
 }
 
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************/
+
+bool sdCardInit(void)
+{
+	bool success = false;
+
+	// GO_IDLE_STATE: Send CMD0, to reset all MMC and SD cards.
+	// Comments:
+	// 	1. I tested this with the SD card connected, the transfer completed correctly.
+	//	2. I tested this with no SD card connected, a CMD line conflit error was raised.
+	command.index = 0;
+	command.argument = 0;
+	command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+	command.responseType = SDHC_RESPONSE_TYPE_NONE;
+
+	if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+	{
+		ledSet(LED_BLUE);
+		success = true;
+	}
+
+	if (!success)
+	{
+		ledSet(LED_RED);
+	}
+
+	return success;
+}
 
 static void onCardInserted(void)
 {
@@ -90,17 +129,10 @@ static void onCardRemoved(void)
 
 static void onButtonPressed(void)
 {
-	command.index = 0;
-	command.argument = 0;
-	command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-	command.responseType = SDHC_RESPONSE_TYPE_R2;
-
-	sdhcStartTransfer(&command, NULL);
-}
-
-static void onTransferCompleted(void)
-{
-	ledSet(LED_RED);
+	if (!start)
+	{
+		start = true;
+	}
 }
 
 /*******************************************************************************
