@@ -656,6 +656,8 @@ static void SDHC_TransferErrorHandler(uint32_t status)
 {
 	sdhc_error_t error = SDHC_ERROR_OK;
 
+	context.available = true;
+
 	if (status & SDHC_IRQSTAT_DMAE_MASK)
 	{
 		error |= SDHC_ERROR_DMA;

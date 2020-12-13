@@ -57,7 +57,7 @@ void appInit (void)
 	/* Initialization of the LED driver */
 	ledInit();
 
-	/* SDHC Initialization Sequence */
+	/* SD Initialization Sequence */
 	sdInit();
 	sdOnCardInserted(onCardInserted);
 	sdOnCardRemoved(onCardRemoved);
