@@ -3,4 +3,4 @@ TODO
 CHECK 4. Mascaras para los registros de la SD
 CHECK 6. Crear un enum con los comandos y sus significados
 CHECK 7. Cambio de frecuencia del driver en cualquier momento
-8. Guardar los registros internos de la SD card
+CHECK 8. Guardar los registros internos de la SD card

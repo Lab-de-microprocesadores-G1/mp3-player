@@ -23,6 +23,11 @@
 #define SDHC_FREQUENCY_TYP		(25000000U)	// ftyp = 25MHz
 #define SDHC_FREQUENCY_MAX		(50000000U)	// fmax = 50MHz
 
+#define SDHC_R6_RCA_MASK		(0xFFFF0000)
+#define SDHC_R6_RCA_SHIFT		(16)
+#define SDHC_R6_STATUS_MASK		(0x0000FFFF)
+#define SDHC_R6_STATUS_SHIFT	(0)
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/

@@ -712,21 +712,24 @@ __ISR__ SDHC_IRQHandler(void)
 	uint32_t status = SDHC->IRQSTAT;
 
 	// Dispatches each flag detected
-	if (status & SDHC_COMMAND_COMPLETED_FLAG)
-	{
-		SDHC_CommandCompletedHandler(status & SDHC_COMMAND_COMPLETED_FLAG);
-	}
-	if (status & SDHC_TRANSFER_COMPLETED_FLAG)
-	{
-		SDHC_TransferCompletedHandler(status & SDHC_TRANSFER_COMPLETED_FLAG);
-	}
-	if (status & SDHC_DATA_FLAG)
-	{
-		SDHC_DataHandler(status & SDHC_DATA_FLAG);
-	}
 	if (status & SDHC_ERROR_FLAG)
 	{
 		SDHC_TransferErrorHandler(status & SDHC_ERROR_FLAG);
+	}
+	else
+	{
+		if (status & SDHC_COMMAND_COMPLETED_FLAG)
+		{
+			SDHC_CommandCompletedHandler(status & SDHC_COMMAND_COMPLETED_FLAG);
+		}
+		if (status & SDHC_TRANSFER_COMPLETED_FLAG)
+		{
+			SDHC_TransferCompletedHandler(status & SDHC_TRANSFER_COMPLETED_FLAG);
+		}
+		if (status & SDHC_DATA_FLAG)
+		{
+			SDHC_DataHandler(status & SDHC_DATA_FLAG);
+		}
 	}
 
 	// Clear all flags raised when entered the service routine
