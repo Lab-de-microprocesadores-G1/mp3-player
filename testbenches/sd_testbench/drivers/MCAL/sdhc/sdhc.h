@@ -114,6 +114,12 @@ void sdhcInit(sdhc_config_t config);
 void sdhcReset(void);
 
 /*
+ * @brief Changes the clock's frequency used for the clock line in the SD bus communication
+ * @param frequency		New target frequency
+ */
+void sdhcSetClock(uint32_t frequency);
+
+/*
  * @brief Returns the current error status of the Secure Digital Host Controller driver.
  */
 sdhc_error_t sdhcGetErrorStatus(void);
@@ -132,11 +138,6 @@ void sdhcInitializationClocks(void);
  * @brief Returns whether a card is inserted or not.
  */
 bool sdhcIsCardInserted(void);
-
-/*
- * @brief Returns whether a card is removed or not.
- */
-bool sdhcIsCardRemoved(void);
 
 /**
  * @brief Returns whether the last transfer process was completed

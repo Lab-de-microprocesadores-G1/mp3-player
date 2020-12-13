@@ -1,9 +1,6 @@
 TODO
 1. Fijate que la detección de errores no está correctamente implementada, hay combinación de flags que significan ciertos errores.
-2. Podría wrappear un poco más la llamada a los comandos?
-3. Podría wrappear las llamadas para comandos especificos de aplicacion?
-4. Mascaras para los registros de la SD
-5. Guardar información de la SD que se va a obteniendo en la inicialización
-6. Crear un enum con los comandos y sus significados
-7. Cambio de frecuencia del driver en cualquier momento
+CHECK 4. Mascaras para los registros de la SD
+CHECK 6. Crear un enum con los comandos y sus significados
+CHECK 7. Cambio de frecuencia del driver en cualquier momento
 8. Guardar los registros internos de la SD card

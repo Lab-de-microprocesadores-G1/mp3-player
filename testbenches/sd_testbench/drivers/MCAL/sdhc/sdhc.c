@@ -221,13 +221,8 @@ void sdhcInit(sdhc_config_t config)
 
 		// Disable the peripheral clocking, sets the divisor and prescaler for the new target frequency
 		// and configures the new value for the time-out delay. Finally, enables the clock again.
-		uint8_t sdcklfs, dvs;
-		getSettingsByFrequency(config.frequency, &sdcklfs, &dvs);
-		SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKEN_MASK) | SDHC_SYSCTL_SDCLKEN(0);
-		SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKFS_MASK) | SDHC_SYSCTL_SDCLKFS(sdcklfs);
-		SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_DVS_MASK)     | SDHC_SYSCTL_DVS(dvs);
 		SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_DTOCV_MASK)   | SDHC_SYSCTL_DTOCV(0b1110);
-		SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKEN_MASK) | SDHC_SYSCTL_SDCLKEN(1);
+		sdhcSetClock(config.frequency);
 
 		// Disable interrupts and clear all flags
 		SDHC->IRQSTATEN = 0;
@@ -276,6 +271,16 @@ void sdhcReset(void)
 	}
 }
 
+void sdhcSetClock(uint32_t frequency)
+{
+	uint8_t sdcklfs, dvs;
+	getSettingsByFrequency(frequency, &sdcklfs, &dvs);
+	SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKEN_MASK) | SDHC_SYSCTL_SDCLKEN(0);
+	SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKFS_MASK) | SDHC_SYSCTL_SDCLKFS(sdcklfs);
+	SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_DVS_MASK)     | SDHC_SYSCTL_DVS(dvs);
+	SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKEN_MASK) | SDHC_SYSCTL_SDCLKEN(1);
+}
+
 sdhc_error_t sdhcGetErrorStatus(void)
 {
 	return context.currentError;
@@ -308,11 +313,6 @@ void sdhcInitializationClocks(void)
 bool sdhcIsCardInserted(void)
 {
 	return context.cardStatus;
-}
-
-bool sdhcIsCardRemoved(void)
-{
-	return !context.cardStatus;
 }
 
 bool sdhcIsTransferComplete(void)
