@@ -1,0 +1,29 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+OBJ_SRCS := 
+S_SRCS := 
+ASM_SRCS := 
+C_SRCS := 
+S_UPPER_SRCS := 
+O_SRCS := 
+EXECUTABLES := 
+OBJS := 
+C_DEPS := 
+
+# Every subdirectory with source files must be described here
+SUBDIRS := \
+CMSIS \
+board \
+drivers/HAL/HD44780 \
+drivers/HAL/HD44780_LCD \
+drivers/HAL/button \
+drivers/HAL/timer \
+drivers/MCAL/gpio \
+drivers/MCAL/spi \
+drivers/MCAL/systick \
+lib/queue \
+source \
+startup \
+
