@@ -105,12 +105,17 @@ enum {
 // SD standard and application commands using more descriptive
 // names, according to the physical layer specification
 enum {
+	// Standard commands
 	SD_GO_IDLE_STATE		=	SD_CMD_0,
 	SD_SEND_IF_COND			=	SD_CMD_8,
 	SD_APP_CMD				=	SD_CMD_55,
-	SD_SEND_OP_COND			=	SD_ACMD_41,
 	SD_ALL_SEND_CID			=	SD_CMD_2,
-	SD_SEND_RELATIVE_ADDR	=	SD_CMD_3
+	SD_SEND_RELATIVE_ADDR	=	SD_CMD_3,
+	SD_SEND_CSD				= 	SD_CMD_9,
+	SD_SELECT_CARD			=	SD_CMD_7,
+	// Application commands
+	SD_SEND_OP_COND			=	SD_ACMD_41,
+	SD_SEND_SCR				=	SD_ACMD_51
 };
 
 typedef void (sd_callback_t)	(void);

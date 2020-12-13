@@ -6498,3 +6498,9 @@ java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.Sched
 
 !ENTRY com.crt.log 1 0 2020-12-13 18:05:37.275
 !MESSAGE Unable to find enum value '255' for field 'SDHC@SDHC-SYSCTL@SDCLKFS' of register 'SDHC@SDHC-SYSCTL' in peripheral 'SDHC'.
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-13 18:12:34.882
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.number'
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-13 18:12:34.915
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.round'
