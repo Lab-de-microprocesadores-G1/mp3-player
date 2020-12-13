@@ -206,7 +206,7 @@ void sdhcInit(sdhc_config_t config)
 		PORTE->PCR[PIN2NUM(SDHC_D3_PIN)] = SDHC_D3_PCR;
 
 		// Reset the SDHC peripheral
-		sdhcReset();
+		sdhcReset(SDHC_RESET_ALL | SDHC_RESET_CMD | SDHC_RESET_DATA);
 
 		// Set the watermark
 		context.writeWatermarkLevel = config.writeWatermarkLevel;
@@ -249,16 +249,31 @@ void sdhcInit(sdhc_config_t config)
 	}
 }
 
-void sdhcReset(void)
+void sdhcReset(sdhc_reset_t reset)
 {
 	uint32_t timeout = SDHC_RESET_TIMEOUT;
+	uint32_t mask = 0;
 	bool forceExit = false;
 
+	// Selects the reset function
+	if (reset == SDHC_RESET_DATA)
+	{
+		mask |= SDHC_SYSCTL_RSTD_MASK;
+	}
+	if (reset == SDHC_RESET_CMD)
+	{
+		mask |= SDHC_SYSCTL_RSTC_MASK;
+	}
+	if (reset == SDHC_RESET_ALL)
+	{
+		mask |= SDHC_SYSCTL_RSTA_MASK;
+	}
+
 	// Trigger a software reset for the peripheral hardware
-	SDHC->SYSCTL = SDHC_SYSCTL_RSTA(1) | SDHC_SYSCTL_RSTC(1) | SDHC_SYSCTL_RSTD(1);
+	SDHC->SYSCTL |= mask;
 
 	// Wait until the driver reset process has finished
-	while (!forceExit && (SDHC->SYSCTL & (SDHC_SYSCTL_RSTA_MASK | SDHC_SYSCTL_RSTC_MASK | SDHC_SYSCTL_RSTD_MASK)))
+	while (!forceExit && (SDHC->SYSCTL & mask))
 	{
 		if (timeout)
 		{
@@ -268,6 +283,12 @@ void sdhcReset(void)
 		{
 			forceExit = true;
 		}
+	}
+
+	// Correction to reset
+	if (reset == SDHC_RESET_CMD)
+	{
+		SDHC->IRQSIGEN = SDHC->IRQSTATEN;
 	}
 }
 

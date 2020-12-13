@@ -12,6 +12,7 @@
 #include "drivers/HAL/sd/sd.h"
 #include "drivers/HAL/led/led.h"
 #include "drivers/HAL/button/button.h"
+#include "drivers/MCAL/sdhc/sdhc.h"
 #include "board.h"
 
 /*******************************************************************************

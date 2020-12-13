@@ -61,6 +61,26 @@ typedef struct {
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
+/*
+ * @brief SD wrapper for blocking command transfer
+ * @param index			Command index
+ * @param argument		Command argument
+ * @param commandType	Command type
+ * @param responseType	Response type
+ * @param response		Pointer to the response
+ */
+static sdhc_error_t sdCommandTransfer(uint8_t index, uint32_t argument, sdhc_command_type_t commandType, sdhc_response_type_t responseType, uint32_t* response);
+
+/*
+ * @brief SD wrapper for blocking application command transfer
+ * @param index			Command index
+ * @param argument		Command argument
+ * @param commandType	Command type
+ * @param responseType	Response type
+ * @param response		Pointer to the response
+ */
+static sdhc_error_t sdAppCommandTransfer(uint8_t index, uint32_t argument, sdhc_command_type_t commandType, sdhc_response_type_t responseType, uint32_t* response);
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -96,139 +116,78 @@ void sdInit(void)
 
 bool sdCardInit(void)
 {
-	bool success = true;
-	bool isReadyState = false;
 	uint16_t attempts = SD_VOLTAGE_RETRIES;
-	sdhc_command_t command;
+	bool isReadyState = false;
+	uint32_t response[4];
+	bool success;
 
 	// Send 80 clocks to the card, to initialize internal operations
+	sdhcReset(SDHC_RESET_CMD);
 	sdhcInitializationClocks();
 
 	// GO_IDLE_STATE: Send CMD0, to reset all MMC and SD cards.
-	if (success)
-	{
-		command.index = SD_GO_IDLE_STATE;
-		command.argument = 0;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_NONE;
-		success = (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK);
-	}
+	success = (sdCommandTransfer(SD_GO_IDLE_STATE, 0, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_NONE, response) == SDHC_ERROR_OK);
 
 	// SEND_IF_COND: Send CMD8, asks the SD card if works with the given voltage range.
 	if (success)
 	{
-		command.index = SD_SEND_IF_COND;
-		command.argument = 0x100 | SD_CHECK_PATTERN;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_R7;
-		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+		success = false;
+		if (sdCommandTransfer(SD_SEND_IF_COND, 0x100 | SD_CHECK_PATTERN, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R7, response) == SDHC_ERROR_OK)
 		{
-			if ((command.response[0] & SD_CHECK_PATTERN_MASK) == SD_CHECK_PATTERN)
+			if ((response[0] & SD_CHECK_PATTERN_MASK) == SD_CHECK_PATTERN)
 			{
 				success = true;
 			}
-			else
-			{
-				success = false;
-			}
-		}
-		else
-		{
-			success = false;
 		}
 	}
 
-	// APP_CMD: Send CMD55, tells the SD card that the next command is an application specific
-	// command. For initialization process a default RCA is used, 0x0000.
+	// SD_SEND_OP_COND: Send ACMD41, sends information about the host to the card to match capabilities
 	if (success)
 	{
 		while (!isReadyState && attempts--)
 		{
-			command.index = SD_APP_CMD;
-			command.argument = 0;
-			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-			command.responseType = SDHC_RESPONSE_TYPE_R1;
-			if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+			success = false;
+			if (sdAppCommandTransfer(SD_SEND_OP_COND, SD_OCR_28_29_MASK | SD_OCR_32_33_MASK | SD_OCR_33_34_MASK, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R3, response) == SDHC_ERROR_OK)
 			{
-				if (command.response[0] & SD_CARD_STATUS_APP_CMD_MASK)
+				if (response[0] & SD_OCR_STATUS_MASK)
 				{
+					// Storing in the internal context, the OCR register of the SD card connected
+					context.ocr = response[0];
+					isReadyState = true;
 					success = true;
 				}
-				else
-				{
-					success = false;
-				}
-			}
-			else
-			{
-				success = false;
-			}
-
-			// SD_SEND_OP_COND: Send ACMD41, sends information about the host to the card to match capabilities
-			if (success)
-			{
-				command.index = SD_SEND_OP_COND;
-				command.argument = SD_OCR_28_29_MASK | SD_OCR_32_33_MASK | SD_OCR_33_34_MASK;
-				command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-				command.responseType = SDHC_RESPONSE_TYPE_R3;
-				if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
-				{
-					if (command.response[0] & SD_OCR_STATUS_MASK)
-					{
-						// Storing in the internal context, the OCR register of the SD card connected
-						context.ocr = command.response[0];
-						isReadyState = true;
-						success = true;
-					}
-					else
-					{
-						success = false;
-					}
-				}
-				else
-				{
-					success = false;
-				}
 			}
 		}
 	}
 
-	if (success & isReadyState)
+	// ALL_SEND_CID: Send the CMD2, ask all SD cards to send their CID.
+	if (success)
 	{
-		// ALL_SEND_CID: Send the CMD2, ask all SD cards to send their CID.
-		command.index = SD_ALL_SEND_CID;
-		command.argument = 0;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_R2;
-		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+		success = false;
+		if (sdCommandTransfer(SD_ALL_SEND_CID, 0, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R2, response) == SDHC_ERROR_OK)
 		{
 			// Storing in the internal context, the CID register of the SD card connected
-			context.cid[0] = command.response[0];
-			context.cid[1] = command.response[1];
-			context.cid[2] = command.response[2];
-			context.cid[3] = command.response[3];
+			context.cid[0] = response[0];
+			context.cid[1] = response[1];
+			context.cid[2] = response[2];
+			context.cid[3] = response[3];
 
-			// SEND_RELATIVE_ADDR: Send the CMD3, ask the card to publish its relative address
-			command.index = SD_SEND_RELATIVE_ADDR;
-			command.argument = 0;
-			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-			command.responseType = SDHC_RESPONSE_TYPE_R6;
-			if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
-			{
-				// Storing in the internal context, the RCA register of the SD card connected
-				context.rca = (command.response[0] & SDHC_R6_RCA_MASK) >> SDHC_R6_RCA_SHIFT;
-				success = true;
-			}
-			else
-			{
-				success = false;
-			}
-		}
-		else
-		{
-			success = false;
+			success = true;
 		}
 	}
+
+	// SEND_RELATIVE_ADDR: Send the CMD3, ask the card to publish its relative address
+	if (success)
+	{
+		success = false;
+		if (sdCommandTransfer(SD_SEND_RELATIVE_ADDR, 0, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R6, response) == SDHC_ERROR_OK)
+		{
+			// Storing in the internal context, the RCA register of the SD card connected
+			context.rca = (response[0] & SDHC_R6_RCA_MASK) >> SDHC_R6_RCA_SHIFT;
+			success = true;
+		}
+	}
+
 	return success;
 }
 
@@ -252,6 +211,42 @@ void sdOnCardRemoved(sd_callback_t callback)
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
+
+static sdhc_error_t sdCommandTransfer(uint8_t index, uint32_t argument, sdhc_command_type_t commandType, sdhc_response_type_t responseType, uint32_t* response)
+{
+	// Build the command structure
+	sdhc_command_t command = {
+		.index = index,
+		.argument = argument,
+		.commandType = commandType,
+		.responseType = responseType
+	};
+
+	// Blocking transfer
+	sdhc_error_t error = sdhcTransfer(&command, NULL);
+
+	// Copy the response in the given pointer
+	*(response + 0) = command.response[0];
+	*(response + 1) = command.response[1];
+	*(response + 2) = command.response[2];
+	*(response + 3) = command.response[3];
+
+	// Return the error
+	return error;
+}
+
+static sdhc_error_t sdAppCommandTransfer(uint8_t index, uint32_t argument, sdhc_command_type_t commandType, sdhc_response_type_t responseType, uint32_t* response)
+{
+	sdhc_error_t error = sdCommandTransfer(SD_APP_CMD, 0, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R1, response);
+	if (error == SDHC_ERROR_OK)
+	{
+		if (response[0] & SD_CARD_STATUS_APP_CMD_MASK)
+		{
+			error = sdCommandTransfer(index, argument, commandType, responseType, response);
+		}
+	}
+	return error;
+}
 
 /*******************************************************************************
  *******************************************************************************

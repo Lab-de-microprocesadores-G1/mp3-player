@@ -33,6 +33,12 @@
  ******************************************************************************/
 
 typedef enum {
+	SDHC_RESET_DATA,
+	SDHC_RESET_CMD,
+	SDHC_RESET_ALL
+} sdhc_reset_t;
+
+typedef enum {
 	// Specific errors, driver raises an individual flag for each one
 	SDHC_ERROR_OK			= 0x00000000,
 	SDHC_ERROR_DMA 			= 0x00000001,
@@ -115,8 +121,9 @@ void sdhcInit(sdhc_config_t config);
 
 /*
  * @brief Resets the Secure Digital Host Controller driver.
+ * @param reset			Specifies what is going to be reset
  */
-void sdhcReset(void);
+void sdhcReset(sdhc_reset_t reset);
 
 /*
  * @brief Changes the clock's frequency used for the clock line in the SD bus communication
