@@ -49,7 +49,7 @@
 #define SDHC_COMMAND_CHECK_INDEX	SDHC_XFERTYP_CICEN(0b1)
 
 // SDHC flag shortcuts
-#define SDHC_COMMAND_COMPLETED_FLAG		(SDHC_IRQSTAT_CCE_MASK)
+#define SDHC_COMMAND_COMPLETED_FLAG		(SDHC_IRQSTAT_CC_MASK)
 #define SDHC_TRANSFER_COMPLETED_FLAG	(SDHC_IRQSTAT_TC_MASK)
 #define SDHC_CARD_DETECTED_FLAGS		(SDHC_IRQSTAT_CINS_MASK | SDHC_IRQSTAT_CRM_MASK)
 #define SDHC_DATA_FLAG					(SDHC_IRQSTAT_BRR_MASK | SDHC_IRQSTAT_BWR_MASK)
@@ -414,6 +414,30 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 	return successful;
 }
 
+sdhc_error_t sdhcTransfer(sdhc_command_t* command, sdhc_data_t* data)
+{
+	sdhc_error_t error = SDHC_ERROR_OK;
+	bool forceExit = false;
+
+	if (sdhcStartTransfer(command, data))
+	{
+		while (!forceExit & !sdhcIsTransferComplete())
+		{
+			if (sdhcGetErrorStatus() != SDHC_ERROR_OK)
+			{
+				error = sdhcGetErrorStatus();
+				forceExit = true;
+			}
+		}
+	}
+	else
+	{
+		error = SDHC_ERROR_CMD_BUSY;
+	}
+
+	return error;
+}
+
 void sdhcOnCardInserted(sdhc_callback_t callback)
 {
 	context.onCardInserted = callback;
@@ -702,7 +726,7 @@ __ISR__ SDHC_IRQHandler(void)
 	}
 	if (status & SDHC_ERROR_FLAG)
 	{
-		SDHC_TransferErrorHandler(status & SDHC_DATA_FLAG);
+		SDHC_TransferErrorHandler(status & SDHC_ERROR_FLAG);
 	}
 
 	// Clear all flags raised when entered the service routine

@@ -1,37 +1,9 @@
-1) Recordando cómo funciona FAT, File Allocation Table, para el formato de la SD con este video https://www.youtube.com/watch?v=V2Gxqv3bJCk
-
-* SDHC_DSADDR dirección del sistema para DMA, no estoy seguro aún cómo funciona
-* SDHC_HTCAPBLT información de las capacidades del periférico
-* SDHC_DATPORT lectura y escritura de las FIFO
-* SDHC_IRQSTAT flags con estados
-* SDHC_WML configuración del watermark de ambas read o write FIFO
-
-* SDHC_PRSSTAT podes ver el estado de los datos, el comando, saber si hay tarjeta insertada,
-  es para revisar flags, estados y habilitar cosas generales.
-
-Para inicialización
-* Clock gating
-* PCR
-* NVIC
-* SDHC_SYSCTL creo que hay que habilitar cosas ahí
-* SDHC_PRSSTAT creo que hay que habilitar cosas ahí
-
-Para comunicaciones No response + No data, comandos con o sin respuesta
-* SDHC_BLKATTR para configurar cuantos bloques y de qué tamaño se transfieren
-* SDHC_CMDARG el argumento del comando que mandas
-* SDHC_XFERTYP es el registro para el tipo de transferencia, maneja el comando
-* SDHC_CMDRSP0, SDHC_CMDRSP1, SDHC_CMDRSP2, SDHC_CMDRSP3, contienen la respuesta
-
-¿Qué se supone que tengo que habilitar de interrupciones?
-SDHC_IRQSTAT
-SDHC_IRQSTATEN
-SDHC_IRQSIGEN
-
-
-COSAS PARA PROBAR
-¿Detectar que fue insertada la tarjeta?
-¿Ver estados del driver, sus capacidades?
-
-
-¿POR DONDE SEGUIR?
-* Empezar a plantear transferencias y comandos
+TODO
+1. Fijate que la detección de errores no está correctamente implementada, hay combinación de flags que significan ciertos errores.
+2. Podría wrappear un poco más la llamada a los comandos?
+3. Podría wrappear las llamadas para comandos especificos de aplicacion?
+4. Mascaras para los registros de la SD
+5. Guardar información de la SD que se va a obteniendo en la inicialización
+6. Crear un enum con los comandos y sus significados
+7. Cambio de frecuencia del driver en cualquier momento
+8. Guardar los registros internos de la SD card
