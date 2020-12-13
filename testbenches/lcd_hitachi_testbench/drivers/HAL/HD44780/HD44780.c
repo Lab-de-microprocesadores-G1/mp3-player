@@ -60,6 +60,9 @@ typedef struct {
 	uint8_t 				initState;		// Indicates if init has started, is in progress or ended
 	uint8_t 				initStepCount;	// Keeps track of initialization steps
 
+	// User callbacks
+	hd44780_callback_t 		initReadyCallback;
+
 	// LCD configuration given by the user
 	hd44780_cfg_t 			config;
 
@@ -196,6 +199,13 @@ bool HD44780InitReady(void)
 	return (lcdContext.initState == HD44780_INITIALIZED);
 }
 
+void HD44780onInitReady(hd44780_callback_t callback)
+{
+	// Save callback to call it when it corresponds
+	lcdContext.initReadyCallback = callback;
+}
+
+
 void HD44780WriteInstruction(uint8_t instruction)
 {
 	if (lcdContext.initState >= HD44780_INITIALIZING_4BIT)
@@ -308,6 +318,11 @@ void cycleInitialization(void)
 		break;
 	case 10: // Init ready
 		lcdContext.initState = HD44780_INITIALIZED;
+		if (lcdContext.initReadyCallback)
+		{
+			// If user subscribed to the event, let him know
+			lcdContext.initReadyCallback();
+		}
 		break;
 	}
 }
@@ -352,7 +367,6 @@ bool portWriteMany(uint16_t * buffer, size_t len)
 
 bool portUpdateOutput(void)
 {
-	bool ret = false;
 	uint16_t message = lcdContext.currentPortValue;
 
 	return portWriteMany(&message, 1);

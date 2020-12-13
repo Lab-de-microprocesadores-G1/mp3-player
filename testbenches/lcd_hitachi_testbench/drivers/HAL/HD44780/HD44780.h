@@ -32,6 +32,8 @@
 #define HD44780_DISPLAY_CONTROL(d,c,b)	((((d)<<2)  | ((c)<<2) | ((b)<<0)) | 0x08)
 #define HD44780_ENTRY_MODE_SET(id,s)	((((id)<<1) | ((s)<<0)) | 0x04)
 #define HD44780_SET_DDRAM_ADD(add)		(((add) & 0x7F) | 0x80)
+#define HD44780_SET_CGRAM_ADD(add)		(((add) & 0x3F) | 0x40)
+
 
 // Instructions with fixed parameters
 #define HD44780_DISPLAY_ON		0x0C
@@ -82,6 +84,9 @@ typedef struct {
 	uint8_t blink		: 1; // 1 for the cursor to blink
 } hd44780_cfg_t;
 
+// onInitReady Callback
+typedef void (*hd44780_callback_t)(void);
+
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
@@ -100,6 +105,12 @@ void HD44780Init(hd44780_cfg_t config);
  * @brief Returns true if the display has been initialized correctly
  */
 bool HD44780InitReady(void);
+
+/**
+ * @brief Subscribes to the init ready event
+ * @param callback	Function to be called when initialization is ready
+ */
+void HD44780onInitReady(hd44780_callback_t callback);
 
 /**
  * @brief Writes to the LCD IR. Asynchronous, can take up to 200us.

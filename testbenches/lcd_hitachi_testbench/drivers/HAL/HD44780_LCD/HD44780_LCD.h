@@ -18,8 +18,18 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define HD44780_TOTAL_LINES		2
-#define HD44780_TOTAL_COLS		16
+// LCD rows and columns count
+#define HD44780_LINE_COUNT		2
+#define HD44780_COL_COUNT		16
+
+// HD44780 custom characters
+typedef enum {
+	HD44780_CUSTOM_SIGNAL,
+	HD44780_CUSTOM_SIGNAL_A,
+	HD44780_CUSTOM_SIGNAL_B,
+	HD44780_CUSTOM_MUSIC,
+	HD44780_CUSTOM_COUNT
+} hd44780_custom_t;
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -38,21 +48,26 @@
  */
 void HD44780LcdInit(void);
 
-// WRITING SERVICES
+/**
+ * @brief Returns true if the driver finished it's LCD initialization steps
+ */
+bool HD44780LcdInitReady(void);
+
+// WRITING CURSOR-INDEPENDENT SERVICES
 
 /**
  * @brief Writes the given character to the specified position
  * @param line		Cursor position line, can be 0 or 1
  * @param col		Cursor position column, can be 0 through 15
  * @param character Character to be written
- * Warning: If rotating a string this will stop the rotation.
+ * Warning: If rotating a string this on this line will stop the rotation.
  * 			Consider introducing the character into the string
  */
 void HD44780WriteChar(uint8_t line, uint8_t col, uint8_t character);
 
 /**
  * @brief Writes the given string from the specified position up to col + len.
- * 			If col + len is larger than HD44780_TOTAL_COLS, extra characters are ignored.
+ * 			If col + len is larger than HD44780_COL_COUNT, extra characters are ignored.
  * 			To write longer strings see HD44780WriteRotatingString()
  * @param line		Cursor position line, can be 0 or 1
  * @param col		Cursor position column, can be 0 through 15
@@ -83,7 +98,29 @@ void HD44780WriteNewLine(uint8_t line, uint8_t * buffer, size_t len);
  */
 void HD44780WriteRotatingString(uint8_t line, uint8_t * buffer, size_t len, uint32_t ms);
 
-// WRITING SERVICES
+// WRITING CURSOR-DEPENDENT SERVICES
+// Note: Using this services is more efficient since cursor-independent services
+// 		 need to tell the LCD where they are going to write. Use these whenever you can
+
+/**
+ * @brief Writes the given character to the current cursor position
+ * @param character Character to be written
+ * Note: Using
+ * Warning: If rotating a string this will stop the rotation.
+ * 			Consider introducing the character into the string
+ */
+void HD44780WriteCharAtCursor(uint8_t character);
+
+/**
+ * @brief Writes the given string from the current cursor position up to cursor + len.
+ * 			If cursor + len is larger than HD44780_COL_COUNT, extra characters are ignored.
+ * @param buffer	String to be written
+ * @param len		Amount of character to be written
+ */
+void HD44780WriteStringAtCursor(uint8_t * buffer, size_t len);
+
+
+// CLEARING SERVICES
 
 /**
  * @brief Clears the given line

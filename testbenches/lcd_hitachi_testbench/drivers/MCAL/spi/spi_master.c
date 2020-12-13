@@ -24,7 +24,7 @@
 
 #define SPI_PORT_ALTERNATIVE    2             // All pins have the SPI peripheral connected to the 2nd alternative
 #define SPI_CLOCK_FREQUENCY     100000000U    // Clock connected to the SPI peripheral in the MCU
-#define TX_QUEUE_MAX_SIZE       200           // Maximum size of the FIFO for transmitter
+#define TX_QUEUE_MAX_SIZE       400           // Maximum size of the FIFO for transmitter
 #define RX_QUEUE_MAX_SIZE       5	          // Maximum size of the FIFO for the receiver
 
 /*******************************************************************************
