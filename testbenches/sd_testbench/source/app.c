@@ -98,7 +98,7 @@ bool sdCardInit(void)
 {
 	bool success = false;
 	bool forceExit = false;
-	uint8_t attempts = 1000;
+	uint16_t attempts = 1000;
 
 	// Send 80 clocks to the card.
 	// https://electronics.stackexchange.com/questions/303745/sd-card-initialization-problem-cmd8-wrong-response
