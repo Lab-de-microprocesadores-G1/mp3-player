@@ -16,6 +16,7 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+#define MP3DECODER_MODE_NORMAL  0
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -58,7 +59,7 @@ typedef struct
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static mp3decoder_context_t decoderContext;
+static mp3decoder_context_t dec;
 
 /*******************************************************************************
  *******************************************************************************
@@ -68,28 +69,28 @@ static mp3decoder_context_t decoderContext;
 
 void  mp3DecoderInit(void)
 {
-  decoderContext.helixDecoder = MP3InitDecoder();
-  decoderContext.mp3File = NULL;
-  decoderContext.fileOpened = false;
-  decoderContext.bottomByte = MP3_DECODED_BUFFER_SIZE;
-  decoderContext.headerByte = 0;
-  decoderContext.fileSize = 0;
+  dec.helixDecoder = MP3InitDecoder();
+  dec.mp3File = NULL;
+  dec.fileOpened = false;
+  dec.bottomByte = 0;
+  dec.headerByte = 0;
+  dec.fileSize = 0;
 }
 
 bool  loadFile(const char* filename)
 {
-  if(decoderContext.fileOpened)
+  if(dec.fileOpened)
   {
-    f_close(&(decoderContext.mp3File));          // close prev file
+    f_close(&(dec.mp3File));          // close prev file
     
     // reset context pointers and vars 
-    decoderContext.fileOpened = false;
-    decoderContext.bottomByte = MP3_DECODED_BUFFER_SIZE;
-    decoderContext.headerByte = 0;
-    decoderContext.fileSize = 0;
+    dec.fileOpened = false;
+    dec.bottomByte = 0;
+    dec.headerByte = 0;
+    dec.fileSize = 0;
   }
 
-  FRESULT fr = f_open(&(decoderContext.mp3File), filename, FA_READ);
+  FRESULT fr = f_open(&(dec.mp3File), filename, FA_READ);
 
   if(fr)
   {
@@ -98,8 +99,8 @@ bool  loadFile(const char* filename)
 
   else
   {
-    decoderContext.fileSize = f_size(&(decoderContext.mp3File));
-    decoderContext.fileOpened = true;
+    dec.fileSize = f_size(&(dec.mp3File));
+    dec.fileOpened = true;
     return true;
   }
 }
@@ -107,15 +108,63 @@ bool  loadFile(const char* filename)
 
 uint32_t getFrameSampleRate(void)
 {
-  return decoderContext.lastFrameInfo.samprate;
+  return dec.lastFrameInfo.samprate;
 }
 
-mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSize, uint16_t* samplesDecoded)
+mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSize, uint16_t* samplesDecoded) //! not using outBufferSize
 {
-  if(decoderContext.fileSize)
+
+  if(dec.fileSize) // check if info remaining in file
   {
-    //memcpy(decoderContext.mp3FrameBuffer, decoderContext.mp3FrameBuffer + decoderContext.bottomByte, )
+    // scroll encoded info up in array
+    memcpy(
+      dec.mp3FrameBuffer,
+      dec.mp3FrameBuffer + dec.bottomByte,
+      (dec.headerByte - dec.bottomByte) ); 
+
+    // and then update top and bottom info pointers
+    dec.bottomByte = (dec.bottomByte - dec.headerByte);
+    dec.headerByte = 0;
+  
+    // fill buffer with info in mp3 file
+    uint16_t  bytesRead;
+    f_read(&(dec.mp3File), (dec.mp3FrameBuffer + dec.bottomByte), (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0
+    
+    // update remaining useful bytes in file
+    dec.fileSize -= bytesRead;
+
+    // seek mp3 header beginning 
+    uint16_t offset = MP3FindSyncWord(dec.mp3FrameBuffer, MP3_FRAME_BUFFER_BYTES);
+    //! check errors in searching for sync words (there shouldnt be)
+    dec.headerByte += offset; // updating top pointer
+    dec.fileSize -= offset; // subtract garbage info to file size
+
+    // with array organized, lets decode a frame
+    uint8_t  decPointer = dec.mp3FrameBuffer + dec.headerByte;
+    uint16_t bytesLeft = 0;
+    uint16_t res = MP3Decode(dec.helixDecoder, &decPointer, &bytesLeft, outBuffer, MP3DECODER_MODE_NORMAL); //! passing bytesLeft = 0 (not an input parameter)
+
+    if(res == ERR_MP3_NONE) // if decoding successful
+    {
+      // update last frame decoded info
+      MP3GetLastFrameInfo(dec.helixDecoder, dec.lastFrameInfo);
+
+      // return success code
+      return MP3DECODER_NO_ERROR;
+    }
+
+    else
+    {
+      // return error code
+      return MP3DECODER_ERROR;
+    }
+    
   }
+  else
+  {
+    return MP3DECODER_FILE_END;
+  }
+  
 }
 /*******************************************************************************
  *******************************************************************************
