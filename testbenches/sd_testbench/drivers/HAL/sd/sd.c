@@ -209,7 +209,7 @@ bool sdCardInit(void)
 		{
 			// Storing in the internal context, the RCA register of the SD card connected
 			context.rca = (response[0] & SDHC_R6_RCA_MASK) >> SDHC_R6_RCA_SHIFT;
-			success = true;
+ 			success = true;
 		}
 	}
 
@@ -218,7 +218,7 @@ bool sdCardInit(void)
 	{
 		success = false;
 
-		if (sdCommandTransfer(SD_SEND_CSD, rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R2, response) == SDHC_ERROR_OK)
+		if (sdCommandTransfer(SD_SEND_CSD, context.rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R2, response) == SDHC_ERROR_OK)
 		{
 			// Storing in the internal context, the CSD register of the SD card connected
 			context.csd[0] = response[0];
@@ -232,16 +232,7 @@ bool sdCardInit(void)
 	// SELECT_CARD: Send the CMD7, tell to switch from Stand-By to Transfer State
 	if (success)
 	{
-		success = false;
-
-		if (sdCommandTransfer(SD_SELECT_CARD, rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R1b, response) == SDHC_ERROR_OK)
-		{
-			// Check card is in Transfer State
-			if (((response[0] & SD_CARD_STATUS_CURRENT_STATE_MASK) >> SD_CARD_STATUS_CURRENT_STATE_SHIFT) == SD_CURRENT_STATE_TRAN)
-			{
-				success = true;
-			}
-		}
+		success = (sdCommandTransfer(SD_SELECT_CARD, context.rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R1b, response) == SDHC_ERROR_OK);
 	}
 
 	// APP_CMD: Send CMD55, tells the SD card that the next command is an application specific
@@ -252,15 +243,15 @@ bool sdCardInit(void)
 		success = false;
 
 		// Switch peripheral CLK frequency to 25MHz
-		sdhcSetClock(SDHC_FREQUENCY_TYP);
+		// sdhcSetClock(SDHC_FREQUENCY_TYP);
 
-		if (sdCommandTransfer(SD_APP_CMD, rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R1, response) == SDHC_ERROR_OK)
+		if (sdCommandTransfer(SD_APP_CMD, context.rca << SDHC_R6_RCA_SHIFT, SDHC_COMMAND_TYPE_NORMAL, SDHC_RESPONSE_TYPE_R1, response) == SDHC_ERROR_OK)
 		{
 			sdhc_command_t command;
 			sdhc_data_t	data;
 
 			command.index = SD_SEND_SCR;
-			command.argument = rca << SDHC_R6_RCA_SHIFT;
+			command.argument = context.rca << SDHC_R6_RCA_SHIFT;
 			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 			command.responseType = SDHC_RESPONSE_TYPE_R1;
 			data.blockCount = 1;
@@ -270,8 +261,8 @@ bool sdCardInit(void)
 			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 			{
 				// Read SCR value
-				scr[0] = buffer[0];
-				scr[1] = buffer[1];
+				context.scr[0] = context.buffer[0];
+				context.scr[1] = context.buffer[1];
 
 				success = true;
 			}
@@ -284,10 +275,6 @@ bool sdCardInit(void)
 		// Set block size 512
 
 		// Read status
-	}
-
-
-
 	}
 
 	return success;
