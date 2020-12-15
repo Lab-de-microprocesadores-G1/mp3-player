@@ -1,15 +1,13 @@
+=\=\=\=\=\=\=
+<<<<<<<=HEAD
+>>>>>>>=694eeccb5db307216e9fabfcf02c4e3e1121632f
 applyBackground=false
 approved.defs.file.last.changed.time=1607625304000
 configurationInstallLocation=/C\:/nxp/MCUXpressoIDE_10.2.0_759/ide/
 eclipse.preferences.version=1
 iconcolormode=primary
-<<<<<<< HEAD
-last.download.attempt.time=1607792594356
-lastConfiguration=1607871461293
-=======
-last.download.attempt.time=1607830712956
-lastConfiguration=1607830689956
->>>>>>> 694eeccb5db307216e9fabfcf02c4e3e1121632f
+last.download.attempt.time=1607888787978
+lastConfiguration=1607888776912
 newinstall=false
 showWelcomeDialog=false
 workbench.theme=Dark Gray

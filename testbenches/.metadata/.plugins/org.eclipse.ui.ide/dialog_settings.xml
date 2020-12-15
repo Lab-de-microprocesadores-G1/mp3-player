@@ -49,6 +49,7 @@
 		<item value="false" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
 		<item value="false" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
 		<list key="WizardProjectsImportPage.STORE_DIRECTORIES">
+			<item value="C:\Users\nicot\OneDrive\Documents\MCUXpressoIDE_10.2.0_759\Micros\TPs\tpf-mp3-player\testbenches\sd_testbench"/>
 			<item value="C:\Users\nicot\OneDrive\Documents\MCUXpressoIDE_10.2.0_759\Micros\TPs\tpf-mp3-player\testbenches\lcd_hitachi_testbench"/>
 		</list>
 		<list key="WizardProjectsImportPage.STORE_ARCHIVES">
