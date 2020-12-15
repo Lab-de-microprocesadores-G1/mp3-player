@@ -3,6 +3,11 @@
   @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
+/**** TODO FOR mp3decoder.c ****/
+//todo  circular buffer issues (differentiate empty queue and 1 element in queue scenarios)
+//todo  handle errors when decoding
+//todo  handle errors when finding header pointer
+
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
@@ -32,9 +37,8 @@ typedef struct
   uint32_t      fileSize                                                        // file size
   bool          fileOpened;                                                     // true if another file is open
   
-  // MP3-encoded buffers
+  // MP3-encoded buffer
   uint8_t       mp3FrameBuffer[MP3_FRAME_BUFFER_BYTES];                         // buffer for MP3-encoded frames
-  uint8_t       mp3CurrentBuffer;                                               // current ping-pong buffer
   uint32_t      headByte;                                                       // current position in frame buffer (points to header)
   uint32_t      bottomByte;                                                     // current position at info end in frame buffer
 
@@ -105,14 +109,17 @@ bool  loadFile(const char* filename)
   }
 }
 
-
 uint32_t getFrameSampleRate(void)
 {
   return dec.lastFrameInfo.samprate;
 }
 
-mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSize, uint16_t* samplesDecoded) //! not using outBufferSize
-{
+mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded)
+
+  if(!dec.fileOpened)
+  {
+    return MP3DECODER_NO_FILE;
+  }
 
   if(dec.fileSize) // check if info remaining in file
   {
@@ -128,7 +135,11 @@ mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSiz
   
     // fill buffer with info in mp3 file
     uint16_t  bytesRead;
-    f_read(&(dec.mp3File), (dec.mp3FrameBuffer + dec.bottomByte), (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0
+    uint8_t   *dest = ( (dec.bottomByte == 0) ? 0 : (dec.mp3FrameBuffer - dec.bottomByte + 1) ); // different conditions
+    f_read(&(dec.mp3File), , (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0 (1 element or zero elements)
+    
+    // update bottom pointer
+    dec.bottomByte += bytesRead;
     
     // update remaining useful bytes in file
     dec.fileSize -= bytesRead;
@@ -139,10 +150,21 @@ mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSiz
     dec.headerByte += offset; // updating top pointer
     dec.fileSize -= offset; // subtract garbage info to file size
 
+
+    // check samples in next frame (to avoid segmentation fault)
+    MP3FrameInfo nextFrameInfo;
+    MP3GetNextFrameInfo(dec.helixDecoder, &nextFrameInfo, dec.mp3FrameBuffer + dec.headerByte);
+    if(nextFrameInfo.outputSamps > bufferSize)
+    {
+      return MP3DECODER_BUFFER_OVERFLOW;
+    }
+
     // with array organized, lets decode a frame
     uint8_t  decPointer = dec.mp3FrameBuffer + dec.headerByte;
-    uint16_t bytesLeft = 0;
-    uint16_t res = MP3Decode(dec.helixDecoder, &decPointer, &bytesLeft, outBuffer, MP3DECODER_MODE_NORMAL); //! passing bytesLeft = 0 (not an input parameter)
+    uint16_t res = MP3Decode(dec.helixDecoder, &decPointer, &(dec.fileSize), outBuffer, MP3DECODER_MODE_NORMAL); //! autodecrements fileSize with bytes decoded. updated inbuf pointer, updated bytesLeft
+    
+    // update header pointer
+    dc.headerByte += (uint16_t) (decPointer - mp3FrameBuffer);
 
     if(res == ERR_MP3_NONE) // if decoding successful
     {

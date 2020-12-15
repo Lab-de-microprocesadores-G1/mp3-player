@@ -29,7 +29,9 @@ typedef enum
 {
   MP3DECODER_NO_ERROR,
   MP3DECODER_ERROR,
-  MP3DECODER_FILE_END 
+  MP3DECODER_FILE_END,
+  MP3DECODER_NO_FILE 
+  MP3DECODER_BUFFER_OVERFLOW
 }mp3decoder_result_t;
 
 /*******************************************************************************
@@ -58,10 +60,15 @@ uint32_t getFrameSampleRate(void);
 
 
 /*
-* @brief Copies actual frame to a buffer
-* @bool  Returns False when last frame
+* @brief  Decodes one mp3 frame (if available) to WAV format
+* 
+* @param  *outbuffer      pointer to output buffer (should have space for at least one frame samples)
+* @param  buffersize      number of available bytes in output buffer
+* @param  *samplesDecoded pointer to variable that will be updated with number of samples decoded (if process is successful)
+* 
+* @returns  result code (MP3DECODER_ERROR, MP3DECODER_NOERROR, MP3DECODER_FILE_END, MP3DECODER_NO_FILE, MP3DECODER_BUFFER_OVERFLOW)
 */
-mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t outBufferSize, uint16_t* samplesDecoded);
+mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded);
 
 
 /*******************************************************************************
