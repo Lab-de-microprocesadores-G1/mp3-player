@@ -14,6 +14,8 @@
 
 #include "drivers/MCAL/gpio/gpio.h"
 
+#include <stdio.h>
+
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
@@ -596,8 +598,11 @@ static void SDHC_CommandCompletedHandler(uint32_t status)
 		context.currentCommand->response[3] = SDHC->CMDRSP[3] & 0xFFFFFF;
 	}
 
-	// Notify or raise the transfer completed flag
-	contextSetTransferComplete();
+	if (context.currentData == NULL)
+	{
+		// Notify or raise the transfer completed flag
+		contextSetTransferComplete();
+	}
 }
 
 static void SDHC_TransferCompletedHandler(uint32_t status)
@@ -741,6 +746,10 @@ __ISR__ SDHC_IRQHandler(void)
 	}
 	else
 	{
+		if (status & SDHC_DATA_FLAG)
+		{
+			SDHC_DataHandler(status & SDHC_DATA_FLAG);
+		}
 		if (status & SDHC_COMMAND_COMPLETED_FLAG)
 		{
 			SDHC_CommandCompletedHandler(status & SDHC_COMMAND_COMPLETED_FLAG);
@@ -748,10 +757,6 @@ __ISR__ SDHC_IRQHandler(void)
 		if (status & SDHC_TRANSFER_COMPLETED_FLAG)
 		{
 			SDHC_TransferCompletedHandler(status & SDHC_TRANSFER_COMPLETED_FLAG);
-		}
-		if (status & SDHC_DATA_FLAG)
-		{
-			SDHC_DataHandler(status & SDHC_DATA_FLAG);
 		}
 	}
 
