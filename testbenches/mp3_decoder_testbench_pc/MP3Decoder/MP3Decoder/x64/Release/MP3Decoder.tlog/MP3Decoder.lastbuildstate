@@ -1,0 +1,2 @@
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v142:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit:WindowsTargetPlatformVersion=10.0
+Release|x64|C:\Users\nicot\OneDrive\Documents\MCUXpressoIDE_10.2.0_759\Micros\TPs\tpf-mp3-player\testbenches\mp3_decoder_testbench_pc\MP3Decoder\|

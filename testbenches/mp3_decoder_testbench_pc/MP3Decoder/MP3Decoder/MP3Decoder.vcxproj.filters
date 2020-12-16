@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\mp3dec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\mp3tabs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\bitstream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\buffers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\dct32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\dequant.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\dqchan.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\huffman.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\hufftabs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\imdct.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\polyphase.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\scalfact.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\stproc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\subband.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="helix\real\trigtabs_fixpt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mp3decoder\mp3decoder.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="helix\platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\pub\mp3common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\pub\mp3dec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\pub\mpadecobjfixpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\pub\statname.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\real\assembly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helix\real\coder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mp3decoder\mp3decoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
