@@ -38,13 +38,20 @@ int main(void)
 
 	if (loadFile(FILEPATH))
 	{
-		for (int i = 0; i < 5; i++)
+		int i = 0;
+		while(1)
 		{
 		printf("\n[APP] Frame %d decoding started.\n", i);
 		mp3decoder_result_t res = getMP3DecodedFrame(buffer, MP3_DECODED_BUFFER_SIZE, &sampleCount);
 		if (res == 0)
 		{
 			printf("[APP] Frame %d decoded.\n", i);
+			i++;
+		}
+		else if (res == MP3DECODER_FILE_END)
+		{
+			printf("[APP] FILE ENDED. Decoded %d frames.\n",i-1);
+			break;
 		}
 		}
 		

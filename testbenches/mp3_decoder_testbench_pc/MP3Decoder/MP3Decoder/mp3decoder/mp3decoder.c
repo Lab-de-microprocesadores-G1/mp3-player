@@ -36,7 +36,7 @@ typedef struct
   
   // MP3 file 
   FILE*         mp3File;                                                        // MP3 file object
-  uint32_t      fileSize;                                                       // file size
+  uint64_t      fileSize;                                                       // file size
   bool          fileOpened;                                                     // true if another file is open
   
   // MP3-encoded buffer
@@ -113,7 +113,7 @@ bool  loadFile(const char* filename)
     //dec.fileSize = f_size(&(dec.mp3File));
     /* getting file size */
     fseek(fp, 0L, SEEK_END);
-    dec.fileSize = ftell(fp);
+    dec.fileSize = ftell(fp) + 1; //CREO que aca juega el terminador
     rewind(fp);
 
     dec.mp3File = fp;
@@ -133,15 +133,18 @@ uint32_t getFrameSampleRate(void)
 mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded)
 {
   mp3decoder_result_t ret = MP3DECODER_NO_ERROR;
+  printf("Entered decoding. File has %d bytes to decode\n", dec.fileSize);
+  printf("Buffer has %d bytes to decode\n", dec.bottomByte - dec.headByte);
 
   if(!dec.fileOpened)
   {
     ret = MP3DECODER_NO_FILE;
   }
 
-  else if(dec.fileSize) // check if info remaining in file
+  //else if(dec.fileSize) // check if info remaining in file and in buffer
+  else if(dec.fileSize || (dec.bottomByte > dec.headByte+1)) // check if info remaining in file and in buffer
   {
-      printf("Entered decoding. Head = %d - Bottom = %d\n", dec.headByte, dec.bottomByte);
+    printf("Current pointers are Head = %d - Bottom = %d\n", dec.headByte, dec.bottomByte);
     // scroll encoded info up in array if necessary (TESTED-WORKING)
     if( (dec.headByte > 0)  && ( (dec.bottomByte - dec.headByte ) > 0) )
     {      
@@ -161,6 +164,11 @@ mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, 
     uint8_t   *dest = dec.mp3FrameBuffer + dec.bottomByte + 1; // different conditions
     //f_read(&(dec.mp3File), dest, (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0 (1 element or zero elements)
     bytesRead = fread(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), dec.mp3File);
+
+    if (bytesRead == 0)
+    {
+            int x = 3;
+    }
 
     // update bottom pointer
     dec.bottomByte += bytesRead;
@@ -225,7 +233,12 @@ mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, 
     }
     else if (res == ERR_MP3_INDATA_UNDERFLOW || res == ERR_MP3_MAINDATA_UNDERFLOW)
     {
-        printf("Underflow error (code %d)\n", res);
+        if (dec.fileSize == 0)
+        {
+            printf("Buffer underflow and file empty\n");
+            return MP3DECODER_FILE_END;
+        }
+      printf("Underflow error (code %d)\n", res);
       return getMP3DecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
     }
     else // if (res == -6)
