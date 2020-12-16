@@ -3,8 +3,14 @@
 #include <stdio.h>
 #include "mp3decoder/mp3decoder.h"
 
+#define FILEPATH					"D:/Users/Joaco/Desktop/playground/HelixMP3Test/testfiles/Haydn_Cello_Concerto_D-1.mp3"
+
 int main(void)
 {
+	printf("********************************* \n");
+	printf(" HELIX MP3 DECODER TESTBENCH (PC) \n");
+	printf("********************************* \n");
+
 	uint16_t buffer[MP3_DECODED_BUFFER_SIZE];
 	uint16_t sampleCount;
 
@@ -30,9 +36,18 @@ int main(void)
 	//printf("Default output device %d\n", deviceIndex);
 	//printf("Device name: %s", info->name);
 
-	if (loadFile("C:/Users/nicot/Downloads/PizzaConmigo.mp3"))
+	if (loadFile(FILEPATH))
 	{
-		getMP3DecodedFrame(buffer, MP3_DECODED_BUFFER_SIZE, &sampleCount);
+		for (int i = 0; i < 5; i++)
+		{
+		printf("\n[APP] Frame %d decoding started.\n", i);
+		mp3decoder_result_t res = getMP3DecodedFrame(buffer, MP3_DECODED_BUFFER_SIZE, &sampleCount);
+		if (res == 0)
+		{
+			printf("[APP] Frame %d decoded.\n", i);
+		}
+		}
+		
 	}
 
 	return 0;
