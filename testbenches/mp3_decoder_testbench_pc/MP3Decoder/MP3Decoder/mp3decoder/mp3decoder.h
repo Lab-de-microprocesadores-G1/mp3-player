@@ -45,18 +45,18 @@ typedef enum
 /*
 * @brief Initialices the mp3 decoder driver
 */
-void  mp3DecoderInit(void);
+void  MP3DecoderInit(void);
 
 /*
 * @brief Initialices the mp3 decoder driver
 * @param fileptr pointer to the mp3 file
 */
-bool  loadFile(const char* filename);
+bool  MP3LoadFile(const char* filename);
 
 /*
 * @brief Returns the bitrate of the actual frame
 */
-uint32_t getFrameSampleRate(void);
+uint32_t MP3GetFrameSampleRate(void);
 
 
 /*
@@ -68,12 +68,10 @@ uint32_t getFrameSampleRate(void);
 * 
 * @returns  result code (MP3DECODER_ERROR, MP3DECODER_NOERROR, MP3DECODER_FILE_END, MP3DECODER_NO_FILE, MP3DECODER_BUFFER_OVERFLOW)
 */
-mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded);
+mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded);
 
 
 /*******************************************************************************
  ******************************************************************************/
-
-
 
 #endif /* _MP3DECODER_H_ */

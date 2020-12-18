@@ -66,7 +66,10 @@
     <ClCompile Include="mp3decoder\mp3decoder.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="tinywav.c">
+    <ClCompile Include="main2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wav.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -95,7 +98,7 @@
     <ClInclude Include="mp3decoder\mp3decoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tinywav.h">
+    <ClInclude Include="wav.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
