@@ -304,6 +304,11 @@ void sdhcSetClock(uint32_t frequency)
 	SDHC->SYSCTL = (SDHC->SYSCTL & ~SDHC_SYSCTL_SDCLKEN_MASK) | SDHC_SYSCTL_SDCLKEN(1);
 }
 
+void sdhcSetBusWidth(sdhc_data_width_t width)
+{
+	SDHC->PROCTL = (SDHC->PROCTL & ~SDHC_PROCTL_DTW_MASK) | SDHC_PROCTL_DTW(width);
+}
+
 sdhc_error_t sdhcGetErrorStatus(void)
 {
 	return context.currentError;

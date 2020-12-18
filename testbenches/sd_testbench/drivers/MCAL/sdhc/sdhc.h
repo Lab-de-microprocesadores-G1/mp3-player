@@ -33,6 +33,12 @@
  ******************************************************************************/
 
 typedef enum {
+	SDHC_DATA_WIDTH_1BIT,
+	SDHC_DATA_WIDTH_4BIT,
+	SDHC_DATA_WIDTH_8BIT
+} sdhc_data_width_t;
+
+typedef enum {
 	SDHC_RESET_DATA,
 	SDHC_RESET_CMD,
 	SDHC_RESET_ALL
@@ -130,6 +136,12 @@ void sdhcReset(sdhc_reset_t reset);
  * @param frequency		New target frequency
  */
 void sdhcSetClock(uint32_t frequency);
+
+/*
+ * @brief Changes the data bus width used by the peripheral
+ * @param width			Data bus width
+ */
+void sdhcSetBusWidth(sdhc_data_width_t width);
 
 /*
  * @brief Returns the current error status of the Secure Digital Host Controller driver.
