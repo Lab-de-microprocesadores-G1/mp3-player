@@ -180,7 +180,7 @@ size_t tinywav_write_f(TinyWav *tw, void *f, int len) {
           break;
         }
         case TW_INLINE: {
-          const float *const x = (const float *const) f;
+          const int16_t *const x = (const int16_t *const) f;
           for (int i = 0, k = 0; i < len; ++i) {
             for (int j = 0; j < tw->numChannels; ++j) {
               z[k++] = (int16_t) (x[j*len+i] * 32767.0f);
