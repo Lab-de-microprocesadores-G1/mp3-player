@@ -222,11 +222,12 @@ mp3decoder_result_t getMP3DecodedFrame(int16_t* outBuffer, uint16_t bufferSize, 
       dec.headByte += (dec.bottomByte - dec.headByte - decodedBytes);
       dec.fileSize -= (dec.bottomByte - dec.headByte - decodedBytes);
 
-      // update samples decoded
-      *samplesDecoded = decodedBytes;
-
       // update last frame decoded info
       MP3GetLastFrameInfo(dec.helixDecoder, &(dec.lastFrameInfo));
+
+      // update samples decoded
+      // *samplesDecoded = decodedBytes;
+      *samplesDecoded = dec.lastFrameInfo.outputSamps;
 
       // return success code
       ret = MP3DECODER_NO_ERROR;

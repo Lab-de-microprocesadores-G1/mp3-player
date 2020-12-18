@@ -157,6 +157,7 @@
     <ClCompile Include="helix\real\trigtabs_fixpt.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="mp3decoder\mp3decoder.c" />
+    <ClCompile Include="tinywav.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helix\platform.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="helix\real\assembly.h" />
     <ClInclude Include="helix\real\coder.h" />
     <ClInclude Include="mp3decoder\mp3decoder.h" />
+    <ClInclude Include="tinywav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

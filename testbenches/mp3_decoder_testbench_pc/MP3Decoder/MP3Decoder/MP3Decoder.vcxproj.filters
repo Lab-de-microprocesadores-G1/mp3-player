@@ -66,6 +66,9 @@
     <ClCompile Include="mp3decoder\mp3decoder.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="tinywav.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helix\platform.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mp3decoder\mp3decoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tinywav.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
