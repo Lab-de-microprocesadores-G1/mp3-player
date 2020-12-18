@@ -256,8 +256,8 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
       MP3GetLastFrameInfo(dec.helixDecoder, &(dec.lastFrameInfo));
 
       // update samples decoded
-      // *samplesDecoded = decodedBytes;
-      *samplesDecoded = dec.lastFrameInfo.outputSamps;
+      uint8_t scaler = dec.lastFrameInfo.nChans;
+      *samplesDecoded = dec.lastFrameInfo.outputSamps / scaler;
 
       // return success code
       ret = MP3DECODER_NO_ERROR;
@@ -295,8 +295,7 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     
   }
   else
-  {
-    ret = MP3DECODER_FILE_END;
+  {    ret = MP3DECODER_FILE_END;
   }
   
   return ret;
