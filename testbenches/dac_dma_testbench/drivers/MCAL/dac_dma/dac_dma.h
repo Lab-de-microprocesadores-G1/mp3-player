@@ -24,6 +24,7 @@
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
+typedef void  (*dacdma_update_callback_t) (uint16_t * frameToUpdate);
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -40,8 +41,9 @@ void dacdmaInit(void);
 * @brief  sets ping pong buffers
 * @param  buffer1, buffer2 pointers to buffers
 * @param  bufferSize size of buffers
+* @param  callback   Function to be called when the buffers must be updated
 */
-void dacdmaSetBuffers(uint16_t *buffer1, uint16_t *buffer2, uint16_t bufferSize);
+void dacdmaSetBuffers(uint16_t *buffer1, uint16_t *buffer2, uint16_t bufferSize, dma_sga_callback_t callback);
 
 /*  
 *  dacdmaSetFreq()
@@ -61,7 +63,12 @@ void dacdmaStop(void);
 */
 void dacdmaStart(void);
 
-uint16_t* dacdmaGetBuffer(void);
+/*  
+*  dacdmaGetFreq()
+* @brief getter for DAC frequency
+* @return DAC frequency
+*/
+uint16_t dacdmaGetFreq(void);
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE

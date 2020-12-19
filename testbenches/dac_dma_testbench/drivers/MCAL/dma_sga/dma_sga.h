@@ -1,24 +1,54 @@
 /***************************************************************************//**
-  @file     dma.c
-  @brief    ...
+  @file     dma_sga.h
+  @brief    Handler for DMA with Scatter and Gather operation
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
+
+#ifndef MCAL_DMA_DMA_H_
+#define MCAL_DMA_DMA_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "dma.h"
-#include "MK64F12.h"
-#include "hardware.h"
+ #include <stdint.h>
 
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define DMA_SGA_TCD_COUNT       2
+#define DMA_SGA_PPBUFFER_COUNT  DMA_SGA_TCD_COUNT
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
+
+// DMA Event callback for interrupt requests
+typedef void (*dma_sga_callback_t)(void);
+
+// DMA Channels enumeration
+typedef enum
+{
+  DMA_CHANNEL_0,
+  DMA_CHANNEL_1,
+  DMA_CHANNEL_2,
+  DMA_CHANNEL_3,
+  DMA_CHANNEL_4,
+  DMA_CHANNEL_5,
+  DMA_CHANNEL_6,
+  DMA_CHANNEL_7,
+  DMA_CHANNEL_8,
+  DMA_CHANNEL_9,
+  DMA_CHANNEL_10,
+  DMA_CHANNEL_11,
+  DMA_CHANNEL_12,
+  DMA_CHANNEL_13,
+  DMA_CHANNEL_14,
+  DMA_CHANNEL_15,
+  DMA_CHANNEL_COUNT
+} dma_channel_t;
+
 // DMA TCD Structure
 typedef struct {
   uint32_t SADDR;                               /**< TCD Source Address, array offset: 0x1000, array step: 0x20 */
@@ -42,88 +72,51 @@ typedef struct {
     uint16_t BITER_ELINKNO;                     /**< TCD Beginning Minor Loop Link, Major Loop Count (Channel Linking Disabled), array offset: 0x101E, array step: 0x20 */
     uint16_t BITER_ELINKYES;                    /**< TCD Beginning Minor Loop Link, Major Loop Count (Channel Linking Enabled), array offset: 0x101E, array step: 0x20 */
   };
-} dma_TCD_t;
-
-/*******************************************************************************
- * VARIABLES WITH GLOBAL SCOPE
- ******************************************************************************/
-
-/*******************************************************************************
- * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
- ******************************************************************************/
+} dma_tcd_t;
 
 
-/*******************************************************************************
- * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
- ******************************************************************************/
-
-/*******************************************************************************
- * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
- ******************************************************************************/
-
-/*******************************************************************************
- *******************************************************************************
-                        GLOBAL FUNCTION DEFINITIONS
- *******************************************************************************
- ******************************************************************************/
-void dmaInit(void)
+typedef struct 
 {
+  uint8_t   muxSource;
+  uint8_t   pitEn : 1;                // Enable period triggering
+  dma_tcd_t tcds[DMA_SGA_TCD_COUNT] __attribute__ ((aligned(32)));;
 
-}
+  // Arbitration configurations
+  uint8_t   fpArb : 1;                // Enable fixed-priority arbitration (Otherwise )
+  uint8_t   ecp : 1;                  // Enable preemption by a higher priority channel
+  uint8_t   dpa : 1;                  // Disable channel from suspending lower priority channel
+  uint8_t   priority;                 // For fixed-priority arbitrarion, choose priority
+} dma_sga_channel_cfg_t;
+
 /*******************************************************************************
- *******************************************************************************
-                        LOCAL FUNCTION DEFINITIONS
- *******************************************************************************
+ * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
 /*******************************************************************************
- *******************************************************************************
-						            INTERRUPT SERVICE ROUTINES
- *******************************************************************************
+ * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
-__ISR__ DMA0_IRQHandler(void)
-{
-  uint16_t status = DMA0->INT;
 
-  if (status & (DMA_INT_INT0_MASK << DACDMA_DMA_CHANNEL))
-  {
-    // Clear flag
-    DMA0->INT = (DMA_INT_INT0_MASK << DMA_CHANNEL);
+/**
+ * @brief Initializes the eDMA and DMAMUX peripherals
+ */ 
+void dmasgaInit(void);
 
-    /* Completed major loop */
-    context.currentFrame = !context.currentFrame;   // Ping pong buffer switch  
+/**
+ * @brief DMA channel configuration
+ * @param channel DMA channel 
+ * @param config
+ */ 
+void dmasgaChannelConfig(dma_channel_t channel, dma_sga_channel_cfg_t config);
 
-    if (context.loop)
-    {
-      context.framesCopied = ( context.framesCopied + 1 ) % context.totalFrames;
-      if (context.updateCallback)
-      {
-        context.updateCallback(context.frames[!context.currentFrame], context.framesCopied + 1); // Reload buffer
-      }
-    }
-    else
-    {
-      context.framesCopied = context.framesCopied + 1;
-      if (context.framesCopied < (context.totalFrames - 1))
-      {
-        if (context.updateCallback)
-        {
-          context.updateCallback(context.frames[!context.currentFrame], context.framesCopied + 1); // Reload buffer
-        }
-      }
-      else if (context.framesCopied == (context.totalFrames - 1) )
-      {
-		// Disable Scatter and Gather operation to prevent one extra request
-    	context.tcds[!context.currentFrame].CSR = ( context.tcds[!context.currentFrame].CSR & ~DMA_CSR_ESG_MASK ) | DMA_CSR_ESG(0);
-        context.tcds[!context.currentFrame].DLAST_SGA = 0;
-      }
-      else if (context.framesCopied == context.totalFrames)
-      {
-        ftmPwmSetEnable(context.ftmInstance, context.ftmChannel, false);
-        ftmStop(context.ftmInstance);
-      }
-    } 
-  }
-}
+/**
+ * @brief Registers callback to be called on Major Loop interrupt request
+ * @param channel   DMA channel 
+ * @param callback  
+ */ 
+void dmasgaOnMajorLoop(dma_channel_t channel, dma_sga_callback_t callback);
 
-/******************************************************************************/
+/*******************************************************************************
+ ******************************************************************************/
+
+
+#endif /* MCAL_DMA_DMA_H_ */

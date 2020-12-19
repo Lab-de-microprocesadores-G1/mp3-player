@@ -8,20 +8,20 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-// #include "superpower.h"
+#include "dac_dma.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-// #define SOME_CONSTANT    20
-// #define MACRO(x)         (x)
+#define FRAME_SIZE	1024
+#define SAMPLE_RATE	44100
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-// static void privateFunction(void);
+static void updateCallback(uint16_t * frameToUpdate);
 
 /*******************************************************************************
  * VARIABLES TYPES DEFINITIONS
@@ -33,7 +33,7 @@
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-// static int myVar;
+static uint16_t buffers[2][FRAME_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -44,13 +44,19 @@
 /* Called once at the beginning of the program */
 void appInit (void)
 {
-    // Application initialisation, drivers, etc...
+    dacdmaInit();
+
+    dacdmaSetBuffers(buffers[0], buffers[1], FRAME_SIZE, updateCallback);
+
+    dacdmaSetFreq(SAMPLE_RATE);
+
+    dacdmaStart();
 }
 
 /* Called repeatedly in an infinite loop */
 void appRun (void)
 {
-    // Application iterative tasks, every loop runs this function
+
 }
 
 /*******************************************************************************
@@ -58,6 +64,19 @@ void appRun (void)
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
+
+static void updateCallback(uint16_t * frameToUpdate)
+{
+	static uint8_t i = 0;
+	if (++i == 10)
+	{
+		i = 0;
+	}
+	for (uint8_t j = 0 ; j < FRAME_SIZE ; j++)
+	{
+		frameToUpdate[j] = i * 100 + j;
+	}
+}
 
 
 /*******************************************************************************
