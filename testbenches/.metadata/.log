@@ -10607,3 +10607,218 @@ java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.Sched
 
 !ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 02:09:28.556
 !MESSAGE Unable to find Trace Service for '(gdb[54].proc[42000].threadGroup[i1],gdb[54].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 02:51:15.023
+!MESSAGE Using manifest XSD 'rsc/manifest_v3.3.xsd' for manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 02:51:15.243
+!MESSAGE Using SDK manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:07:32.586
+!MESSAGE Unable to find Trace Service for '(gdb[55].proc[42000].threadGroup[i1],gdb[55].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:07:32.621
+!MESSAGE Unable to find Trace Service for '(gdb[55].proc[42000].threadGroup[i1],gdb[55].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:08:38.262
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@b31cf9): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #15 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@62554f): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #15 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@ede7c6): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #15 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@62554f): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #15 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:08:38.262
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #15 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@62554f): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #15
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:08:38.262
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@ede7c6): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #15 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@62554f): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #15 null' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:08:54.842
+!MESSAGE Unable to find Trace Service for '(gdb[56].proc[42000].threadGroup[i1],gdb[56].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:08:54.892
+!MESSAGE Unable to find Trace Service for '(gdb[56].proc[42000].threadGroup[i1],gdb[56].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:33.987
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@1d8c336): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #5 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@887fb2): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #5 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@da4a70): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #5 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@887fb2): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #5 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:10:33.987
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #5 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@887fb2): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #5
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:33.987
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@da4a70): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #5 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@887fb2): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #5 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.031
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.071
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.131
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.177
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.231
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:10:34.291
+!MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:10:53.832
+!MESSAGE Unable to find Trace Service for '(gdb[57].proc[42000].threadGroup[i1],gdb[57].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:10:53.892
+!MESSAGE Unable to find Trace Service for '(gdb[57].proc[42000].threadGroup[i1],gdb[57].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.711
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@5965c9): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e424b5): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@e2352c): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e424b5): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:16:25.711
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e424b5): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.711
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@e2352c): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e424b5): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.761
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@a11a2' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.821
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@964ac9' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.876
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@b3a62b' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.921
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@1984c1a' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:25.961
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@18eec50' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:16:26.016
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@18917f5' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:16:43.807
+!MESSAGE Unable to find Trace Service for '(gdb[58].proc[42000].threadGroup[i1],gdb[58].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:16:43.861
+!MESSAGE Unable to find Trace Service for '(gdb[58].proc[42000].threadGroup[i1],gdb[58].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:39.956
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@ef956f): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@180286d): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@aa1097): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@180286d): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:24:39.956
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@180286d): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:39.956
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@aa1097): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@180286d): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.006
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.056
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.101
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.146
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.201
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.251
+!MESSAGE Request for monitor: 'ALL_RUNNING' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.311
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.311
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@366c92' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.311
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@658c09): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@366c92' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.356
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.356
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@18a1f21' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.356
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@c51359): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@18a1f21' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.411
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.411
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@f3b6c8' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.411
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@aee459): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@f3b6c8' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.461
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.461
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@b87d7a' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.461
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@9f0b01): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@b87d7a' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.501
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.501
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@3730dc' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.501
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@4c55f3): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@3730dc' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.546
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.546
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@cf63df' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.546
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@5a77ea): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@cf63df' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.591
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.591
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@fd7c99' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.591
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1b255b9): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@fd7c99' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.637
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.637
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@421132' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.637
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1073fa6): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@421132' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.691
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.691
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@11d4665' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.691
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@a984d6): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@11d4665' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.741
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.741
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@2c872d' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.741
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@17476c0): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@2c872d' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.791
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.791
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@4b293a' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.791
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1df289a): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@4b293a' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.856
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.856
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@69e514' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:24:40.856
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1187847): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@69e514' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:30:19.076
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@e88142): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #11 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@f889e9): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #11 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@adf73f): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #11 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@f889e9): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #11 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:30:19.076
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #11 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@f889e9): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #11
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:30:19.076
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@adf73f): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #11 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@f889e9): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #11 null' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:30:32.711
+!MESSAGE Unable to find Trace Service for 'gdb[61].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:30:32.760
+!MESSAGE Unable to find Trace Service for 'gdb[61].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:30:35.451
+!MESSAGE Unable to find Trace Service for '(gdb[61].proc[42000].threadGroup[i1],gdb[61].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:30:35.491
+!MESSAGE Unable to find Trace Service for '(gdb[61].proc[42000].threadGroup[i1],gdb[61].proc[42000].OSthread[1]).thread[1].frame[0]'

@@ -296,12 +296,12 @@ void sdhcReset(sdhc_reset_t reset)
 	}
 }
 
-uint16_t sdhcGetMaximumBlockCount(void)
+uint16_t sdhcGetBlockCount(void)
 {
 	return SDHC_BLKATTR_BLKCNT_MASK >> SDHC_BLKATTR_BLKCNT_SHIFT;
 }
 
-uint16_t sdhcGetMaximumBlockSize(void)
+uint16_t sdhcGetBlockSize(void)
 {
 	return SDHC_MAXIMUM_BLOCK_SIZE;
 }

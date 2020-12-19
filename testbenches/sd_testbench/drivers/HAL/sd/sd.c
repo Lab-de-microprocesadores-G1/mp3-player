@@ -68,19 +68,30 @@
 #define SD_CSD_READ_BL_LEN_SHIFT			(80)
 #define SD_CSD_C_SIZE_SHIFT					(62)
 #define SD_CSD_C_SIZE_MULT_SHIFT			(47)
+#define SD_CSD_SECTOR_SIZE_SHIFT			(39)
 #define SD_CSD_WRITE_BL_LEN_SHIFT			(22)
 #define SD_CSD_FILE_FORMAT_GRP_SHIFT		(15)
 #define SD_CSD_FILE_FORMAT_SHIFT			(10)
+
+#define SD_CSD_C_SIZE_MULT_MASK				(0x7)
+#define SD_CSD_SECTOR_SIZE_MASK				(0x7F)
+#define SD_CSD_READ_BL_LEN_MASK				(0xF)
+#define SD_CSD_WRITE_BL_LEN_MASK			(0xF)
+#define SD_CSD_FILE_FORMAT_GRP_MASK			(0x1)
+#define SD_CSD_FILE_FORMAT_MASK				(0x3)
 
 #define SD_CSD_CSD_STRUCTURE_BITS			(2)
 #define SD_CSD_READ_BL_LEN_BITS				(4)
 #define SD_CSD_C_SIZE_BITS					(12)
 #define SD_CSD_C_SIZE_MULT_BITS				(3)
+#define SD_CSD_SECTOR_SIZE_BITS				(7)
 #define SD_CSD_WRITE_BL_LEN_BITS			(4)
 #define SD_CSD_FILE_FORMAT_GRP_BITS			(1)
 #define SD_CSD_FILE_FORMAT_BITS				(2)
 
-#define SD_CSD_OFFSET						(8)
+#define SD_CSD_OFFSET_ENABLE				(true)
+#define SD_CSD_OFFSET_SHIFT					(8)
+#define SD_CSD_OFFSET_MASK					(0xFF)
 
 /* SD Set Bus Width Parameters */
 #define SD_SET_BUS_WIDTH_1BIT				(0b00)
@@ -212,12 +223,19 @@ typedef enum {
 
 // SD driver context variables
 typedef struct {
+	// General variables
+	sd_state_t		currentState;
+	uint32_t		blockSize;
+	uint32_t		blockCount;
+
 	// Registers
-	uint16_t		rca;
-	uint32_t		ocr;
-	uint32_t		cid[4];
-	uint32_t 		csd[4];
-	uint32_t		scr[2];
+	struct {
+		uint16_t		rca;
+		uint32_t		ocr;
+		uint32_t		cid[4];
+		uint32_t 		csd[4];
+		uint32_t		scr[2];
+	} registers;
 
 	// Buffer for read/write
 	uint32_t		buffer[SD_MAX_BUFFER_SIZE];
@@ -248,6 +266,21 @@ typedef struct {
 		uint8_t 		uhsSpeedGrade;
 		uint8_t   		uhsAuSize;
 	} sdStatus;
+
+	// CSD Decoded Fields
+	struct {
+		uint32_t		deviceSize;
+		uint32_t		deviceSizeMultiplier;
+		uint32_t		fileFormat;
+		uint32_t		fileFormatGroup;
+		uint32_t		readBlockLength;
+		uint32_t		writeBlockLength;
+		uint32_t		eraseSectorSize;
+	} csd;
+
+	// Callbacks
+	sd_callback_t		onCardInserted;
+	sd_callback_t		onCardRemoved;
 } sd_context_t;
 
 /*******************************************************************************
@@ -272,10 +305,32 @@ static void sdContextSetCardStatus(uint32_t cardStatus);
 static void sdContextSetSdStatus(uint32_t* sdStatus);
 
 /*
+ * @brief Set the CSD register in the internal context, and decodes the most important data.
+ * @param csd			Current register's value
+ */
+static void sdContextSetCsd(uint32_t csd[4]);
+
+/*
+ * @brief Set the SCR register in the internal context, and decodes the most important data.
+ * @param scr			Current register's value
+ */
+static void sdContextSetScr(uint32_t scr[2]);
+
+/*
  * @brief Sends a command to the sd card to receive its card status and updates the
  * 		  internal flags.
  */
 static bool sdReadCardStatus(void);
+
+/*
+ * @brief Callback to be called when the card has been inserted
+ */
+static void sdCardInsertedHandler(void);
+
+/*
+ * @brief Callback to be called when the card has been removed
+ */
+static void sdCardRemovedHandler(void);
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
@@ -308,9 +363,12 @@ void sdInit(void)
 			.writeWatermarkLevel = 128
 		};
 		sdhcInit(config);
+		sdhcOnCardInserted(sdCardInsertedHandler);
+		sdhcOnCardRemoved(sdCardRemovedHandler);
 
 		// Set the already initialized flag, prevents multiple initializations
 		context.alreadyInitialized = true;
+		context.currentState = sdhcIsCardInserted() ? SD_STATE_CONNECTED : SD_STATE_NOT_CONNECTED;
 	}
 }
 
@@ -375,7 +433,7 @@ bool sdCardInit(void)
 					if (command.response[0] & SD_OCR_STATUS_MASK)
 					{
 						// Storing in the internal context, the OCR register of the SD card connected
-						context.ocr = command.response[0];
+						context.registers.ocr = command.response[0];
 						success = true;
 					}
 				}
@@ -394,10 +452,10 @@ bool sdCardInit(void)
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			// Storing in the internal context, the CID register of the SD card connected
-			context.cid[0] = command.response[0];
-			context.cid[1] = command.response[1];
-			context.cid[2] = command.response[2];
-			context.cid[3] = command.response[3];
+			context.registers.cid[0] = command.response[0];
+			context.registers.cid[1] = command.response[1];
+			context.registers.cid[2] = command.response[2];
+			context.registers.cid[3] = command.response[3];
 			success = true;
 		}
 	}
@@ -413,7 +471,7 @@ bool sdCardInit(void)
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			// Storing in the internal context, the RCA register of the SD card connected
-			context.rca = (command.response[0] & SDHC_R6_RCA_MASK) >> SDHC_R6_RCA_SHIFT;
+			context.registers.rca = (command.response[0] & SDHC_R6_RCA_MASK) >> SDHC_R6_RCA_SHIFT;
  			success = true;
 		}
 	}
@@ -423,16 +481,13 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_SEND_CSD;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R2;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			// Storing in the internal context, the CSD register of the SD card connected
-			context.csd[0] = command.response[0];
-			context.csd[1] = command.response[1];
-			context.csd[2] = command.response[2];
-			context.csd[3] = command.response[3];
+			sdContextSetCsd(command.response);
 			success = true;
 		}
 	}
@@ -442,7 +497,7 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_SELECT_CARD;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1b;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
@@ -462,13 +517,13 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_APP_CMD;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			command.index = SD_SEND_SCR;
-			command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+			command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 			command.responseType = SDHC_RESPONSE_TYPE_R1;
 			data.blockCount = 1;
@@ -478,8 +533,7 @@ bool sdCardInit(void)
 			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 			{
 				// Read SCR value
-				context.scr[0] = context.buffer[0];
-				context.scr[1] = context.buffer[1];
+				sdContextSetScr(context.buffer);
 				success = true;
 			}
 		}
@@ -490,7 +544,7 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_APP_CMD;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
@@ -527,7 +581,7 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_SEND_STATUS;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
@@ -546,13 +600,13 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_APP_CMD;
-		command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+		command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			command.index = SD_SD_STATUS;
-			command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+			command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 			command.responseType = SDHC_RESPONSE_TYPE_R1;
 			data.blockCount = 1;
@@ -568,7 +622,23 @@ bool sdCardInit(void)
 		}
 	}
 
+	// When the sd card initialization has finished with success
+	// the internal state of the context must change.
+	if (success)
+	{
+		context.currentState = SD_STATE_INITIALIZED;
+	}
+	else
+	{
+		context.currentState = SD_STATE_ERROR;
+	}
+
 	return success;
+}
+
+sd_state_t sdGetState(void)
+{
+	return context.currentState;
 }
 
 bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount)
@@ -584,7 +654,7 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount)
 	// Get the maximum block length supported but either the SD card or the
 	// lower layer of software/hardware. The maximum block count is measured
 	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
-	uint32_t maximumBlockCount = sdGetMaximumReadBlockLength() < sdhcGetMaximumBlockCount() ? sdGetMaximumReadBlockLength() : sdhcGetMaximumBlockCount();
+	uint32_t maximumBlockCount = context.csd.readBlockLength < sdhcGetBlockCount() ? context.csd.readBlockLength : sdhcGetBlockCount();
 	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
 
 	// Iterate sending blocks using the maximum amount available in the
@@ -651,8 +721,8 @@ bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount)
 
 	// Get the maximum block length supported but either the SD card or the
 	// lower layer of software/hardware. The maximum block count is measured
-	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
-	uint32_t maximumBlockCount = sdGetMaximumWriteBlockLength() < sdhcGetMaximumBlockCount() ? sdGetMaximumWriteBlockLength() : sdhcGetMaximumBlockCount();
+	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed
+	uint32_t maximumBlockCount = context.csd.writeBlockLength < sdhcGetBlockCount() ? context.csd.writeBlockLength : sdhcGetBlockCount();
 	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
 
 	// Iterate sending blocks using the maximum amount available in the
@@ -785,61 +855,48 @@ bool sdIsCardInserted(void)
 
 uint64_t sdGetSize(void)
 {
-	uint64_t blockLen;
-	uint64_t blockCount;
-	uint64_t cSizeMult;
-	uint64_t cSize;
-	uint64_t mult;
+	uint64_t blockCount = (context.csd.deviceSize + 1) * (1 << (2 + context.csd.deviceSizeMultiplier));
+	return context.csd.readBlockLength * blockCount;
+}
 
-	cSize = ((context.csd[1]  >> (SD_CSD_C_SIZE_SHIFT - SD_CSD_OFFSET - 1 * 32)) & 0x3FF) | ((context.csd[2] & 0x3) << 10);
-	cSizeMult = (context.csd[1]  >> (SD_CSD_C_SIZE_MULT_SHIFT - SD_CSD_OFFSET - 1 * 32)) & 0x7;
+uint32_t sdGetEraseSize(void)
+{
+	return context.csd.eraseSectorSize;
+}
 
-	mult = 1 << (2 + cSizeMult);
-	blockLen = sdGetMaximumReadBlockLength();
-	blockCount = (cSize + 1) * mult;
+uint32_t sdGetBlockSize(void)
+{
+	return context.blockSize;
+}
 
-	return blockLen * blockCount;
+uint32_t sdGetBlockCount(void)
+{
+	return context.blockCount;
 }
 
 sd_file_format_t sdGetFileFormat(void)
 {
 	sd_file_format_t result;
-	uint8_t fileFormatGroup;
-	uint8_t fileFormat;
 
-	fileFormatGroup = ((context.csd[0] >> (SD_CSD_FILE_FORMAT_GRP_SHIFT - SD_CSD_OFFSET)) & 0x1);
-	fileFormat = (context.csd[0] >> (SD_CSD_FILE_FORMAT_SHIFT - SD_CSD_OFFSET)) & 0x3;
-
-	if (fileFormatGroup)
+	if (context.csd.fileFormatGroup)
 	{
 		result = SD_FF_RESERVED;
 	}
 	else
 	{
-		result = fileFormat;
+		result = context.csd.fileFormat;
 	}
 
 	return result;
 }
-
-uint16_t sdGetMaximumReadBlockLength(void)
-{
-	return 1 << ((context.csd[2]  >> (SD_CSD_READ_BL_LEN_SHIFT - SD_CSD_OFFSET - 2 * 32)) & 0xF);
-}
-
-uint16_t sdGetMaximumWriteBlockLength(void)
-{
-	return 1 << ((context.csd[0] >> (SD_CSD_WRITE_BL_LEN_SHIFT - SD_CSD_OFFSET - 0 * 32)) & 0xF);
-}
-
 void sdOnCardInserted(sd_callback_t callback)
 {
-	sdhcOnCardInserted(callback);
+	context.onCardInserted = callback;
 }
 
 void sdOnCardRemoved(sd_callback_t callback)
 {
-	sdhcOnCardRemoved(callback);
+	context.onCardRemoved = callback;
 }
 
 /*******************************************************************************
@@ -860,7 +917,7 @@ static void sdContextSetSdStatus(uint32_t* sdStatus)
 {
     context.sdStatus.busWidth = (uint8_t)((sdStatus[0U] & 0xC0000000U) >> 30U);                                       		/* 511-510 */
     context.sdStatus.securedMode = (uint8_t)((sdStatus[0U] & 0x20000000U) >> 29U);                                     		/* 509 */
-    context.sdStatus.sdCardType = (uint16_t)((sdStatus[0U] & 0x0000FFFFU));                                             		/* 495-480 */
+    context.sdStatus.sdCardType = (uint16_t)((sdStatus[0U] & 0x0000FFFFU));                                             	/* 495-480 */
     context.sdStatus.protectedSize = sdStatus[1U];                                                                    		/* 479-448 */
     context.sdStatus.speedClass = (uint8_t)((sdStatus[2U] & 0xFF000000U) >> 24U);                                     		/* 447-440 */
     context.sdStatus.performanceMove = (uint8_t)((sdStatus[2U] & 0x00FF0000U) >> 16U);                                		/* 439-432 */
@@ -872,12 +929,57 @@ static void sdContextSetSdStatus(uint32_t* sdStatus)
     context.sdStatus.uhsAuSize = ((uint8_t)((sdStatus[3U] & 0x0000FF00U) >> 8U)) & 0xFU;                              		/* 395-392 */
 }
 
+static void sdContextSetCsd(uint32_t csd[4])
+{
+	// The CSD register has 128 bits, but the least significative byte is reserved so
+	// in some SD cards there is an offset when reading this register. So, in that case
+	// a transformation must be applied.
+	if (SD_CSD_OFFSET_ENABLE)
+	{
+		context.registers.csd[0] = (csd[0] << SD_CSD_OFFSET_SHIFT);
+		context.registers.csd[1] = (csd[1] << SD_CSD_OFFSET_SHIFT) | ((csd[0] >> (32 - SD_CSD_OFFSET_SHIFT)) & SD_CSD_OFFSET_MASK);
+		context.registers.csd[2] = (csd[2] << SD_CSD_OFFSET_SHIFT) | ((csd[1] >> (32 - SD_CSD_OFFSET_SHIFT)) & SD_CSD_OFFSET_MASK);
+		context.registers.csd[3] = (csd[3] << SD_CSD_OFFSET_SHIFT) | ((csd[2] >> (32 - SD_CSD_OFFSET_SHIFT)) & SD_CSD_OFFSET_MASK);
+	}
+	else
+	{
+		context.registers.csd[0] = csd[0];
+		context.registers.csd[1] = csd[1];
+		context.registers.csd[2] = csd[2];
+		context.registers.csd[3] = csd[3];
+	}
+
+	// Decoding CSD fields from the register read
+	context.csd.eraseSectorSize = ((context.registers.csd[1] >> (SD_CSD_SECTOR_SIZE_SHIFT - 1 * 32)) & 0x7F) + 1;
+	context.csd.deviceSize =  ((context.registers.csd[2] & 0x3FF) << 2) | ((context.registers.csd[1] >> (SD_CSD_C_SIZE_SHIFT - 1 * 32)) & 0x3);
+	context.csd.deviceSizeMultiplier = (context.registers.csd[1]  >> (SD_CSD_C_SIZE_MULT_SHIFT - 1 * 32)) & 0x7;
+	context.csd.fileFormatGroup = ((context.registers.csd[0] >> SD_CSD_FILE_FORMAT_GRP_SHIFT) & SD_CSD_FILE_FORMAT_GRP_MASK);
+	context.csd.fileFormat = (context.registers.csd[0] >> SD_CSD_FILE_FORMAT_SHIFT) & SD_CSD_FILE_FORMAT_MASK;
+	context.csd.readBlockLength = 1 << ((context.registers.csd[2]  >> (SD_CSD_READ_BL_LEN_SHIFT - 2 * 32)) & SD_CSD_READ_BL_LEN_MASK);
+	context.csd.writeBlockLength = 1 << ((context.registers.csd[0] >> (SD_CSD_WRITE_BL_LEN_SHIFT - 0 * 32)) & SD_CSD_WRITE_BL_LEN_MASK);
+
+    context.blockCount = ((context.csd.deviceSize + 1U) << (context.csd.deviceSizeMultiplier + 2U));
+    context.blockSize = (1U << (context.csd.readBlockLength));
+    if (context.blockSize != SD_BLOCK_LENGTH)
+    {
+        context.blockCount = (context.blockCount * context.blockSize);
+        context.blockSize = SD_BLOCK_LENGTH;
+        context.blockCount = (context.blockCount / context.blockSize);
+    }
+}
+
+static void sdContextSetScr(uint32_t scr[2])
+{
+	context.registers.scr[0] = scr[0];
+	context.registers.scr[1] = scr[1];
+}
+
 static bool sdReadCardStatus(void)
 {
 	sdhc_command_t command;
 	bool success = false;
 	command.index = SD_SEND_STATUS;
-	command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+	command.argument = context.registers.rca << SDHC_R6_RCA_SHIFT;
 	command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 	command.responseType = SDHC_RESPONSE_TYPE_R1;
 	if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
@@ -886,6 +988,18 @@ static bool sdReadCardStatus(void)
 		success = true;
 	}
 	return success;
+}
+
+static void sdCardInsertedHandler(void)
+{
+	context.currentState = SD_STATE_CONNECTED;
+	context.onCardInserted();
+}
+
+static void sdCardRemovedHandler(void)
+{
+	context.currentState = SD_STATE_NOT_CONNECTED;
+	context.onCardRemoved();
 }
 
 /*******************************************************************************

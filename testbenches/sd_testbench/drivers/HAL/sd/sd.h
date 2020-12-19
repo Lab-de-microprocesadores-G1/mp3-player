@@ -24,6 +24,15 @@
  ******************************************************************************/
 
 typedef enum {
+	SD_STATE_NOT_CONNECTED,	// No SD Card connected to the socket
+	SD_STATE_CONNECTED,		// SD Card connected to the socket, but not initialized
+	SD_STATE_INITIALIZED,	// SD Card has been initialized correctly
+	SD_STATE_ERROR,			// An error occurred while using the SD Card
+
+	SD_STATE_COUNT
+} sd_state_t;
+
+typedef enum {
 	SD_FF_HARD_DISK,		// Hard disk-like file system with partition table
 	SD_FF_DOS_FAT,			// DOS FAT (floppy-like) with boot sector only (no partition table)
 	SD_FF_UNIVERSAL,		// Universal File Format
@@ -33,7 +42,7 @@ typedef enum {
 	SD_FF_COUNT
 } sd_file_format_t;
 
-typedef void (sd_callback_t)	(void);
+typedef void (*sd_callback_t)	(void);
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -58,6 +67,11 @@ void sdInit(void);
  * @returns Whether it could initialize the card or not.
  */
 bool sdCardInit(void);
+
+/*
+ * @brief	Returns the current state of the sd card driver.
+ */
+sd_state_t sdGetState(void);
 
 /*
  * @brief	Read a memory region of the sd memory card, starting in the given block address
@@ -91,28 +105,29 @@ bool sdErase(uint32_t blockNumber, uint32_t blockCount);
 bool sdIsCardInserted(void);
 
 /*
- * @brief	Returns the sd card maximum storage size, measured in bytes.
- * You must have initialized the SD card previously.
- */
-uint64_t sdGetSize(void);
-
-/*
  * @brief	Returns the SD file format.
- * You must have initialized the SD card previously.
  */
 sd_file_format_t sdGetFileFormat(void);
 
 /*
- * @brief Returns the maximum block length of a read operation, measured in bytes.
- * You must have initialized the SD card previously.
+ * @brief	Returns the sd card maximum storage size, measured in bytes.
  */
-uint16_t sdGetMaximumReadBlockLength(void);
+uint64_t sdGetSize(void);
 
 /*
- * @brief Returns the maximum block length of a write operation, measured in bytes.
- * You must have initialized the SD card previously.
+ * @brief	Returns the erase size supported by the SD card.
  */
-uint16_t sdGetMaximumWriteBlockLength(void);
+uint32_t sdGetEraseSize(void);
+
+/*
+ * @brief	Returns the block size supported by the SD card.
+ */
+uint32_t sdGetBlockSize(void);
+
+/*
+ * @brief	Returns the block count supported by the SD card.
+ */
+uint32_t sdGetBlockCount(void);
 
 /********************
  * EVENT-DRIVEN API *

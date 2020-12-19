@@ -134,12 +134,12 @@ void sdhcReset(sdhc_reset_t reset);
 /*
  * @brief Returns the maximum block count supported by the underlying hardware, measured in bytes.
  */
-uint16_t sdhcGetMaximumBlockCount(void);
+uint16_t sdhcGetBlockCount(void);
 
 /*
  * @brief Returns the maximum block size supported by the underlying hardware, measured in bytes.
  */
-uint16_t sdhcGetMaximumBlockSize(void);
+uint16_t sdhcGetBlockSize(void);
 
 /*
  * @brief Changes the clock's frequency used for the clock line in the SD bus communication

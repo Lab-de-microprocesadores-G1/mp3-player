@@ -91,6 +91,7 @@ void appRun (void)
 		{
 			if (sdCardInit())
 			{
+				uint64_t size = sdGetSize();
 				alreadyInitCard = true;
 				ledSet(LED_BLUE);
 			}
