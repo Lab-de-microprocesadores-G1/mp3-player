@@ -20,6 +20,8 @@
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
+typedef void (*dma_callback_t)(void);
+
 typedef enum
 {
   DMA_CHANNEL_0,
@@ -61,7 +63,6 @@ typedef struct
   uint8_t   enableScatterGather : 1;
   uint8_t   muxSource;
 
-  // DMA context
   dma_TCD_t tcd[DMA_TCD_COUNT];
 
 
@@ -78,7 +79,8 @@ typedef struct
  ******************************************************************************/
 
 void dmaInit(void);
-void dmaChannelConfig(dma_channel_t channel, dma_channel_cfg_t cfg )
+void dmaChannelConfig(dma_channel_t channel, dma_channel_cfg_t cfg);
+void dmaOnMajorLoop(dma_channel_t channel, dma_callback_t callback);
 /*******************************************************************************
  ******************************************************************************/
 
