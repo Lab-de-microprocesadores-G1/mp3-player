@@ -24,7 +24,6 @@
  ******************************************************************************/
 typedef enum{ 
 	KEYPAD_PRESSED,
-	KEYPAD_REALEASED,
 	KEYPAD_ROTATION_CLKW,
 	KEYPAD_ROTATION_ANTICLKW
 }keypad_ev_id_t;

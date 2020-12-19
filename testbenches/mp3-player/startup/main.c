@@ -1,41 +1,43 @@
-/********************************************************************************
-  @file     App.c
-  @brief    Application functions
+/*******************************************************************************
+  @file     main.c
+  @brief    Main application
   @author   N. Magliola, G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
- *******************************************************************************/
+ ******************************************************************************/
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include "../drivers/MCAL/equaliser/equaliser.h"
-#include "../libs/spectral_matrix.h"
-#include "../drivers/MCAL/cfft/cfft.h"
-#include "../drivers/HAL/keypad/keypad.h"
-#include "../drivers/HAL/WS2812/WS2812.h"
+#include "hardware.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-#define FRAME_SIZE 1042
+
+
+/*******************************************************************************
+ * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
+ ******************************************************************************/
+
+
+/*******************************************************************************
+ * VARIABLES WITH GLOBAL SCOPE
+ ******************************************************************************/
+
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static void keypadCallback(keypad_events_t event);// static void privateFunction(void);
+void appInit (void);
+void appRun (void);
 
 /*******************************************************************************
- * VARIABLES TYPES DEFINITIONS
+ * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
-
-// typedef int  my_int_t;
 
 /*******************************************************************************
- * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
+ * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
-
-static keypad_events_t  keypadEv;
-static bool newKeypadEv;
 
 /*******************************************************************************
  *******************************************************************************
@@ -43,45 +45,6 @@ static bool newKeypadEv;
  *******************************************************************************
  ******************************************************************************/
 
-/* Called once at the beginning of the program */
-void appInit (void)
-{
-    eqInit(FRAME_SIZE);
-	WS2812Init();
-	keypadInit();
-	keypadSubscribe(keypadCallback);
-	cfftInit(FRAME_SIZE);
-	newKeypadEv = false;
-
-}
-
-/* Called repeatedly in an infinite loop */
-void appRun (void)
-{
-	if(newKeypadEv)
-	{
-		switch (keypadEv.source)
-		{
-			case KEYPAD_PRESSED:
-			{
-				break;
-			}
-			case KEYPAD_REALEASED:
-			{
-				break;
-			}
-			case KEYPAD_PRESSED:
-			{
-				break;
-			}
-			case KEYPAD_PRESSED:
-			{
-				break;
-			}
-		}
-		newKeypadEv = false;
-	}
-}
 
 /*******************************************************************************
  *******************************************************************************
@@ -89,12 +52,12 @@ void appRun (void)
  *******************************************************************************
  ******************************************************************************/
 
-static void keypadCallback(keypad_events_t event)
+int main (void)
 {
-	keypadEv.source = event.source;
-	keypadEv.id = event.id;
-	newKeypadEv = true;
+    hardwareInit();
+    hardwareDisableInterrupts();
+    appInit();       /* Program-specific setup */
+    hardwareEnableInterrupts();
+    __FOREVER__
+        appRun();    /* Program-specific loop  */
 }
-
-/*******************************************************************************
- ******************************************************************************/
