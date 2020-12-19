@@ -38,7 +38,7 @@ static void onButtonPressed(void);
  ******************************************************************************/
 
 static bool 	runInitCardFlag;
-static bool		readCardFlag;
+static bool		goCardFlag;
 
 static bool		alreadyInitCard;
 static uint8_t	buffer[BUFFER_SIZE];
@@ -97,10 +97,15 @@ void appRun (void)
 		}
 	}
 
-	if (readCardFlag)
+	if (goCardFlag)
 	{
-		readCardFlag = false;
-		if (sdRead((uint32_t*)buffer, 225343 * 512, 8))
+		goCardFlag = false;
+
+		for (uint32_t i = 0 ; i < 1024 ; i++)
+		{
+			buffer[i] = i % 512;
+		}
+		if (sdWrite((uint32_t*)buffer, 10 * 512, 2))
 		{
 			ledClear(LED_BLUE);
 		}
@@ -128,7 +133,7 @@ static void onButtonPressed(void)
 {
 	if (alreadyInitCard)
 	{
-		readCardFlag = true;
+		goCardFlag = true;
 	}
 	else
 	{

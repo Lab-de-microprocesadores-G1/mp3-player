@@ -183,6 +183,8 @@ enum {
 	SD_SET_BLOCKLEN			= 	SD_CMD_16,
 	SD_READ_SINGLE_BLOCK	=	SD_CMD_17,
 	SD_READ_MULTIPLE_BLOCK	=	SD_CMD_18,
+	SD_WRITE_SINGLE_BLOCK	=	SD_CMD_24,
+	SD_WRITE_MULTIPLE_BLOCK	=	SD_CMD_25,
 	SD_APP_CMD				=	SD_CMD_55,
 
 	// Application commands
@@ -571,7 +573,7 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
 	sdhc_command_t command;
 	sdhc_data_t data;
 	bool success = true;
-	uint32_t sentBlocksCount;
+	uint32_t recvBlocksCount;
 
 	// Get the maximum block length supported but either the SD card or the
 	// lower layer of software/hardware. The maximum block count is measured
@@ -596,13 +598,12 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
 		// Compute the amount of blocks to be sent in the current loop
 		if (blockCount > maximumBlockCount)
 		{
-			sentBlocksCount = maximumBlockCount;
+			recvBlocksCount = maximumBlockCount;
 		}
 		else
 		{
-			sentBlocksCount = blockCount;
+			recvBlocksCount = blockCount;
 		}
-		blockCount -= sentBlocksCount;
 
 		// If succeeds entering the ready for data status,
 		// performs a single or multiple read
@@ -616,14 +617,79 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
 			data.readBuffer = readBuffer;
 			data.writeBuffer = NULL;
 			data.blockSize = SD_BLOCK_LENGTH;
-			data.blockCount = sentBlocksCount;
-
+			data.blockCount = recvBlocksCount;
 			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 			{
 				// Move the read buffer to the next block position, and change the
 				// next address of memory to be read in the memory map of the sd card
-				readBuffer = readBuffer + sentBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
-				blockAddress = blockAddress + sentBlocksCount * SD_BLOCK_LENGTH;
+				readBuffer = readBuffer + recvBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
+				blockAddress = blockAddress + recvBlocksCount * SD_BLOCK_LENGTH;
+				blockCount -= recvBlocksCount;
+				success = true;
+			}
+		}
+	}
+
+	return success;
+}
+
+bool sdWrite(uint32_t* writeBuffer, uint32_t blockAddress, uint32_t blockCount)
+{
+	bool success = true;
+	sdhc_command_t command;
+	sdhc_data_t data;
+	uint32_t sendBlocksCount;
+
+	// Get the maximum block length supported but either the SD card or the
+	// lower layer of software/hardware. The maximum block count is measured
+	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
+	uint32_t maximumBlockCount = sdGetMaximumWriteBlockLength() < sdhcGetMaximumBlockCount() ? sdGetMaximumWriteBlockLength() : sdhcGetMaximumBlockCount();
+	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
+
+	// Iterate sending blocks using the maximum amount available in the
+	// lower layer of software and hardware, until it has sent all blocks.
+	while (blockCount && success)
+	{
+		// Wait until the SD cards enters to the ready for data
+		// by updating Card Status register and querying it via the command line
+		do
+		{
+			if (!sdReadCardStatus())
+			{
+				success = false;
+			}
+		} while(success && !context.cardStatus.readyForData);
+
+		// Compute the amount of blocks to be sent in the current loop
+		if (blockCount > maximumBlockCount)
+		{
+			sendBlocksCount = maximumBlockCount;
+		}
+		else
+		{
+			sendBlocksCount = blockCount;
+		}
+
+		// If succeeds entering the ready for data status,
+		// performs a single or multiple write
+		if (success)
+		{
+			success = false;
+			command.index = blockCount == 1 ? SD_WRITE_SINGLE_BLOCK : SD_WRITE_MULTIPLE_BLOCK;
+			command.argument = blockAddress;
+			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+			command.responseType = SDHC_RESPONSE_TYPE_R1;
+			data.readBuffer = NULL;
+			data.writeBuffer = writeBuffer;
+			data.blockSize = SD_BLOCK_LENGTH;
+			data.blockCount = sendBlocksCount;
+			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
+			{
+				// Move the write buffer to the next block position, and change the
+				// next address of memory to be read in the memory map of the sd card
+				writeBuffer = writeBuffer + sendBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
+				blockAddress = blockAddress + sendBlocksCount * SD_BLOCK_LENGTH;
+				blockCount -= sendBlocksCount;
 				success = true;
 			}
 		}
