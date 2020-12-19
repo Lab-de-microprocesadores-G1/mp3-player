@@ -54,7 +54,7 @@ typedef struct {
 
 void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness);
 
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double* brightness);
+void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness);
 
 /*******************************************************************************
  * EVENT GENERATORS INTERFACE
