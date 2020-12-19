@@ -32,6 +32,23 @@
 #include <stdio.h>
 #endif
 
+#ifdef __arm__  // for an embedded enviroment, using FatFs from chan
+#include "../fat/ff.h"				// FAT File System Library
+#include "../fat/diskio.h" 			// Disk IO Initialize SPI Mutex
+#define file_seek_absolute(file,position) f_lseek(file, position)
+#define file_seek_relative(fi,pos) f_lseek(fi,fi->fptr+pos)
+#define file_read(f,str,l,rea) f_read(f,str,(l),&(rea))
+#else
+#define file_seek_absolute(file,position) fseek (file , position , SEEK_SET)
+#define file_seek_relative(fi,pos) fseek(fi,pos,SEEK_CUR)
+#define file_read(f,str,l,rea) rea=fread(str,1,l,f)
+#define file_tell(fp) ftell(fp)
+#define file_seek_end(fp) fseek(fp, 0L, SEEK_END)
+#define file_open(fp, p, m) fp=fopen(p, m) 
+#define file_close(fp) fclose(fp)
+#endif
+
+
 /* 
  * read_ID3_info - read spesified tag to a string.
  *  example useage: 

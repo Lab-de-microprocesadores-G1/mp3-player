@@ -18,9 +18,6 @@
 #include "../id3tagParser/read_id3.h"
 #include <string.h>
 #include <stdbool.h>  
-#include <stdio.h>
-
-
 
 
 /*******************************************************************************
@@ -28,11 +25,15 @@
  ******************************************************************************/
 
 #define MP3DECODER_MODE_NORMAL  0
-#define MP3_FRAME_BUFFER_BYTES  6913                                         // MP3 buffer size (in bytes)
+#define MP3_FRAME_BUFFER_BYTES  6913            // MP3 buffer size (in bytes)
 #define DEFAULT_ID3_FIELD       "Unknown"
+#define MP3_REC_MAX_DEPTH       5
 
-#define MP3_PC_TESTBENCH
-//#define MP3_ARM_TESTBENCH
+#ifndef __arm__
+// #define MP3_PC_TESTBENCH
+#else
+#define MP3_ARM_TESTBENCH
+#endif
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -89,6 +90,9 @@ static void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixD
  */
 static void readID3Tag(void);
 
+mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded, uint8_t depth);
+
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -116,7 +120,9 @@ void MP3DecoderInit(void)
   dec.fileSize = 0;
   dec.bytesRemaining = 0;
   dec.hasID3Tag = false;
+  #ifdef MP3_PC_TESTBENCH
   printf("Decoder initialized. Buffer size is %d bytes\n", MP3_FRAME_BUFFER_BYTES);
+  #endif
 }
 
 bool MP3LoadFile(const char* filename)
@@ -127,7 +133,7 @@ bool MP3LoadFile(const char* filename)
   if(dec.fileOpened)
   {
     //f_close(&(dec.mp3File));         
-    fclose(dec.mp3File);
+    file_close(dec.mp3File);
     
     // Reset context pointers and vars 
     dec.fileOpened = false;
@@ -140,17 +146,18 @@ bool MP3LoadFile(const char* filename)
 
   // Open new file
   //FRESULT fr = f_open(&(dec.mp3File), filename, FA_READ);
-  FILE* fp = fopen(filename, "rb");
+  FIL* fp;
+  file_open(fp, filename, "rb");
 
   // If successfully opened
   if (fp)
   {
     //dec.fileSize = f_size(&(dec.mp3File));
     /* getting file size */
-    fseek(fp, 0L, SEEK_END);
-    dec.fileSize = ftell(fp); //CREO que aca juega el terminador
+    file_seek_end(fp);
+    dec.fileSize = file_tell(fp);
     dec.bytesRemaining = dec.fileSize;
-    rewind(fp);
+    file_seek_absolute(fp, 0);
 
     dec.mp3File = fp;
     dec.fileOpened = true;
@@ -202,6 +209,11 @@ bool MP3GetNextFrameData(mp3decoder_frame_data_t* data)
 
 mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded)
 {
+    return MP3GetDecodedFrameRec(outBuffer, bufferSize, samplesDecoded, 0);
+}
+
+mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded, uint8_t depth)
+{
   mp3decoder_result_t ret = MP3DECODER_NO_ERROR;    // Return value of the function
   
   #ifdef MP3_PC_TESTBENCH
@@ -209,150 +221,154 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
   printf("Buffer has %d bytes to decode\n", dec.bottom - dec.top);
   #endif
   
-  if (!dec.fileOpened)
+  if (depth < MP3_REC_MAX_DEPTH)
   {
-    ret = MP3DECODER_NO_FILE;
-  }
-  else if (dec.bytesRemaining) // check if there is remaining info to be decoded
-  {
-    #ifdef MP3_PC_TESTBENCH
-    printf("Current pointers are Head = %d - Bottom = %d\n", dec.top, dec.bottom);
-    #endif
-    
-    // scroll encoded info up in array if necessary (TESTED-WORKING)
-    if( (dec.top > 0)  && ( (dec.bottom - dec.top ) > 0) && (dec.bottom - dec.top < MP3_FRAME_BUFFER_BYTES))
-    {  
-        //memcpy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
-        memmove(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
-        dec.bottom = dec.bottom - dec.top;
-        dec.top = 0;
-        
-        #ifdef MP3_PC_TESTBENCH
-        printf("Copied %d bytes from %d to %d\n", (dec.bottom - dec.top), dec.top, 0);
-        #endif
-    }
-    else if (dec.bottom == dec.top)
-    {
-        // If arrived here, there is nothing else to do
-        #ifdef MP3_PC_TESTBENCH
-        printf("Empty buffer.\n");
-        #endif
-
-    }
-    else if (dec.bottom == MP3_DECODED_BUFFER_SIZE)
-    {
-        #ifdef MP3_PC_TESTBENCH
-        printf("Full buffer.\n");
-        #endif
-    }
-
-    // Read encoded data from file
-    flushFileToBuffer();
-    
-    // seek mp3 header beginning 
-    int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom);
-
-    if (offset >= 0)
-    {
-        //! check errors in searching for sync words (there shouldnt be)
-        dec.top += offset; // updating top pointer
-        dec.bytesRemaining -= offset;  // subtract garbage info to file size
-        
-        #ifdef MP3_PC_TESTBENCH
-        printf("Sync word found @ %d offset\n", offset);
-        #endif
-    }
-
-     //check samples in next frame (to avoid segmentation fault)
-     MP3FrameInfo nextFrameInfo;
-     int err = MP3GetNextFrameInfo(dec.helixDecoder, &nextFrameInfo, dec.mp3FrameBuffer + dec.top);
-     if (err == 0)
-     {
-        #ifdef MP3_PC_TESTBENCH
-        printf("Frame to decode has %d samples\n", nextFrameInfo.outputSamps);
-        #endif
-        if (nextFrameInfo.outputSamps > bufferSize)
-        {
-            #ifdef MP3_PC_TESTBENCH
-            printf("Out buffer isnt big enough to hold samples.\n");
-            #endif
-            return MP3DECODER_BUFFER_OVERFLOW;
-        }
-     }
-     
-    // with array organized, lets decode a frame
-    uint8_t * decPointer = dec.mp3FrameBuffer + dec.top;
-    int bytesLeft = dec.bottom - dec.top;
-    int res = MP3Decode(dec.helixDecoder, &decPointer, &(bytesLeft), outBuffer, MP3DECODER_MODE_NORMAL); //! autodecrements fileSize with bytes decoded. updated inbuf pointer, updated bytesLeft
-   
-    if(res == ERR_MP3_NONE) // if decoding successful
-    {
-      uint16_t decodedBytes = dec.bottom - dec.top - bytesLeft;
-      dec.lastFrameLength = decodedBytes;
-
-      #ifdef MP3_PC_TESTBENCH
-      printf("Frame decoded!. MP3 frame size was %d bytes\n", decodedBytes);
-      #endif
-      
-      // update header pointer and file size
-      dec.top += decodedBytes;
-      dec.bytesRemaining -= decodedBytes;
-
-      // update last frame decoded info
-      MP3GetLastFrameInfo(dec.helixDecoder, &(dec.lastFrameInfo));
-
-      // update samples decoded, just keep one channel
-      uint8_t scaler = dec.lastFrameInfo.nChans;
-      *samplesDecoded = dec.lastFrameInfo.outputSamps / scaler;
-
-      // return success code
-      ret = MP3DECODER_NO_ERROR;
-    }
-    else if (res == ERR_MP3_INDATA_UNDERFLOW || res == ERR_MP3_MAINDATA_UNDERFLOW)
-    {
-      if (dec.bytesRemaining == 0)
+      if (!dec.fileOpened)
       {
-        #ifdef MP3_PC_TESTBENCH
-        printf("[Error] Buffer underflow and file empty\n");
-        #endif
-            
-        return MP3DECODER_FILE_END;
+          ret = MP3DECODER_NO_FILE;
       }
-      #ifdef MP3_PC_TESTBENCH
-      printf("Underflow error (code %d)\n", res);
-      #endif
-      
-      // If there weren't enough bytes on the buffer, try again
-      return MP3GetDecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
-    }
-    else // if (res == -6)
-    {        
-
-      if (dec.bytesRemaining <= dec.lastFrameLength)
+      else if (dec.bytesRemaining) // check if there is remaining info to be decoded
       {
-         #ifdef MP3_PC_TESTBENCH
-         printf("Dropped frame\n");
-         #endif
-         return MP3DECODER_FILE_END;
+          #ifdef MP3_PC_TESTBENCH
+          printf("Current pointers are Head = %d - Bottom = %d\n", dec.top, dec.bottom);
+          #endif
+
+          // scroll encoded info up in array if necessary (TESTED-WORKING)
+          if ((dec.top > 0) && ((dec.bottom - dec.top) > 0) && (dec.bottom - dec.top < MP3_FRAME_BUFFER_BYTES))
+          {
+              //memcpy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
+              memmove(dec.mp3FrameBuffer, dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
+              dec.bottom = dec.bottom - dec.top;
+              dec.top = 0;
+
+              #ifdef MP3_PC_TESTBENCH
+              printf("Copied %d bytes from %d to %d\n", (dec.bottom - dec.top), dec.top, 0);
+              #endif
+          }
+          else if (dec.bottom == dec.top)
+          {
+              // If arrived here, there is nothing else to do
+              #ifdef MP3_PC_TESTBENCH
+              printf("Empty buffer.\n");
+              #endif
+
+          }
+          else if (dec.bottom == MP3_DECODED_BUFFER_SIZE)
+          {
+              #ifdef MP3_PC_TESTBENCH
+              printf("Full buffer.\n");
+              #endif
+          }
+
+          // Read encoded data from file
+          flushFileToBuffer();
+
+          // seek mp3 header beginning 
+          int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom);
+
+          if (offset >= 0)
+          {
+              //! check errors in searching for sync words (there shouldnt be)
+              dec.top += offset; // updating top pointer
+              dec.bytesRemaining -= offset;  // subtract garbage info to file size
+
+              #ifdef MP3_PC_TESTBENCH
+              printf("Sync word found @ %d offset\n", offset);
+              #endif
+          }
+
+          //check samples in next frame (to avoid segmentation fault)
+          MP3FrameInfo nextFrameInfo;
+          int err = MP3GetNextFrameInfo(dec.helixDecoder, &nextFrameInfo, dec.mp3FrameBuffer + dec.top);
+          if (err == 0)
+          {
+              #ifdef MP3_PC_TESTBENCH
+              printf("Frame to decode has %d samples\n", nextFrameInfo.outputSamps);
+              #endif
+              if (nextFrameInfo.outputSamps > bufferSize)
+              {
+                  #ifdef MP3_PC_TESTBENCH
+                  printf("Out buffer isnt big enough to hold samples.\n");
+                  #endif
+                  return MP3DECODER_BUFFER_OVERFLOW;
+              }
+          }
+
+          // with array organized, lets decode a frame
+          uint8_t* decPointer = dec.mp3FrameBuffer + dec.top;
+          int bytesLeft = dec.bottom - dec.top;
+          int res = MP3Decode(dec.helixDecoder, &decPointer, &(bytesLeft), outBuffer, MP3DECODER_MODE_NORMAL); //! autodecrements fileSize with bytes decoded. updated inbuf pointer, updated bytesLeft
+
+          if (res == ERR_MP3_NONE) // if decoding successful
+          {
+              uint16_t decodedBytes = dec.bottom - dec.top - bytesLeft;
+              dec.lastFrameLength = decodedBytes;
+
+              #ifdef MP3_PC_TESTBENCH
+              printf("Frame decoded!. MP3 frame size was %d bytes\n", decodedBytes);
+              #endif
+
+              // update header pointer and file size
+              dec.top += decodedBytes;
+              dec.bytesRemaining -= decodedBytes;
+
+              // update last frame decoded info
+              MP3GetLastFrameInfo(dec.helixDecoder, &(dec.lastFrameInfo));
+
+              // update samples decoded
+              *samplesDecoded = dec.lastFrameInfo.outputSamps;
+
+              // return success code
+              ret = MP3DECODER_NO_ERROR;
+          }
+          else if (res == ERR_MP3_INDATA_UNDERFLOW || res == ERR_MP3_MAINDATA_UNDERFLOW)
+          {
+              if (dec.bytesRemaining == 0)
+              {
+                  #ifdef MP3_PC_TESTBENCH
+                  printf("[Error] Buffer underflow and file empty\n");
+                  #endif
+
+                  return MP3DECODER_FILE_END;
+              }
+              #ifdef MP3_PC_TESTBENCH
+              printf("Underflow error (code %d)\n", res);
+              #endif
+
+              // If there weren't enough bytes on the buffer, try again
+              return MP3GetDecodedFrameRec(outBuffer, bufferSize, samplesDecoded, depth + 1); //! H-quearlo
+          }
+          else // if (res == -6)
+          {
+              if (dec.bytesRemaining <= dec.lastFrameLength)
+              {
+                  #ifdef MP3_PC_TESTBENCH
+                  printf("Dropped frame\n");
+                  #endif
+                  return MP3DECODER_FILE_END;
+              }
+              else
+              {
+                  dec.top++;
+                  dec.bytesRemaining--;
+                  #ifdef MP3_PC_TESTBENCH
+                  printf("Error: %d\n", res);
+                  #endif
+
+                  // If invalid header, try with next frame
+                  return MP3GetDecodedFrameRec(outBuffer, bufferSize, samplesDecoded, depth + 1); //! H-quearlo
+              }
+          }
       }
       else
       {
-        dec.top++;
-        dec.bytesRemaining--;
-        #ifdef MP3_PC_TESTBENCH
-        printf("Error: %d\n", res);
-        #endif
-
-        // If invalid header, try with next frame
-        return MP3GetDecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
+          ret = MP3DECODER_FILE_END;
       }
-    }
   }
   else
-  {    
-    ret = MP3DECODER_FILE_END;
+  {
+    ret = MP3DECODER_ERROR;
   }
-  
   return ret;
 
 }
@@ -385,14 +401,8 @@ void flushFileToBuffer()
     // Fill buffer with info in mp3 file
     uint8_t* dest = dec.mp3FrameBuffer + dec.bottom;    
 
-    #ifdef MP3_ARM_TESTBENCH
-    f_read(&(dec.mp3File), dest, (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0 (1 element or zero elements)
-    // H-Quearlo
-    #endif
-    
-    #ifdef MP3_PC_TESTBENCH
-    bytesRead = fread(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottom), dec.mp3File);
-    #endif
+    // bytesRead = file_read(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottom), dec.mp3File);
+    file_read(dec.mp3File, dest, (MP3_FRAME_BUFFER_BYTES - dec.bottom), bytesRead);
 
     // Update bottom pointer
     dec.bottom += bytesRead;
@@ -443,9 +453,9 @@ void readID3Tag(void)
         #ifdef MP3_PC_TESTBENCH
         printf("ID3 Track found.\n");
         printf("ID3 Tag is %d bytes long\n", tagSize);
-        fseek(dec.mp3File, tagSize, SEEK_SET);
         #endif    
 
+        file_seek_absolute(dec.mp3File, tagSize);
         dec.bytesRemaining -= tagSize; //! INIT bytesRemaining before calling this function!
 
 

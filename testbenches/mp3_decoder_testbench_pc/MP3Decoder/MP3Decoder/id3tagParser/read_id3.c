@@ -27,19 +27,6 @@
 
 #include "read_id3.h"
 
-#ifdef __arm__  // for an embedded enviroment, using FatFs from chan
-#include "../fat/ff.h"				// FAT File System Library
-#include "../fat/diskio.h" 			// Disk IO Initialize SPI Mutex
-#define file_seek_absolute(file,position) f_lseek(file, position)
-#define file_seek_relative(fi,pos) f_lseek(fi,fi->fptr+pos)
-#define file_read(f,str,l,rea) f_read(f,str,(l),&(rea))
-#else
-//#include <iostream>
-#define file_seek_absolute(file,position) fseek (file , position , SEEK_SET)
-#define file_seek_relative(fi,pos) fseek(fi,pos,SEEK_CUR)
-#define file_read(f,str,l,rea) rea=fread(str,1,l,f)
-#endif
-
 #define min(a,b) ((a>b)?(b):(a))
 
 // now used like this: 
