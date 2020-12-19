@@ -33,6 +33,18 @@
  ******************************************************************************/
 
 typedef enum {
+	SDHC_TRANSFER_MODE_CPU,		// Data transfer will be executed by the CPU host
+	SDHC_TRANSFER_MODE_ADMA1,	// Data transfer will be executed by the advanced DMA controller v1
+	SDHC_TRANSFER_MODE_ADMA2	// Data transfer will be executed by the advanced DMA controller v2
+} sdhc_transfer_mode_t;
+
+typedef enum {
+	SDHC_DATA_WIDTH_1BIT,
+	SDHC_DATA_WIDTH_4BIT,
+	SDHC_DATA_WIDTH_8BIT
+} sdhc_data_width_t;
+
+typedef enum {
 	SDHC_RESET_DATA,
 	SDHC_RESET_CMD,
 	SDHC_RESET_ALL
@@ -90,6 +102,7 @@ typedef struct {
 	uint32_t				blockSize;		// Size in bytes of each block transfered
 	uint32_t*				writeBuffer;	// Buffer with write data, used only when writing, else should be NULL
 	uint32_t*				readBuffer;		// Buffer for the read data, used only when reading, else should be NULL
+	sdhc_transfer_mode_t	transferMode;	// Data transfer mode
 } sdhc_data_t;
 
 typedef struct {
@@ -126,10 +139,26 @@ void sdhcInit(sdhc_config_t config);
 void sdhcReset(sdhc_reset_t reset);
 
 /*
+ * @brief Returns the maximum block count supported by the underlying hardware, measured in bytes.
+ */
+uint16_t sdhcGetBlockCount(void);
+
+/*
+ * @brief Returns the maximum block size supported by the underlying hardware, measured in bytes.
+ */
+uint16_t sdhcGetBlockSize(void);
+
+/*
  * @brief Changes the clock's frequency used for the clock line in the SD bus communication
  * @param frequency		New target frequency
  */
 void sdhcSetClock(uint32_t frequency);
+
+/*
+ * @brief Changes the data bus width used by the peripheral
+ * @param width			Data bus width
+ */
+void sdhcSetBusWidth(sdhc_data_width_t width);
 
 /*
  * @brief Returns the current error status of the Secure Digital Host Controller driver.
