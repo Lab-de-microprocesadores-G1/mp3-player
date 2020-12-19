@@ -19,7 +19,7 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define BUFFER_SIZE	512
+#define BUFFER_SIZE		4096
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
@@ -37,7 +37,11 @@ static void onButtonPressed(void);
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool 	initCard;
+static bool 	runInitCardFlag;
+static bool		readCardFlag;
+
+static bool		alreadyInitCard;
+static uint8_t	buffer[BUFFER_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -68,24 +72,37 @@ void appInit (void)
 	{
 		ledSet(LED_GREEN);
 
-		initCard = true;
+		runInitCardFlag = true;
 	}
 }
 
 /* Called repeatedly in an infinite loop */
 void appRun (void)
 {
-	if (initCard)
+	if (runInitCardFlag)
 	{
-		initCard = false;
+		runInitCardFlag = false;
 
-		if (sdCardInit())
+		if (!alreadyInitCard)
 		{
-			ledSet(LED_BLUE);
+			if (sdCardInit())
+			{
+				alreadyInitCard = true;
+				ledSet(LED_BLUE);
+			}
+			else
+			{
+				ledSet(LED_RED);
+			}
 		}
-		else
+	}
+
+	if (readCardFlag)
+	{
+		readCardFlag = false;
+		if (sdRead((uint32_t*)buffer, 225343 * 512, 8))
 		{
-			ledSet(LED_RED);
+			ledClear(LED_BLUE);
 		}
 	}
 }
@@ -109,7 +126,14 @@ static void onCardRemoved(void)
 
 static void onButtonPressed(void)
 {
-	initCard = true;
+	if (alreadyInitCard)
+	{
+		readCardFlag = true;
+	}
+	else
+	{
+		runInitCardFlag = true;
+	}
 }
 
 /*******************************************************************************

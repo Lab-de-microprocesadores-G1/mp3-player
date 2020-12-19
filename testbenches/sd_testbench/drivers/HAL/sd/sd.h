@@ -60,6 +60,15 @@ void sdInit(void);
 bool sdCardInit(void);
 
 /*
+ * @brief	Read a memory region of the sd memory card, starting in the given block address
+ * 			and reading the given amount of blocks. The block size is fixed to 512 bytes.
+ * @param	readBuffer		Pointer to the read buffer
+ * @param	blockAddress	Address or number of the starting block
+ * @param	blockCount		Amount of blocks to be read
+ */
+bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount);
+
+/*
  * @brief	Returns whether a card is inserted in the SD socket or not.
  */
 bool sdIsCardInserted(void);
@@ -75,6 +84,16 @@ uint64_t sdGetSize(void);
  * 			You must have initialized the SD card previously.
  */
 sd_file_format_t sdGetFileFormat(void);
+
+/*
+ * @brief Returns the maximum block length of a read operation, measured in bytes.
+ */
+uint16_t sdGetMaximumReadBlockLength(void);
+
+/*
+ * @brief Returns the maximum block length of a write operation, measured in bytes.
+ */
+uint16_t sdGetMaximumWriteBlockLength(void);
 
 /********************
  * EVENT-DRIVEN API *

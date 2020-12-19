@@ -22,7 +22,8 @@
 #define SD_VOLTAGE_RETRIES					(1000)	// Retry ACMD41 communication until the card is ready state
 #define SD_CHECK_PATTERN					(0xAA)	// Check pattern used for the CMD8 communication
 #define SD_CHECK_PATTERN_MASK				(0xFF)	// Check pattern mask
-#define SD_MAX_BUFFER_SIZE					512
+#define SD_BLOCK_LENGTH						512
+#define SD_MAX_BUFFER_SIZE					SD_BLOCK_LENGTH
 
 /* Card Status Flags */
 #define SD_CARD_STATUS_BLOCK_LEN_ERROR_SHIFT	(29)
@@ -180,6 +181,8 @@ enum {
 	SD_SEND_CSD				= 	SD_CMD_9,
 	SD_SEND_STATUS			=	SD_CMD_13,
 	SD_SET_BLOCKLEN			= 	SD_CMD_16,
+	SD_READ_SINGLE_BLOCK	=	SD_CMD_17,
+	SD_READ_MULTIPLE_BLOCK	=	SD_CMD_18,
 	SD_APP_CMD				=	SD_CMD_55,
 
 	// Application commands
@@ -263,6 +266,12 @@ static void sdContextSetCardStatus(uint32_t cardStatus);
  */
 static void sdContextSetSdStatus(uint32_t* sdStatus);
 
+/*
+ * @brief Sends a command to the sd card to receive its card status and updates the
+ * 		  internal flags.
+ */
+static bool sdReadCardStatus(void);
+
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -290,8 +299,8 @@ void sdInit(void)
 		// SDHC driver initialization
 		sdhc_config_t config = {
 			.frequency = SDHC_FREQUENCY_DEFAULT,
-			.readWatermarkLevel = 64,
-			.writeWatermarkLevel = 64
+			.readWatermarkLevel = 128,
+			.writeWatermarkLevel = 128
 		};
 		sdhcInit(config);
 
@@ -482,13 +491,13 @@ bool sdCardInit(void)
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 		{
 			command.index = SD_SET_BUS_WIDTH;
-			command.argument = SD_SET_BUS_WIDTH_1BIT;
+			command.argument = SD_SET_BUS_WIDTH_4BIT;
 			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 			command.responseType = SDHC_RESPONSE_TYPE_R1;
 			if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
 			{
 				// Switch SDHC peripheral bus width
-				sdhcSetBusWidth(SDHC_DATA_WIDTH_1BIT);
+				sdhcSetBusWidth(SDHC_DATA_WIDTH_4BIT);
 				success = true;
 			}
 		}
@@ -499,7 +508,7 @@ bool sdCardInit(void)
 	{
 		success = false;
 		command.index = SD_SET_BLOCKLEN;
-		command.argument = 512;
+		command.argument = SD_BLOCK_LENGTH;
 		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
 		command.responseType = SDHC_RESPONSE_TYPE_R1;
 		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
@@ -557,6 +566,72 @@ bool sdCardInit(void)
 	return success;
 }
 
+bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
+{
+	sdhc_command_t command;
+	sdhc_data_t data;
+	bool success = true;
+	uint32_t sentBlocksCount;
+
+	// Get the maximum block length supported but either the SD card or the
+	// lower layer of software/hardware. The maximum block count is measured
+	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
+	uint32_t maximumBlockCount = sdGetMaximumReadBlockLength() < sdhcGetMaximumBlockCount() ? sdGetMaximumReadBlockLength() : sdhcGetMaximumBlockCount();
+	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
+
+	// Iterate sending blocks using the maximum amount available in the
+	// lower layer of software and hardware, until it has sent all blocks.
+	while (blockCount && success)
+	{
+		// Wait until the SD cards enters to the ready for data
+		// by updating Card Status register and querying it via the command line
+		do
+		{
+			if (!sdReadCardStatus())
+			{
+				success = false;
+			}
+		} while(success && !context.cardStatus.readyForData);
+
+		// Compute the amount of blocks to be sent in the current loop
+		if (blockCount > maximumBlockCount)
+		{
+			sentBlocksCount = maximumBlockCount;
+		}
+		else
+		{
+			sentBlocksCount = blockCount;
+		}
+		blockCount -= sentBlocksCount;
+
+		// If succeeds entering the ready for data status,
+		// performs a single or multiple read
+		if (success)
+		{
+			success = false;
+			command.index = blockCount == 1 ? SD_READ_SINGLE_BLOCK : SD_READ_MULTIPLE_BLOCK;
+			command.argument = blockAddress;
+			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+			command.responseType = SDHC_RESPONSE_TYPE_R1;
+			data.readBuffer = readBuffer;
+			data.writeBuffer = NULL;
+			data.blockSize = SD_BLOCK_LENGTH;
+			data.blockCount = sentBlocksCount;
+
+			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
+			{
+				// Move the read buffer to the next block position, and change the
+				// next address of memory to be read in the memory map of the sd card
+				readBuffer = readBuffer + sentBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
+				blockAddress = blockAddress + sentBlocksCount * SD_BLOCK_LENGTH;
+				success = true;
+			}
+		}
+	}
+
+	return success;
+}
+
 bool sdIsCardInserted(void)
 {
 	return sdhcIsCardInserted();
@@ -566,17 +641,15 @@ uint64_t sdGetSize(void)
 {
 	uint64_t blockLen;
 	uint64_t blockCount;
-	uint64_t readBlockLen;
 	uint64_t cSizeMult;
 	uint64_t cSize;
 	uint64_t mult;
 
 	cSize = ((context.csd[1]  >> (SD_CSD_C_SIZE_SHIFT - SD_CSD_OFFSET - 1 * 32)) & 0x3FF) | ((context.csd[2] & 0x3) << 10);
 	cSizeMult = (context.csd[1]  >> (SD_CSD_C_SIZE_MULT_SHIFT - SD_CSD_OFFSET - 1 * 32)) & 0x7;
-	readBlockLen = (context.csd[2]  >> (SD_CSD_READ_BL_LEN_SHIFT - SD_CSD_OFFSET - 2 * 32)) & 0xF;
 
 	mult = 1 << (2 + cSizeMult);
-	blockLen = 1 << readBlockLen;
+	blockLen = sdGetMaximumReadBlockLength();
 	blockCount = (cSize + 1) * mult;
 
 	return blockLen * blockCount;
@@ -601,6 +674,16 @@ sd_file_format_t sdGetFileFormat(void)
 	}
 
 	return result;
+}
+
+uint16_t sdGetMaximumReadBlockLength(void)
+{
+	return 1 << ((context.csd[2]  >> (SD_CSD_READ_BL_LEN_SHIFT - SD_CSD_OFFSET - 2 * 32)) & 0xF);
+}
+
+uint16_t sdGetMaximumWriteBlockLength(void)
+{
+	return 1 << ((context.csd[0] >> (SD_CSD_WRITE_BL_LEN_SHIFT - SD_CSD_OFFSET - 0 * 32)) & 0xF);
 }
 
 void sdOnCardInserted(sd_callback_t callback)
@@ -641,6 +724,22 @@ static void sdContextSetSdStatus(uint32_t* sdStatus)
     context.sdStatus.eraseOffset = ((uint8_t)((sdStatus[3U] & 0x00FF0000U) >> 16U)) & 0x3U;                           		/* 401-400 */
     context.sdStatus.uhsSpeedGrade = (((uint8_t)((sdStatus[3U] & 0x0000FF00U) >> 8U)) & 0xF0U) >> 4U;                 		/* 399-396 */
     context.sdStatus.uhsAuSize = ((uint8_t)((sdStatus[3U] & 0x0000FF00U) >> 8U)) & 0xFU;                              		/* 395-392 */
+}
+
+static bool sdReadCardStatus(void)
+{
+	sdhc_command_t command;
+	bool success = false;
+	command.index = SD_SEND_STATUS;
+	command.argument = context.rca << SDHC_R6_RCA_SHIFT;
+	command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+	command.responseType = SDHC_RESPONSE_TYPE_R1;
+	if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+	{
+		sdContextSetCardStatus(command.response[0]);
+		success = true;
+	}
+	return success;
 }
 
 /*******************************************************************************

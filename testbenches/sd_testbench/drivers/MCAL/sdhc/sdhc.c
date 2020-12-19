@@ -38,6 +38,7 @@
 #define SDHC_D3_PCR			PORT_PCR_MUX(4)
 
 // SDHC internal parameters
+#define SDHC_MAXIMUM_BLOCK_SIZE		4096
 #define SDHC_RESET_TIMEOUT			100000
 #define SDHC_CLOCK_FREQUENCY		(96000000U)
 
@@ -55,9 +56,10 @@
 #define SDHC_TRANSFER_COMPLETED_FLAG	(SDHC_IRQSTAT_TC_MASK)
 #define SDHC_CARD_DETECTED_FLAGS		(SDHC_IRQSTAT_CINS_MASK | SDHC_IRQSTAT_CRM_MASK)
 #define SDHC_DATA_FLAG					(SDHC_IRQSTAT_BRR_MASK | SDHC_IRQSTAT_BWR_MASK)
+#define SDHC_DATA_TIMEOUT_FLAG			(SDHC_IRQSTAT_DTOE_MASK)
 #define SDHC_ERROR_FLAG					(																										 \
 											SDHC_IRQSTAT_DMAE_MASK | SDHC_IRQSTAT_AC12E_MASK | SDHC_IRQSTAT_DEBE_MASK |  SDHC_IRQSTAT_DCE_MASK | \
-											SDHC_IRQSTAT_DTOE_MASK | SDHC_IRQSTAT_CIE_MASK | SDHC_IRQSTAT_CEBE_MASK | SDHC_IRQSTAT_CCE_MASK |    \
+											SDHC_IRQSTAT_CIE_MASK | SDHC_IRQSTAT_CEBE_MASK | SDHC_IRQSTAT_CCE_MASK |    \
 											SDHC_IRQSTAT_CTOE_MASK														 \
 										)
 
@@ -294,6 +296,16 @@ void sdhcReset(sdhc_reset_t reset)
 	}
 }
 
+uint16_t sdhcGetMaximumBlockCount(void)
+{
+	return SDHC_BLKATTR_BLKCNT_MASK >> SDHC_BLKATTR_BLKCNT_SHIFT;
+}
+
+uint16_t sdhcGetMaximumBlockSize(void)
+{
+	return SDHC_MAXIMUM_BLOCK_SIZE;
+}
+
 void sdhcSetClock(uint32_t frequency)
 {
 	uint8_t sdcklfs, dvs;
@@ -429,9 +441,8 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 				flags |= SDHC_XFERTYP_DPSEL_MASK;
 				flags |= SDHC_XFERTYP_DTDSEL(data->readBuffer ? 0b1 : 0b0);
 				flags |= SDHC_XFERTYP_MSBSEL(data->blockCount > 1 ? 0b1 : 0b0);
-				flags |= SDHC_XFERTYP_AC12EN(data->readBuffer ? 0b1 : 0b0);
+				flags |= SDHC_XFERTYP_AC12EN(data->blockCount > 1 ? 0b1 : 0b0);
 				flags |= SDHC_XFERTYP_BCEN(data->blockCount > 1 ? 0b1 : 0b0);
-
 			}
 
 			// Starts the transfer process
@@ -644,17 +655,17 @@ static void SDHC_DataHandler(uint32_t status)
 	{
 		readWords = totalWords - context.transferedWords;
 	}
-	context.transferedWords += readWords;
 
 	// Execute the read/write operation
 	if (isRead)
 	{
-		sdhcReadManyWords(context.currentData->readBuffer, readWords);
+		sdhcReadManyWords(context.currentData->readBuffer + context.transferedWords, readWords);
 	}
 	else
 	{
-		sdhcWriteManyWords(context.currentData->writeBuffer, readWords);
+		sdhcWriteManyWords(context.currentData->writeBuffer + context.transferedWords, readWords);
 	}
+	context.transferedWords += readWords;
 }
 
 static void SDHC_CardDetectedHandler(void)
@@ -746,6 +757,10 @@ __ISR__ SDHC_IRQHandler(void)
 
 	// Dispatches each flag detected
 	if (status & SDHC_ERROR_FLAG)
+	{
+		SDHC_TransferErrorHandler(status & SDHC_ERROR_FLAG);
+	}
+	else if ((status & SDHC_DATA_TIMEOUT_FLAG) && !(status & SDHC_TRANSFER_COMPLETED_FLAG))
 	{
 		SDHC_TransferErrorHandler(status & SDHC_ERROR_FLAG);
 	}
