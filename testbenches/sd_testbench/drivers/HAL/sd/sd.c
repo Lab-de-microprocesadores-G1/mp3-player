@@ -548,6 +548,7 @@ bool sdCardInit(void)
 			data.blockSize = 8;
 			data.readBuffer = context.buffer;
 			data.writeBuffer = NULL;
+			data.transferMode = SDHC_TRANSFER_MODE_ADMA2;
 			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 			{
 				// Read SCR value
@@ -631,6 +632,7 @@ bool sdCardInit(void)
 			data.blockSize = 64;
 			data.readBuffer = context.buffer;
 			data.writeBuffer = NULL;
+			data.transferMode = SDHC_TRANSFER_MODE_ADMA2;
 			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 			{
 				sdContextSetCardStatus(command.response[0]);
@@ -721,6 +723,7 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount)
 						data.writeBuffer = NULL;
 						data.blockSize = SD_BLOCK_LENGTH;
 						data.blockCount = recvBlocksCount;
+						data.transferMode = SDHC_TRANSFER_MODE_ADMA2;
 						if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 						{
 							if (!context.cardStatus.addressError && !context.cardStatus.outOfRangeError)
@@ -804,6 +807,7 @@ bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount)
 						data.writeBuffer = writeBuffer;
 						data.blockSize = SD_BLOCK_LENGTH;
 						data.blockCount = sendBlocksCount;
+						data.transferMode = SDHC_TRANSFER_MODE_ADMA2;
 						if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
 						{
 							if (!context.cardStatus.addressError && !context.cardStatus.outOfRangeError)

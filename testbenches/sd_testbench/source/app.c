@@ -91,7 +91,7 @@ void appRun (void)
 		// Tests writing a file
 		if (fr == FR_OK)
 		{
-			fr = f_printf(&file, "Hello World!");
+			fr = f_printf(&file, "Hello World! JeJe, with ADMA");
 		}
 
 		// Tests closing a file

@@ -1,4 +1,4 @@
-/*******************************************************************************
+	/*******************************************************************************
   @file     sdhc.c
   @brief    Secure Digital Host Controller peripheral driver
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
@@ -63,12 +63,89 @@
 											SDHC_IRQSTAT_CTOE_MASK														 \
 										)
 
+// SDHC ADMA 1 descriptors
+#define SDHC_ADMA1_ADDRESS_SHIFT	(12)
+#define SDHC_ADMA1_LENGTH_SHIFT		(12)
+#define SDHC_ADMA1_ACT2_SHIFT		(5)
+#define SDHC_ADMA1_ACT1_SHIFT		(4)
+#define SDHC_ADMA1_ACTIVITY_SHIFT		SDHC_ADMA1_ACT1_SHIFT
+#define SDHC_ADMA1_INT_SHIFT		(2)
+#define SDHC_ADMA1_END_SHIFT		(1)
+#define SDHC_ADMA1_VALID_SHIFT		(0)
+
+#define SDHC_ADMA1_ADDRESS_MASK		(0xFFFFF << SDHC_ADMA1_ADDRESS_SHIFT)
+#define SDHC_ADMA1_LENGTH_MASK		(0xFFFF << SDHC_ADMA1_LENGTH_SHIFT)
+#define SDHC_ADMA1_ACT2_MASK		(0x1 << SDHC_ADMA1_ACT2_SHIFT)
+#define SDHC_ADMA1_ACT1_MASK		(0x1 << SDHC_ADMA1_ACT1_SHIFT)
+#define SDHC_ADMA1_ACTIVITY_MASK		(SDHC_ADMA1_ACT2_MASK | SDHC_ADMA1_ACT1_MASK)
+#define SDHC_ADMA1_INT_MASK			(0x1 << SDHC_ADMA1_INT_SHIFT)
+#define SDHC_ADMA1_END_MASK			(0x1 << SDHC_ADMA1_END_SHIFT)
+#define SDHC_ADMA1_VALID_MASK		(0x1 << SDHC_ADMA1_VALID_SHIFT)
+
+#define SDHC_ADMA1_ADDRESS(x)		(((x) << SDHC_ADMA1_ADDRESS_SHIFT) & SDHC_ADMA1_ADDRESS_MASK)
+#define SDHC_ADMA1_LENGTH(x)		(((x) << SDHC_ADMA1_LENGTH_SHIFT) & SDHC_ADMA1_LENGTH_MASK)
+#define SDHC_ADMA1_ACTIVITY(x)		(((x) << SDHC_ADMA1_ACTIVITY_SHIFT) & SDHC_ADMA1_ACTIVITY_MASK)
+#define SDHC_ADMA1_INT(x)			(((x) << SDHC_ADMA1_INT_SHIFT) & SDHC_ADMA1_INT_MASK)
+#define SDHC_ADMA1_END(x)			(((x) << SDHC_ADMA1_END_SHIFT) & SDHC_ADMA1_END_MASK)
+#define SDHC_ADMA1_VALID(x)			(((x) << SDHC_ADMA1_VALID_SHIFT) & SDHC_ADMA1_VALID_MASK)
+
+#define SDHC_ADMA1_MAX_LENGTH		(SDHC_ADMA1_LENGTH_MASK >> SDHC_ADMA1_LENGTH_SHIFT)
+#define SDHC_ADMA1_MAX_DESCRIPTORS	(10)
+#define SDHC_ADMA1_ADDRESS_ALIGN 	(4096U)
+#define SDHC_ADMA1_LENGTH_ALIGN 	(4096U)
+
+typedef uint32_t	sdhc_adma1_descriptor_t;
+
+// SDHC ADMA 2 descriptors
+#define SDHC_ADMA2_LENGTH_SHIFT		(16)
+#define SDHC_ADMA2_ACT2_SHIFT		(5)
+#define SDHC_ADMA2_ACT1_SHIFT		(4)
+#define SDHC_ADMA2_ACTIVITY_SHIFT		SDHC_ADMA2_ACT1_SHIFT
+#define SDHC_ADMA2_INT_SHIFT		(2)
+#define SDHC_ADMA2_END_SHIFT		(1)
+#define SDHC_ADMA2_VALID_SHIFT		(0)
+
+#define SDHC_ADMA2_LENGTH_MASK		(0xFFFF << SDHC_ADMA2_LENGTH_SHIFT)
+#define SDHC_ADMA2_ACT2_MASK		(0x1 << SDHC_ADMA2_ACT2_SHIFT)
+#define SDHC_ADMA2_ACT1_MASK		(0x1 << SDHC_ADMA2_ACT1_SHIFT)
+#define SDHC_ADMA2_ACTIVITY_MASK		(SDHC_ADMA2_ACT2_MASK | SDHC_ADMA2_ACT1_MASK)
+#define SDHC_ADMA2_INT_MASK			(0x1 << SDHC_ADMA2_INT_SHIFT)
+#define SDHC_ADMA2_END_MASK			(0x1 << SDHC_ADMA2_END_SHIFT)
+#define SDHC_ADMA2_VALID_MASK		(0x1 << SDHC_ADMA2_VALID_SHIFT)
+
+#define SDHC_ADMA2_LENGTH(x)		(((x) << SDHC_ADMA2_LENGTH_SHIFT) & SDHC_ADMA2_LENGTH_MASK)
+#define SDHC_ADMA2_ACTIVITY(x)		(((x) << SDHC_ADMA2_ACTIVITY_SHIFT) & SDHC_ADMA2_ACTIVITY_MASK)
+#define SDHC_ADMA2_INT(x)			(((x) << SDHC_ADMA2_INT_SHIFT) & SDHC_ADMA2_INT_MASK)
+#define SDHC_ADMA2_END(x)			(((x) << SDHC_ADMA2_END_SHIFT) & SDHC_ADMA2_END_MASK)
+#define SDHC_ADMA2_VALID(x)			(((x) << SDHC_ADMA2_VALID_SHIFT) & SDHC_ADMA2_VALID_MASK)
+
+#define SDHC_ADMA2_MAX_LENGTH		(SDHC_ADMA2_LENGTH_MASK >> SDHC_ADMA2_LENGTH_SHIFT)
+#define SDHC_ADMA2_MAX_DESCRIPTORS	(10)
+#define SDHC_ADMA2_ADDRESS_ALIGN 	(4U)
+#define SDHC_ADMA2_LENGTH_ALIGN 	(4U)
+
+typedef struct {
+	uint32_t	attributes;
+	uint32_t*	address;
+} sdhc_adma2_descriptor_t;
+
+enum {
+	SDHC_ADMA_ACTIVITY_NOP,					// No operation
+	SDHC_ADMA_ACTIVITY_SET_DATA_LENGTH,		// Set the data length, only required in the ADMA1
+	SDHC_ADMA_ACTIVITY_TRANSFER_DATA,		// Transfer data action, available in both ADMA1 and ADMA2
+	SDHC_ADMA_ACTIVITY_LINK_DESCRIPTOR		// Linking descriptors, available in both ADMA1 and ADMA2
+};
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
 // SDHC driver context variables
 typedef struct {
+	// Buffers
+	sdhc_adma1_descriptor_t	ADMA1Table[SDHC_ADMA1_MAX_DESCRIPTORS];
+	sdhc_adma2_descriptor_t	ADMA2Table[SDHC_ADMA2_MAX_DESCRIPTORS];
+
 	// Peripheral capabilities
 	bool			lowVoltageSupported;	// If the peripheral support 3.3V voltage
 	bool			suspendResumeSupported;	// If supports suspend/resume functionalities
@@ -170,6 +247,18 @@ static void sdhcWriteWord(uint32_t data);
  */
 static void sdhcWriteManyWords(uint32_t* buffer, size_t count);
 
+/*
+ * @brief Sets the ADMA1 table for the data transfer specified.
+ * @param data		Pointer to the data transfer specification
+ */
+static bool sdhcSetAdma1Table(sdhc_data_t* data);
+
+/*
+ * @brief Sets the ADMA2 table for the data transfer specified.
+ * @param data		Pointer to the data transfer specification
+ */
+static bool sdhcSetAdma2Table(sdhc_data_t* data);
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -235,16 +324,15 @@ void sdhcInit(sdhc_config_t config)
 
 		// Enable interrupts, signals and NVIC
 		SDHC->IRQSTATEN = (
-				SDHC_IRQSTATEN_CCSEN_MASK 		| SDHC_IRQSTATEN_TCSEN_MASK 	| SDHC_IRQSTATEN_BGESEN_MASK 	| SDHC_IRQSTATEN_DINTSEN_MASK 	|
-				SDHC_IRQSTATEN_BWRSEN_MASK 		| SDHC_IRQSTATEN_BRRSEN_MASK 	| SDHC_IRQSTATEN_CTOESEN_MASK 	| SDHC_IRQSTATEN_CCESEN_MASK 	|
-				SDHC_IRQSTATEN_CEBESEN_MASK 	| SDHC_IRQSTATEN_CIESEN_MASK 	| SDHC_IRQSTATEN_DTOESEN_MASK 	| SDHC_IRQSTATEN_DCESEN_MASK 	|
-				SDHC_IRQSTATEN_DEBESEN_MASK 	| SDHC_IRQSTATEN_AC12ESEN_MASK
+				SDHC_IRQSTATEN_CCSEN_MASK 		| SDHC_IRQSTATEN_TCSEN_MASK 	| SDHC_IRQSTATEN_BGESEN_MASK 	| SDHC_IRQSTATEN_DMAESEN_MASK 	|
+			 	SDHC_IRQSTATEN_CTOESEN_MASK 	| SDHC_IRQSTATEN_CCESEN_MASK 	| SDHC_IRQSTATEN_CEBESEN_MASK	| SDHC_IRQSTATEN_CIESEN_MASK	|
+				SDHC_IRQSTATEN_DTOESEN_MASK 	| SDHC_IRQSTATEN_DCESEN_MASK 	| SDHC_IRQSTATEN_DEBESEN_MASK 	| SDHC_IRQSTATEN_AC12ESEN_MASK
+
 		);
 		SDHC->IRQSIGEN = (
-				SDHC_IRQSIGEN_CCIEN_MASK 	| SDHC_IRQSIGEN_TCIEN_MASK 		| SDHC_IRQSIGEN_BGEIEN_MASK 	| SDHC_IRQSIGEN_DINTIEN_MASK 	|
-				SDHC_IRQSIGEN_BWRIEN_MASK 	| SDHC_IRQSIGEN_BRRIEN_MASK 	| SDHC_IRQSIGEN_CTOEIEN_MASK 	| SDHC_IRQSIGEN_CCEIEN_MASK 	|
-				SDHC_IRQSIGEN_CEBEIEN_MASK 	| SDHC_IRQSIGEN_CIEIEN_MASK 	| SDHC_IRQSIGEN_DTOEIEN_MASK 	| SDHC_IRQSIGEN_DCEIEN_MASK 	|
-				SDHC_IRQSIGEN_DEBEIEN_MASK 	| SDHC_IRQSIGEN_AC12EIEN_MASK
+				SDHC_IRQSIGEN_CCIEN_MASK 	| SDHC_IRQSIGEN_TCIEN_MASK 		| SDHC_IRQSIGEN_BGEIEN_MASK 	| SDHC_IRQSIGEN_CTOEIEN_MASK 	|
+				SDHC_IRQSIGEN_CCEIEN_MASK 	| SDHC_IRQSIGEN_CEBEIEN_MASK 	| SDHC_IRQSIGEN_CIEIEN_MASK 	| SDHC_IRQSIGEN_DTOEIEN_MASK 	|
+				SDHC_IRQSIGEN_DCEIEN_MASK 	| SDHC_IRQSIGEN_DEBEIEN_MASK 	| SDHC_IRQSIGEN_AC12EIEN_MASK	| SDHC_IRQSIGEN_DMAEIEN_MASK
 		);
 		NVIC_EnableIRQ(SDHC_IRQn);
 
@@ -381,6 +469,7 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 			context.transferCompleted = false;
 			context.currentError = SDHC_ERROR_OK;
 
+			// Command related configurations of the peripheral
 			if (command)
 			{
 				// Set the response length expected, and whether index and CCC check is required
@@ -426,6 +515,7 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 				SDHC->CMDARG = command->argument;
 			}
 
+			// Data related configurations of the peripheral
 			if (data)
 			{
 				// Alignment of words, the memory buffer passed by the user must be 4 byte aligned
@@ -435,7 +525,20 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 				}
 
 				// Set the block size and block count
-				SDHC->BLKATTR = SDHC_BLKATTR_BLKCNT(data->blockCount & 0xFFFF) | SDHC_BLKATTR_BLKSIZE(data->blockSize & 0xFFF);
+				SDHC->BLKATTR = (SDHC->BLKATTR & ~SDHC_BLKATTR_BLKCNT_MASK) | SDHC_BLKATTR_BLKCNT(data->blockCount);
+				SDHC->BLKATTR = (SDHC->BLKATTR & ~SDHC_BLKATTR_BLKSIZE_MASK) | SDHC_BLKATTR_BLKSIZE(data->blockSize);
+
+				// Sets the transferring mode selected by the user
+				SDHC->IRQSTATEN = (SDHC->IRQSTATEN & ~SDHC_IRQSTATEN_BRRSEN_MASK) | SDHC_IRQSTATEN_BRRSEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b1 : 0b0);
+				SDHC->IRQSTATEN = (SDHC->IRQSTATEN & ~SDHC_IRQSTATEN_BWRSEN_MASK) | SDHC_IRQSTATEN_BWRSEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b1 : 0b0);
+				SDHC->IRQSTATEN = (SDHC->IRQSTATEN & ~SDHC_IRQSTATEN_DINTSEN_MASK) | SDHC_IRQSTATEN_DINTSEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b0 : 0b1);
+				SDHC->IRQSIGEN = (SDHC->IRQSIGEN & ~SDHC_IRQSIGEN_BRRIEN_MASK) | SDHC_IRQSIGEN_BRRIEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b1 : 0b0);
+				SDHC->IRQSIGEN = (SDHC->IRQSIGEN & ~SDHC_IRQSIGEN_BWRIEN_MASK) | SDHC_IRQSIGEN_BWRIEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b1 : 0b0);
+				SDHC->IRQSIGEN = (SDHC->IRQSIGEN & ~SDHC_IRQSIGEN_DINTIEN_MASK) | SDHC_IRQSIGEN_DINTIEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b0 : 0b1);
+				if (data->transferMode != SDHC_TRANSFER_MODE_CPU)
+				{
+					SDHC->PROCTL = (SDHC->PROCTL & ~SDHC_PROCTL_DMAS_MASK) | SDHC_PROCTL_DMAS(data->transferMode);
+				}
 
 				// Set the data present flag
 				flags |= SDHC_XFERTYP_DPSEL_MASK;
@@ -443,13 +546,45 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 				flags |= SDHC_XFERTYP_MSBSEL(data->blockCount > 1 ? 0b1 : 0b0);
 				flags |= SDHC_XFERTYP_AC12EN(data->blockCount > 1 ? 0b1 : 0b0);
 				flags |= SDHC_XFERTYP_BCEN(data->blockCount > 1 ? 0b1 : 0b0);
+				flags |= SDHC_XFERTYP_DMAEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b0 : 0b1);
 			}
 
-			// Starts the transfer process
-			SDHC->XFERTYP = flags;
-			successful = true;
+			// For data transfer, when not using the CPU, additional configuration of the DMA is required
+			if (data)
+			{
+				switch (data->transferMode)
+				{
+					case SDHC_TRANSFER_MODE_ADMA1:
+						if (sdhcSetAdma1Table(data))
+						{
+							successful = true;
+						}
+						break;
+					case SDHC_TRANSFER_MODE_ADMA2:
+						if (sdhcSetAdma2Table(data))
+						{
+							successful = true;
+						}
+						break;
+					case SDHC_TRANSFER_MODE_CPU:
+					default:
+						successful = true;
+						break;
+				}
+			}
+			else
+			{
+				successful = true;
+			}
 		}
 	}
+
+	if (successful)
+	{
+		// Starts the transfer process
+		SDHC->XFERTYP = flags;
+	}
+
 	return successful;
 }
 
@@ -601,6 +736,74 @@ static void sdhcWriteManyWords(uint32_t* buffer, size_t count)
 	{
 		sdhcWriteWord(buffer[index]);
 	}
+}
+
+static bool sdhcSetAdma1Table(sdhc_data_t* data)
+{
+	uint32_t remainingBytes;
+	uint32_t dataBytes = data->blockCount * data->blockSize;
+	uint32_t entries = ((dataBytes / SDHC_ADMA1_MAX_LENGTH) + 1) << 1;
+	uint32_t* buffer = (data->writeBuffer == NULL) ? data->readBuffer : data->writeBuffer;
+	uint32_t* address = buffer;
+	bool successful = false;
+
+	if (((uint32_t)address % SDHC_ADMA1_ADDRESS_ALIGN) == 0)
+	{
+		for (uint32_t currentEntry = 0 ; currentEntry < entries ; currentEntry += 2)
+		{
+			remainingBytes = dataBytes - sizeof(uint32_t) * (address - buffer);
+			if (remainingBytes <= SDHC_ADMA1_MAX_LENGTH)
+			{
+				context.ADMA1Table[currentEntry] = SDHC_ADMA1_LENGTH(remainingBytes) | SDHC_ADMA1_ACTIVITY(SDHC_ADMA_ACTIVITY_SET_DATA_LENGTH) | SDHC_ADMA1_VALID_MASK;
+				context.ADMA1Table[currentEntry + 1] = SDHC_ADMA1_ADDRESS((uint32_t)address) | SDHC_ADMA1_ACTIVITY(SDHC_ADMA_ACTIVITY_TRANSFER_DATA) | SDHC_ADMA1_END_MASK | SDHC_ADMA1_VALID_MASK;
+			}
+			else
+			{
+				context.ADMA1Table[currentEntry] = SDHC_ADMA1_LENGTH(SDHC_ADMA1_MAX_LENGTH) | SDHC_ADMA1_ACTIVITY(SDHC_ADMA_ACTIVITY_SET_DATA_LENGTH) | SDHC_ADMA1_VALID_MASK;
+				context.ADMA1Table[currentEntry + 1] = SDHC_ADMA1_ADDRESS((uint32_t)address) | SDHC_ADMA1_ACTIVITY(SDHC_ADMA_ACTIVITY_TRANSFER_DATA) | SDHC_ADMA1_VALID_MASK;
+				address += (SDHC_ADMA2_MAX_LENGTH / sizeof(uint32_t));
+			}
+		}
+		successful = true;
+		SDHC->DSADDR = (uint32_t)0;
+		SDHC->ADSADDR = (uint32_t)context.ADMA1Table;
+	}
+
+	return successful;
+}
+
+static bool sdhcSetAdma2Table(sdhc_data_t* data)
+{
+	uint32_t remainingBytes;
+	uint32_t dataBytes = data->blockCount * data->blockSize;
+	uint32_t entries = (dataBytes / SDHC_ADMA2_MAX_LENGTH) + 1;
+	uint32_t* buffer = (data->writeBuffer == NULL) ? data->readBuffer : data->writeBuffer;
+	uint32_t* address = buffer;
+	bool successful = false;
+
+	if (((uint32_t)address % SDHC_ADMA2_ADDRESS_ALIGN) == 0)
+	{
+		for (uint32_t currentEntry = 0 ; currentEntry < entries ; currentEntry += 2)
+		{
+			remainingBytes = dataBytes - sizeof(uint32_t) * (address - buffer);
+			if (remainingBytes <= SDHC_ADMA2_MAX_LENGTH)
+			{
+				context.ADMA2Table[currentEntry].address = address;
+				context.ADMA2Table[currentEntry].attributes = SDHC_ADMA2_LENGTH(remainingBytes) | SDHC_ADMA2_ACTIVITY(SDHC_ADMA_ACTIVITY_TRANSFER_DATA) | SDHC_ADMA2_END_MASK | SDHC_ADMA2_VALID_MASK;
+			}
+			else
+			{
+				context.ADMA2Table[currentEntry].address = address;
+				context.ADMA2Table[currentEntry].attributes = SDHC_ADMA2_LENGTH(SDHC_ADMA2_MAX_LENGTH) | SDHC_ADMA2_ACTIVITY(SDHC_ADMA_ACTIVITY_TRANSFER_DATA) | SDHC_ADMA2_VALID_MASK;
+				address += (SDHC_ADMA2_MAX_LENGTH / sizeof(uint32_t));
+			}
+		}
+		successful = true;
+		SDHC->DSADDR = (uint32_t)0;
+		SDHC->ADSADDR = (uint32_t)context.ADMA2Table;
+	}
+
+	return successful;
 }
 
 static void SDHC_CommandCompletedHandler(uint32_t status)

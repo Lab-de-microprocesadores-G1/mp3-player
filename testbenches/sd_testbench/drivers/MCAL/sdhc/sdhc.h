@@ -33,6 +33,12 @@
  ******************************************************************************/
 
 typedef enum {
+	SDHC_TRANSFER_MODE_CPU,		// Data transfer will be executed by the CPU host
+	SDHC_TRANSFER_MODE_ADMA1,	// Data transfer will be executed by the advanced DMA controller v1
+	SDHC_TRANSFER_MODE_ADMA2	// Data transfer will be executed by the advanced DMA controller v2
+} sdhc_transfer_mode_t;
+
+typedef enum {
 	SDHC_DATA_WIDTH_1BIT,
 	SDHC_DATA_WIDTH_4BIT,
 	SDHC_DATA_WIDTH_8BIT
@@ -96,6 +102,7 @@ typedef struct {
 	uint32_t				blockSize;		// Size in bytes of each block transfered
 	uint32_t*				writeBuffer;	// Buffer with write data, used only when writing, else should be NULL
 	uint32_t*				readBuffer;		// Buffer for the read data, used only when reading, else should be NULL
+	sdhc_transfer_mode_t	transferMode;	// Data transfer mode
 } sdhc_data_t;
 
 typedef struct {
