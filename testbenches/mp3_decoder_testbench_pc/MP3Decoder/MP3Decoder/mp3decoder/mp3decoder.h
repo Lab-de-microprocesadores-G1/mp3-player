@@ -18,13 +18,13 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-#define MP3_FRAME_BUFFER_BYTES  6913                                         // MP3 buffer size (in bytes)
-#define MP3_DECODED_BUFFER_SIZE (4*1152)                                     // maximum frame size if max bitrate is used (in samples)
 
+#define MP3_DECODED_BUFFER_SIZE (4*1152)                                     // maximum frame size if max bitrate is used (in samples)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
+
 typedef enum
 {
   MP3DECODER_NO_ERROR,
@@ -32,7 +32,22 @@ typedef enum
   MP3DECODER_FILE_END,
   MP3DECODER_NO_FILE, 
   MP3DECODER_BUFFER_OVERFLOW
-}mp3decoder_result_t;
+} mp3decoder_result_t;
+
+typedef struct
+{
+    uint16_t    bitRate;
+    uint8_t     channelCount;
+    uint16_t	sampleRate;
+    uint16_t    binitsPerSample;
+    uint16_t    sampleCount;
+} mp3decoder_frame_data_t;
+
+typedef struct
+{
+    char* songName;
+    char* artist;
+} mp3decoder_tag_data_t;
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -54,10 +69,25 @@ void  MP3DecoderInit(void);
 bool  MP3LoadFile(const char* filename);
 
 /*
-* @brief Returns the bitrate of the actual frame
+* @brief Gives the song's tag data like name, artist, etc
+* @param data Pointer to object to be filled with info
+* @returns True if there is a valid tag
 */
-uint32_t MP3GetFrameSampleRate(void);
+bool MP3GetTagData(mp3decoder_tag_data_t* data);
 
+/*
+* @brief Returns the information of last frame decoded
+* @param Pointer to object to be filled with info
+* @returns True if there is a valid frame to decode, false if not.
+*/
+bool MP3GetLastFrameData(mp3decoder_frame_data_t *data);
+
+/*
+* @brief Returns the information of next frame to be decoded (if exists)
+* @param Pointer to object to be filled with info
+* @returns True if there is a valid frame to decode, false if not.
+*/
+bool MP3GetNextFrameData(mp3decoder_frame_data_t *data);
 
 /*
 * @brief  Decodes one mp3 frame (if available) to WAV format

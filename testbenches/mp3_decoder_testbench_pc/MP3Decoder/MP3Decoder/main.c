@@ -8,8 +8,8 @@
 #define BLOCK_SIZE 50000
 
 //#define HAYDN
-//#define PIZZA_CONMIGO
-#define SULLIVAN
+#define PIZZA_CONMIGO
+//#define SULLIVAN
 //#define SAMPLE
 
 #define INTBUF
@@ -55,6 +55,7 @@ int main(void)
 	uint32_t sr;
 	uint8_t j = 0;
 	WavFile *wavIn, *wavOut, *wav;
+	mp3decoder_frame_data_t frameData;
 
 
 	#ifndef SAMPLE
@@ -79,13 +80,15 @@ int main(void)
 		int i = 0;
 		while(1)
 		{
+			MP3GetNextFrameData(&frameData);
+			MP3GetLastFrameData(&frameData);
 			printf("\n[APP] Frame %d decoding started.\n", i);
 			mp3decoder_result_t res = MP3GetDecodedFrame(buffer, MP3_DECODED_BUFFER_SIZE, &sampleCount);
 			if (res == 0)
 			{
 				printf("[APP] Frame %d decoded.\n", i);
 				i++;
-				sr = MP3GetFrameSampleRate();
+				sr = frameData.sampleRate;
 				printf("[APP] FRAME SAMPLE RATE: %d \n", sr);
 				wav_write(wav, buffer, sampleCount);
 			}
