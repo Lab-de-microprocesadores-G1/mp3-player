@@ -11251,3 +11251,12 @@ org.eclipse.core.runtime.CoreException: Target not available.
 
 !ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 12:27:25.537
 !MESSAGE Using SDK manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-19 13:18:05.772
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.number'
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-19 13:18:05.812
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.round'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 13:57:43.885
+!MESSAGE Unable to find Trace Service for '(gdb[15].proc[42000].threadGroup[i1],gdb[15].proc[42000].OSthread[1]).thread[1].frame[0]'

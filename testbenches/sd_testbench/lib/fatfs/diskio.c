@@ -7,9 +7,9 @@
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
 
-#include "ff.h"					/* Obtains integer types */
-#include "diskio.h"				/* Declarations of disk functions */
-#include "drivers/HAL/sd/sd.h"	/* SD Card controller or driver */
+#include "ff.h"							/* Obtains integer types */
+#include "diskio.h"						/* Declarations of disk functions */
+#include "drivers/HAL/sd/sd_disk.h"		/* SD Card controller or driver */
 
 /* Definitions of physical drive number for each drive */
 #define	DEVICE_SD		0
@@ -27,7 +27,7 @@ DSTATUS disk_status (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			stat = (sdGetState() == SD_STATE_INITIALIZED) ? 0 : STA_NOINIT;
+			stat = sdDiskStatus();
 			break;
 	}
 
@@ -39,7 +39,7 @@ DSTATUS disk_status (
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize (
-	BYTE pdrv				/* Physical drive nmuber to identify the drive */
+	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
 	DSTATUS stat = STA_NODISK;
@@ -47,20 +47,7 @@ DSTATUS disk_initialize (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			sdInit();
-			switch (sdGetState())
-			{
-				case SD_STATE_INITIALIZED:
-					stat = 0;
-					break;
-				case SD_STATE_CONNECTED:
-				case SD_STATE_ERROR:
-					stat = sdCardInit() ? 0 : STA_NOINIT;
-					break;
-				default:
-					stat = STA_NOINIT;
-					break;
-			}
+			stat = sdDiskInitialize();
 			break;
 	}
 
@@ -85,14 +72,12 @@ DRESULT disk_read (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			res = sdRead((uint32_t*)buff, sector, count) ? RES_OK : RES_ERROR;
+			res = sdDiskRead(buff, sector, count);
 			break;
 	}
 
 	return res;
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
@@ -112,7 +97,7 @@ DRESULT disk_write (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			res = sdWrite((uint32_t*)buff, sector, count) ? RES_OK : RES_ERROR;
+			res = sdDiskWrite(buff, sector, count);
 			break;
 	}
 
@@ -120,7 +105,6 @@ DRESULT disk_write (
 }
 
 #endif
-
 
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */
@@ -137,49 +121,7 @@ DRESULT disk_ioctl (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			switch (cmd)
-			{
-				case CTRL_SYNC:
-					res = RES_OK;
-					break;
-				case GET_SECTOR_COUNT:
-					if (buff)
-					{
-						*(uint32_t*)buff = sdGetBlockCount();
-						res = RES_OK;
-					}
-					else
-					{
-						res = RES_PARERR;
-					}
-					break;
-				case GET_SECTOR_SIZE:
-					if (buff)
-					{
-						*(uint32_t*)buff = sdGetBlockSize();
-						res = RES_OK;
-					}
-					else
-					{
-						res = RES_PARERR;
-					}
-					break;
-				case GET_BLOCK_SIZE:
-					if (buff)
-					{
-						*(uint32_t*)buff = sdGetEraseSize();
-						res = RES_OK;
-					}
-					else
-					{
-						res = RES_PARERR;
-
-					}
-					break;
-				default:
-					res = RES_PARERR;
-					break;
-			}
+			res = sdDiskIoctl(cmd, buff);
 			break;
 	}
 
