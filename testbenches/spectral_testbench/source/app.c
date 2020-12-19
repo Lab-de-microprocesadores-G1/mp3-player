@@ -62,19 +62,47 @@ void appRun (void)
 	{
 		switch (keypadEv.source)
 		{
-			case KEYPAD_PRESSED:
+			case KEYPAD_ENCODER_LEFT:
+			{
+				if(keypadEv.id == KEYPAD_PRESSED)
+				{
+
+				}
+				else if(keypadEv.id == KEYPAD_ROTATION_CLKW)
+				{
+					
+				}
+				else if(keypadEv.id == KEYPAD_ROTATION_ANTICLKW)
+				{
+
+				}
+				break;
+			}
+			case KEYPAD_ENCODER_RIGHT:
+			{
+				if(keypadEv.id == KEYPAD_PRESSED)
+				{
+
+				}
+				else if(keypadEv.id == KEYPAD_ROTATION_CLKW)
+				{
+					
+				}
+				else if(keypadEv.id == KEYPAD_ROTATION_ANTICLKW)
+				{
+					
+				}
+				break;
+			}
+			case KEYPAD_BUTTON_SW0:
 			{
 				break;
 			}
-			case KEYPAD_REALEASED:
+			case KEYPAD_BUTTON_SW1:
 			{
 				break;
 			}
-			case KEYPAD_PRESSED:
-			{
-				break;
-			}
-			case KEYPAD_PRESSED:
+			case KEYPAD_BUTTON_SW2:
 			{
 				break;
 			}
