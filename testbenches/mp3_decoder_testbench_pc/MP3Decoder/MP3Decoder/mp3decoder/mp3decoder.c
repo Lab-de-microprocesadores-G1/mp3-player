@@ -15,7 +15,7 @@
 
 #include "mp3decoder.h"
 #include <string.h>
-#include <stdbool.h>
+#include <stdbool.h>  
 #include <stdio.h>
 
 
@@ -23,10 +23,12 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+
 #define MP3DECODER_MODE_NORMAL  0
+#define MP3_FRAME_BUFFER_BYTES  6913                                         // MP3 buffer size (in bytes)
 
-#define MP3_PC_TESTBENCH    1
-
+#define MP3_PC_TESTBENCH
+//#define MP3_ARM_TESTBENCH
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -59,6 +61,16 @@ typedef struct
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
+/*
+ * @brief Copies next file data available to the available size on internal buffer
+ * Increments bottom index to keep pointing to the end of the data
+ */
+static void flushFileToBuffer();
+
+/*
+ * @brief Copies from Helix data structure to own structure
+ */
+static void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixData);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -91,12 +103,15 @@ void MP3DecoderInit(void)
 
 bool MP3LoadFile(const char* filename)
 {
+  bool ret = false;
+
+  // Close previous file and context if necessary
   if(dec.fileOpened)
   {
-    //f_close(&(dec.mp3File));          // close prev file
+    //f_close(&(dec.mp3File));         
     fclose(dec.mp3File);
     
-    // reset context pointers and vars 
+    // Reset context pointers and vars 
     dec.fileOpened = false;
     dec.bottom = 0;
     dec.top = 0;
@@ -104,16 +119,12 @@ bool MP3LoadFile(const char* filename)
     dec.bytesRemaining = 0;
   }
 
+  // Open new file
   //FRESULT fr = f_open(&(dec.mp3File), filename, FA_READ);
   FILE* fp = fopen(filename, "rb");
 
-
-  if(fp == NULL)
-  {
-    return false;
-  }
-
-  else
+  // If successfully opened
+  if (fp)
   {
     //dec.fileSize = f_size(&(dec.mp3File));
     /* getting file size */
@@ -125,18 +136,45 @@ bool MP3LoadFile(const char* filename)
     dec.mp3File = fp;
     dec.fileOpened = true;
     
+    flushFileToBuffer();
+
     #ifdef MP3_PC_TESTBENCH
     printf("File opened successfully!\n");
     printf("File size is %d bytes\n", dec.fileSize);
     #endif
     
-    return true;
+    ret = true;
   }
+  return ret;
 }
 
-uint32_t MP3GetFrameSampleRate(void)
+bool MP3GetLastFrameData(mp3decoder_frame_data_t* data)
 {
-  return dec.lastFrameInfo.samprate;
+    bool ret = false;
+    if (dec.bytesRemaining < dec.fileSize)
+    {
+        copyFrameInfo(data, &dec.lastFrameInfo);
+        ret = true;
+    }
+
+    return ret;
+}
+
+bool MP3GetNextFrameData(mp3decoder_frame_data_t* data)
+{
+    bool ret = false;
+    MP3FrameInfo nextFrame;
+    int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
+    if (offset >= 0)
+    {
+        int res = MP3GetNextFrameInfo(dec.helixDecoder, &nextFrame, dec.mp3FrameBuffer + dec.top + offset);
+        if (res == 0)
+        {
+            copyFrameInfo(data, &nextFrame);
+            ret = true;
+        }
+    }
+    return ret;
 }
 
 mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded)
@@ -148,12 +186,10 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
   printf("Buffer has %d bytes to decode\n", dec.bottom - dec.top);
   #endif
   
-  if(!dec.fileOpened)
+  if (!dec.fileOpened)
   {
     ret = MP3DECODER_NO_FILE;
   }
-
-  //else if(dec.fileSize) // check if info remaining in file and in buffer
   else if (dec.bytesRemaining) // check if there is remaining info to be decoded
   {
     #ifdef MP3_PC_TESTBENCH
@@ -162,7 +198,8 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     
     // scroll encoded info up in array if necessary (TESTED-WORKING)
     if( (dec.top > 0)  && ( (dec.bottom - dec.top ) > 0) && (dec.bottom - dec.top < MP3_FRAME_BUFFER_BYTES))
-    {      
+    {  
+        //memcopy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
         memmove(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
         dec.bottom = dec.bottom - dec.top;
         dec.top = 0;
@@ -184,25 +221,9 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
         printf("Full buffer.\n");
         #endif
     }
-  
-    // fill buffer with info in mp3 file
-    uint8_t* dest = dec.mp3FrameBuffer + dec.bottom; 
-    //f_read(&(dec.mp3File), dest, (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0 (1 element or zero elements)
-    uint16_t  bytesRead = fread(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottom), dec.mp3File);
 
-    if (bytesRead == 0)
-    {
-        #ifdef MP3_PC_TESTBENCH
-        printf("File was read completely.\n");
-        #endif
-    }
-
-    // update bottom pointer
-    dec.bottom += bytesRead;
- 
-    #ifdef MP3_PC_TESTBENCH
-    printf("[?] Read %d bytes from file. Head = %d - Bottom = %d\n",bytesRead, dec.top, dec.bottom);
-    #endif
+    // Read encoded data from file
+    flushFileToBuffer();
     
     // seek mp3 header beginning 
     int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom);
@@ -255,7 +276,7 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
       // update last frame decoded info
       MP3GetLastFrameInfo(dec.helixDecoder, &(dec.lastFrameInfo));
 
-      // update samples decoded
+      // update samples decoded, just keep one channel
       uint8_t scaler = dec.lastFrameInfo.nChans;
       *samplesDecoded = dec.lastFrameInfo.outputSamps / scaler;
 
@@ -281,8 +302,6 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     }
     else // if (res == -6)
     {        
-      //dec.headByte = (dec.headByte + dec.bottomByte) / 2;
-      //dec.fileSize -= dec.headByte;
       dec.top++;
       dec.bytesRemaining--;
       #ifdef MP3_PC_TESTBENCH
@@ -292,10 +311,10 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
       // If invalid header, try with next frame
       return MP3GetDecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
     }
-    
   }
   else
-  {    ret = MP3DECODER_FILE_END;
+  {    
+    ret = MP3DECODER_FILE_END;
   }
   
   return ret;
@@ -305,6 +324,45 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
+
+void flushFileToBuffer()
+{
+    uint16_t bytesRead;
+
+    // Fill buffer with info in mp3 file
+    uint8_t* dest = dec.mp3FrameBuffer + dec.bottom;    
+
+    #ifdef MP3_ARM_TESTBENCH
+    f_read(&(dec.mp3File), dest, (MP3_FRAME_BUFFER_BYTES - dec.bottomByte), &bytesRead); //! check what happens when bottomByte = 0 (1 element or zero elements)
+    // H-Quearlo
+    #endif
+    
+    #ifdef MP3_PC_TESTBENCH
+    bytesRead = fread(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottom), dec.mp3File);
+    #endif
+
+    // Update bottom pointer
+    dec.bottom += bytesRead;
+
+    #ifdef MP3_PC_TESTBENCH
+    if (bytesRead == 0)
+    {
+        printf("File was read completely.\n");
+    }
+    printf("[?] Read %d bytes from file. Head = %d - Bottom = %d\n", bytesRead, dec.top, dec.bottom);
+    #endif
+}
+
+
+void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixData)
+{
+    mp3Data->bitRate = helixData->bitrate;
+    mp3Data->binitsPerSample = helixData->bitsPerSample;
+    mp3Data->channelCount = helixData->nChans;
+    mp3Data->sampleRate = helixData->samprate;
+    mp3Data->sampleCount = helixData->outputSamps;
+}
+
 
 /*******************************************************************************
  *******************************************************************************
