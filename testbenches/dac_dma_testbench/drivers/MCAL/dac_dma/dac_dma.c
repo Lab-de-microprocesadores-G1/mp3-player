@@ -13,6 +13,7 @@
 
 #include "../dac/dac.h"
 #include "../pit/pit.h"
+#include "../dma_sga/dma_sga.h"
 
 
 /*******************************************************************************
@@ -20,15 +21,13 @@
  ******************************************************************************/
 #define DACDMA_DAC_ID       0
 #define DACDMA_DMA_ID       0
-#define DACDMA_DMA_CHANNEL  1
+#define DACDMA_DMA_CHANNEL  DMA_CHANNEL_1
 #define DACDMA_PIT_CHANNEL  DACDMA_DMA_CHANNEL
 #define DACDMA_TRIG_SOURCE  58                  // trigger always on
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
-
-
 
 typedef enum
 {
@@ -37,14 +36,16 @@ typedef enum
   DACDMA_SETUP_READY
 } dacdma_status_t;
 
-typedef struct 
+typedef struct
 {
-  uint16_t*       ppBuffer[DAC_DMA_PPBUFFER_COUNT];
-  uint8_t         currentDMABuffer : 1;
-  uint16_t        ppBufferSize;
-  dacdma_TCD_t    tcds[DAC_DMA_PPBUFFER_COUNT] __attribute__ ((aligned(32)));
-  dacdma_status_t status;
-}dacdma_context_t;
+  dacdma_status_t     status;
+  uint16_t*           ppBufferPtr[DMA_SGA_PPBUFFER_COUNT];
+  uint8_t			  currentBuffer : 1;
+  uint16_t            bufferSize;
+  uint16_t            dacFreq;
+  dma_sga_callback_t  updateCallback;
+  dma_sga_channel_cfg_t dmaConfig;
+} dacdma_context_t;
 
 /*******************************************************************************
  * VARIABLES WITH GLOBAL SCOPE
@@ -54,6 +55,7 @@ typedef struct
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
+static void onMajorLoop(void);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -62,6 +64,7 @@ typedef struct
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
+
 static dacdma_context_t dacdmaContext;
 
 /*******************************************************************************
@@ -83,23 +86,106 @@ void dacdmaInit(void)
     // PIT init
     pitInit(DACDMA_PIT_CHANNEL);
 
-
     // DMA init
-    dmaInit();
-    // SIM->SCGC7 |= SIM_SCGC7_DMA_MASK;     // DMA clock gating
-    // SIM->SCGC6 |= SIM_SCGC6_DMAMUX_MASK;  
+	dmasgaInit();
+	dmasgaOnMajorLoop(DACDMA_DMA_CHANNEL, onMajorLoop);
 
-    // // enable periodic triggering, with source always on
-    // DMAMUX_Type* dmaMuxPtrs = DMAMUX_BASE_PTRS;
-    // dmaMuxPtrs[DACDMA_DMA_ID].CHCFG[DACDMA_DMA_CHANNEL] |= DMAMUX_CHCFG_ENBL(1) | DMAMUX_CHCFG_TRIG(1) | DMAMUX_CHCFG_SOURCE(DACDMA_TRIG_SOURCE);
-
-    // NVIC_EnableIRQ(DMA0_IRQn);            // Enable NVIC for DMA channel 0
-
-    // context init
+    // now is initialized
     dacdmaContext.status = DACDMA_INITIALIZED;
   }
 
+}
+
+void dacdmaSetFreq(uint16_t freq)
+{
+  pitSetInterval(DACDMA_PIT_CHANNEL, PIT_HZ_TO_TICKS(freq));
+	dacdmaContext.dacFreq = freq;
+}
+
+
+void dacdmaSetBuffers(uint16_t *buffer1, uint16_t *buffer2, uint16_t bufferSize, dma_sga_callback_t callback)
+{
+    if (bufferSize != 0)
+    {
+      dacdmaContext.ppBufferPtr[1] = buffer1;
+      dacdmaContext.ppBufferPtr[2] = buffer2;
+      dacdmaContext.bufferSize = bufferSize;
+      dacdmaContext.updateCallback = callback;
+
+      // should call "dacdmaSetFreq()" before starting
+      dacdmaContext.status = DACDMA_SETUP_READY;
+	}
+}
+
+void dacdmaStart(void)
+{
+    if (dacdmaContext.status == DACDMA_SETUP_READY)
+    {
+        DAC_Type * dacPointers[] = DAC_BASE_PTRS;
+
+        dacdmaContext.currentBuffer = 0;
+
+        // Fill both buffers
+        dacdmaContext.updateCallback(dacdmaContext.ppBufferPtr[0]);
+        dacdmaContext.updateCallback(dacdmaContext.ppBufferPtr[1]);
+
+        // Configure DMA Software TCD fields common to both TCDs
+        // Destination address: DAC DAT
+        dacdmaContext.dmaConfig.tcds[0].DADDR = (uint32_t)(&(dacPointers[DACDMA_DAC_ID]->DAT[0].DATL));
+
+        // Source and destination offsets
+        dacdmaContext.dmaConfig.tcds[0].SOFF = sizeof(uint16_t);
+        dacdmaContext.dmaConfig.tcds[0].DOFF = 0;
+        
+        // Source last sddress adjustment
+        dacdmaContext.dmaConfig.tcds[0].SLAST = -dacdmaContext.bufferSize * sizeof(uint16_t);
+        
+        // Set transfer size to 16bits (DAC DAT size is 12-bit)
+        dacdmaContext.dmaConfig.tcds[0].ATTR = DMA_ATTR_SSIZE(1) | DMA_ATTR_DSIZE(1);
+        // Write one sample on each trigger
+        dacdmaContext.dmaConfig.tcds[0].NBYTES_MLNO = (0x01) * sizeof(uint16_t);
+        
+        // Enable Interrupt on major loop end and Scatter Gather Operation
+        dacdmaContext.dmaConfig.tcds[0].CSR = DMA_CSR_INTMAJOR(1) | DMA_CSR_ESG(1);
+
+        // Minor Loop Beginning Value
+        dacdmaContext.dmaConfig.tcds[0].BITER_ELINKNO = dacdmaContext.bufferSize;
+        // Minor Loop Current Value must be set to the beginning value the first time
+        dacdmaContext.dmaConfig.tcds[0].CITER_ELINKNO = dacdmaContext.bufferSize;
+
+        // Copy common content from TCD0 to TCD1
+        dacdmaContext.dmaConfig.tcds[1] = dacdmaContext.dmaConfig.tcds[0];
+
+        // Set source addresses for DMAs' TCD
+        dacdmaContext.dmaConfig.tcds[0].SADDR = (uint32_t)(dacdmaContext.ppBufferPtr[0]);
+        dacdmaContext.dmaConfig.tcds[1].SADDR = (uint32_t)(dacdmaContext.ppBufferPtr[1]);
+
+        // Set Scatter Gather register of each TCD pointing to each other.
+        dacdmaContext.dmaConfig.tcds[0].DLAST_SGA = (uint32_t) &(dacdmaContext.dmaConfig.tcds[1]);
+        dacdmaContext.dmaConfig.tcds[1].DLAST_SGA = (uint32_t) &(dacdmaContext.dmaConfig.tcds[0]);
+
+        // Enable period triggering, mux always enabled
+        dacdmaContext.dmaConfig.pitEn = 1;
+        dacdmaContext.dmaConfig.muxSource = DACDMA_TRIG_SOURCE;
+        // Disable fixed-priority arbitration
+        dacdmaContext.dmaConfig.fpArb = 0;
+
+        dmasgaChannelConfig(DACDMA_DMA_CHANNEL, dacdmaContext.dmaConfig);
+
+        // PIT start
+        pitStart(DACDMA_PIT_CHANNEL);
+    }
+}
+
+void dacdmaStop(void)
+{
+    // stop PIT to avoid DMA requests triggering
+    pitStop(DACDMA_PIT_CHANNEL);
+}
   
+uint16_t dacdmaGetFreq(void);
+{
+	return dacdmaContext.dacFreq;
 }
 /*******************************************************************************
  *******************************************************************************
@@ -107,11 +193,16 @@ void dacdmaInit(void)
  *******************************************************************************
  ******************************************************************************/
 
-/*******************************************************************************
- *******************************************************************************
-						            INTERRUPT SERVICE ROUTINES
- *******************************************************************************
- ******************************************************************************/
+static void onMajorLoop(void)
+{
+	// Ping pong buffer switch
+    dacdmaContext.currentBuffer = !dacdmaContext.currentBuffer;
 
+    // Ask for frame update
+	if (dacdmaContext.updateCallback)
+	{
+		dacdmaContext.updateCallback(dacdmaContext.ppBufferPtr[!currentBuffer]);
+	}
+}
 
 /******************************************************************************/
