@@ -14,19 +14,18 @@
 #include "drivers/HAL/button/button.h"
 #include "drivers/MCAL/sdhc/sdhc.h"
 #include "board.h"
+#include "lib/fatfs/ff.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define BUFFER_SIZE	512
+#define BUFFER_SIZE	100
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static void onCardInserted(void);
-static void onCardRemoved(void);
 static void onButtonPressed(void);
 
 /*******************************************************************************
@@ -37,7 +36,12 @@ static void onButtonPressed(void);
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool 	initCard;
+static bool     init;
+static bool 	flag;
+static FATFS	fat;
+static FIL		file;
+static FRESULT	fr;
+static char		buffer[BUFFER_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -57,36 +61,41 @@ void appInit (void)
 
 	/* Initialization of the LED driver */
 	ledInit();
-
-	/* SD Initialization Sequence */
-	sdInit();
-	sdOnCardInserted(onCardInserted);
-	sdOnCardRemoved(onCardRemoved);
-
-	/* Status led initialization */
-	if (sdIsCardInserted())
-	{
-		ledSet(LED_GREEN);
-
-		initCard = true;
-	}
 }
 
 /* Called repeatedly in an infinite loop */
 void appRun (void)
 {
-	if (initCard)
+	if (!init)
 	{
-		initCard = false;
+		/* Mount the default drive */
+		fr = f_mount(&fat, "", 1);
 
-		if (sdCardInit())
+		init = true;
+	}
+
+	if (init && flag)
+	{
+		flag = false;
+
+		// Test creating some folders
+		fr = f_mkdir("user");
+		fr = f_mkdir("backup");
+
+		// Test changing current directory
+		fr = f_chdir("user");
+
+		// Tests creating a file
+		fr = f_open(&file, "random_file.txt", FA_OPEN_ALWAYS | FA_WRITE);
+
+		// Tests writing a file
+		if (fr == FR_OK)
 		{
-			ledSet(LED_BLUE);
+			fr = f_printf(&file, "Hello World! JeJe, with ADMA");
 		}
-		else
-		{
-			ledSet(LED_RED);
-		}
+
+		// Tests closing a file
+		fr = f_close(&file);
 	}
 }
 
@@ -95,21 +104,12 @@ void appRun (void)
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************/
 
-static void onCardInserted(void)
-{
-	ledSet(LED_GREEN);
-}
-
-static void onCardRemoved(void)
-{
-	ledClear(LED_GREEN);
-	ledClear(LED_BLUE);
-	ledClear(LED_RED);
-}
-
 static void onButtonPressed(void)
 {
-	initCard = true;
+	if (!flag)
+	{
+		flag = true;
+	}
 }
 
 /*******************************************************************************
