@@ -63,19 +63,27 @@ bool sdCardInit(void);
  * @brief	Read a memory region of the sd memory card, starting in the given block address
  * 			and reading the given amount of blocks. The block size is fixed to 512 bytes.
  * @param	readBuffer		Pointer to the read buffer
- * @param	blockAddress	Address or number of the starting block
+ * @param	blockNumber		Number of the block to start reading
  * @param	blockCount		Amount of blocks to be read
  */
-bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount);
+bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount);
 
 /*
  * @brief	Write a memory region of the sd memory card, starting in the given block address
  * 			and writing the given amount of blocks. The block size is fixed to 512 bytes.
  * @param	writeBuffer		Pointer to the write buffer
- * @param	blockAddress	Address or number of the starting block
- * @param	blockCount		Amount of blocks to be read
+ * @param	blockNumber		Number of the block to start reading
+ * @param	blockCount		Amount of blocks to be written
  */
-bool sdWrite(uint32_t* writeBuffer, uint32_t blockAddress, uint32_t blockCount);
+bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount);
+
+/*
+ * @brief	Erase a memory region of the sd memory card, starting in the given block address
+ * 			and clearing data in all the given amount of blocks.
+ * @param	blockNumber		Number of the block to start reading
+ * @param	blockCount		Amount of blocks to be erased
+ */
+bool sdErase(uint32_t blockNumber, uint32_t blockCount);
 
 /*
  * @brief	Returns whether a card is inserted in the SD socket or not.

@@ -21,6 +21,10 @@
 
 #define BUFFER_SIZE		4096
 
+// #define SD_READ_TESTBENCH
+// #define SD_WRITE_TESTBENCH
+#define SD_ERASE_TESTBENCH
+
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -100,15 +104,30 @@ void appRun (void)
 	if (goCardFlag)
 	{
 		goCardFlag = false;
-
-		for (uint32_t i = 0 ; i < 1024 ; i++)
-		{
-			buffer[i] = i % 512;
-		}
-		if (sdWrite((uint32_t*)buffer, 10 * 512, 2))
+#ifdef SD_READ_TESTBENCH
+		if (sdRead((uint32_t*)buffer, 2040877, 2))
 		{
 			ledClear(LED_BLUE);
 		}
+#endif
+
+#ifdef SD_WRITE_TESTBENCH
+		for (uint32_t i = 0 ; i < 2048 ; i++)
+		{
+			buffer[i] = i / 512 + 0xAA;
+		}
+		if (sdWrite((uint32_t*)buffer, 0, 4))
+		{
+			ledClear(LED_BLUE);
+		}
+#endif
+
+#ifdef SD_ERASE_TESTBENCH
+		if (sdErase(2352678, 4))
+		{
+			ledClear(LED_BLUE);
+		}
+#endif
 	}
 }
 

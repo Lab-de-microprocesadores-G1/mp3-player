@@ -10556,3 +10556,54 @@ java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.Sched
 
 !ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 01:02:36.583
 !MESSAGE Request for monitor: 'CountingRequestMonitor: Status OK: org.eclipse.cdt.dsf code=0  null children=[]' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:29:28.967
+!MESSAGE Unable to find Trace Service for '(gdb[48].proc[42000].threadGroup[i1],gdb[48].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:29:29.007
+!MESSAGE Unable to find Trace Service for '(gdb[48].proc[42000].threadGroup[i1],gdb[48].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:34:24.113
+!MESSAGE Unable to find Trace Service for '(gdb[49].proc[42000].threadGroup[i1],gdb[49].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:34:24.179
+!MESSAGE Unable to find Trace Service for '(gdb[49].proc[42000].threadGroup[i1],gdb[49].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:36:32.309
+!MESSAGE Unable to find Trace Service for '(gdb[50].proc[42000].threadGroup[i1],gdb[50].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 01:36:32.360
+!MESSAGE Unable to find Trace Service for '(gdb[50].proc[42000].threadGroup[i1],gdb[50].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 02:00:10.864
+!MESSAGE Unable to find Trace Service for '(gdb[51].proc[42000].threadGroup[i1],gdb[51].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 02:00:10.921
+!MESSAGE Unable to find Trace Service for '(gdb[51].proc[42000].threadGroup[i1],gdb[51].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.507
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@6e0b72): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #0 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@94fac7): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #0 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@1718e59): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #0 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@94fac7): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #0 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 02:03:36.507
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #0 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@94fac7): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #0
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.507
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@1718e59): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #0 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@94fac7): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #0 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.560
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf.gdb.ui 4 0 2020-12-19 02:03:36.560
+!MESSAGE Service is not available.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.560
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.internal.ui.actions.GdbDisconnectCommand$1@fc33e5): Status ERROR: org.eclipse.cdt.dsf.gdb.ui code=0 Service is not available. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.601
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf.gdb.ui 4 0 2020-12-19 02:03:36.601
+!MESSAGE Service is not available.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 02:03:36.601
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.internal.ui.actions.GdbDisconnectCommand$1@16bcca7): Status ERROR: org.eclipse.cdt.dsf.gdb.ui code=0 Service is not available. null' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 02:09:28.511
+!MESSAGE Unable to find Trace Service for '(gdb[54].proc[42000].threadGroup[i1],gdb[54].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 02:09:28.556
+!MESSAGE Unable to find Trace Service for '(gdb[54].proc[42000].threadGroup[i1],gdb[54].proc[42000].OSthread[1]).thread[1].frame[0]'

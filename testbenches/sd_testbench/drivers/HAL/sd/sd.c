@@ -185,6 +185,9 @@ enum {
 	SD_READ_MULTIPLE_BLOCK	=	SD_CMD_18,
 	SD_WRITE_SINGLE_BLOCK	=	SD_CMD_24,
 	SD_WRITE_MULTIPLE_BLOCK	=	SD_CMD_25,
+	SD_ERASE_WR_BLK_START	=	SD_CMD_32,
+	SD_ERASE_WR_BLK_END		=	SD_CMD_33,
+	SD_ERASE				=	SD_CMD_38,
 	SD_APP_CMD				=	SD_CMD_55,
 
 	// Application commands
@@ -568,12 +571,15 @@ bool sdCardInit(void)
 	return success;
 }
 
-bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
+bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount)
 {
+	uint32_t recvBlocksCount;
 	sdhc_command_t command;
 	sdhc_data_t data;
 	bool success = true;
-	uint32_t recvBlocksCount;
+
+	// Compute the address of the starting block
+	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
 
 	// Get the maximum block length supported but either the SD card or the
 	// lower layer of software/hardware. The maximum block count is measured
@@ -633,12 +639,15 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockAddress, uint32_t blockCount)
 	return success;
 }
 
-bool sdWrite(uint32_t* writeBuffer, uint32_t blockAddress, uint32_t blockCount)
+bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount)
 {
-	bool success = true;
+	uint32_t sendBlocksCount;
 	sdhc_command_t command;
 	sdhc_data_t data;
-	uint32_t sendBlocksCount;
+	bool success = true;
+
+	// Compute the address of the starting block
+	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
 
 	// Get the maximum block length supported but either the SD card or the
 	// lower layer of software/hardware. The maximum block count is measured
@@ -692,6 +701,77 @@ bool sdWrite(uint32_t* writeBuffer, uint32_t blockAddress, uint32_t blockCount)
 				blockCount -= sendBlocksCount;
 				success = true;
 			}
+		}
+	}
+
+	return success;
+}
+
+bool sdErase(uint32_t blockNumber, uint32_t blockCount)
+{
+	bool success = true;
+	sdhc_command_t command;
+
+	// Compute the address of the starting block
+	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
+
+	// Wait until the SD cards enters to the ready for data
+	// by updating Card Status register and querying it via the command line
+	do
+	{
+		if (!sdReadCardStatus())
+		{
+			success = false;
+		}
+	} while(success && !context.cardStatus.readyForData);
+
+	// Performs a ERASE_WR_BLK_START, sets the start address for the erasing process
+	if (success)
+	{
+		success = false;
+		command.index = SD_ERASE_WR_BLK_START;
+		command.argument = blockAddress;
+		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+		command.responseType = SDHC_RESPONSE_TYPE_R1;
+		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+		{
+			success = true;
+		}
+	}
+
+	// Performs a ERASE_WR_BLK_END, sets the end address for the erasing process
+	if (success)
+	{
+		success = false;
+		command.index = SD_ERASE_WR_BLK_END;
+		command.argument = blockAddress + (blockCount - 1) * SD_BLOCK_LENGTH;
+		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+		command.responseType = SDHC_RESPONSE_TYPE_R1;
+		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+		{
+			success = true;
+		}
+	}
+
+	// Performs a ERASE, starts the erasing process
+	if (success)
+	{
+		success = false;
+		command.index = SD_ERASE;
+		command.argument = 0;
+		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+		command.responseType = SDHC_RESPONSE_TYPE_R1b;
+		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+		{
+			// Wait the process to be finished
+			success = true;
+			do
+			{
+				if (!sdReadCardStatus())
+				{
+					success = false;
+				}
+			} while(success && !context.cardStatus.readyForData);
 		}
 	}
 
