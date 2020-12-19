@@ -26,12 +26,24 @@
 #define SD_MAX_BUFFER_SIZE					SD_BLOCK_LENGTH
 
 /* Card Status Flags */
+#define SD_CARD_STATUS_OUT_OF_RANGE_SHIFT		(31)
+#define SD_CARD_STATUS_ADDRESS_ERROR_SHIFT		(30)
 #define SD_CARD_STATUS_BLOCK_LEN_ERROR_SHIFT	(29)
+#define SD_CARD_STATUS_ERASE_SEQ_SHIFT			(28)
+#define SD_CARD_STATUS_ERASE_PARAM_SHIFT		(27)
+#define SD_CARD_STATUS_WP_VIOLATION_SHIFT		(26)
+#define SD_CARD_STATUS_CARD_IS_LOCKED_SHIFT		(25)
 #define SD_CARD_STATUS_CURRENT_STATE_SHIFT		(9)
 #define SD_CARD_STATUS_READY_FOR_DATA_SHIFT		(8)
 #define SD_CARD_STATUS_APP_CMD_SHIFT			(5)
 
+#define SD_CARD_STATUS_OUT_OF_RANGE_MASK		SD_MASK(0x1, SD_CARD_STATUS_OUT_OF_RANGE_SHIFT)
+#define SD_CARD_STATUS_ADDRESS_ERROR_MASK		SD_MASK(0x1, SD_CARD_STATUS_ADDRESS_ERROR_SHIFT)
 #define SD_CARD_STATUS_BLOCK_LEN_ERROR_MASK		SD_MASK(0x1, SD_CARD_STATUS_BLOCK_LEN_ERROR_SHIFT)
+#define SD_CARD_STATUS_ERASE_SEQ_MASK		SD_MASK(0x1, SD_CARD_STATUS_ERASE_SEQ_SHIFT)
+#define SD_CARD_STATUS_ERASE_PARAM_MASK			SD_MASK(0x1, SD_CARD_STATUS_ERASE_PARAM_SHIFT)
+#define SD_CARD_STATUS_WP_VIOLATION_MASK		SD_MASK(0x1, SD_CARD_STATUS_WP_VIOLATION_SHIFT)
+#define SD_CARD_STATUS_CARD_IS_LOCKED_MASK		SD_MASK(0x1, SD_CARD_STATUS_CARD_IS_LOCKED_SHIFT)
 #define SD_CARD_STATUS_CURRENT_STATE_MASK		SD_MASK(0xF, SD_CARD_STATUS_CURRENT_STATE_SHIFT)
 #define SD_CARD_STATUS_READY_FOR_DATA_MASK		SD_MASK(0x1, SD_CARD_STATUS_READY_FOR_DATA_SHIFT)
 #define SD_CARD_STATUS_APP_CMD_MASK				SD_MASK(0x1, SD_CARD_STATUS_APP_CMD_SHIFT)
@@ -246,6 +258,12 @@ typedef struct {
 	// Card Status Flags
 	struct {
 		bool 			blockLenError;
+		bool			addressError;
+		bool			outOfRangeError;
+		bool			eraseSeqError;
+		bool			eraseParamError;
+		bool			writeProtectedViolationError;
+		bool			isCardLocked;
 		bool 			readyForData;
 		bool 			applicationCommand;
 		sd_card_state_t currentState;
@@ -646,62 +664,77 @@ bool sdRead(uint32_t* readBuffer, uint32_t blockNumber, uint32_t blockCount)
 	uint32_t recvBlocksCount;
 	sdhc_command_t command;
 	sdhc_data_t data;
-	bool success = true;
+	bool success = false;
 
-	// Compute the address of the starting block
-	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
-
-	// Get the maximum block length supported but either the SD card or the
-	// lower layer of software/hardware. The maximum block count is measured
-	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
-	uint32_t maximumBlockCount = context.csd.readBlockLength < sdhcGetBlockCount() ? context.csd.readBlockLength : sdhcGetBlockCount();
-	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
-
-	// Iterate sending blocks using the maximum amount available in the
-	// lower layer of software and hardware, until it has sent all blocks.
-	while (blockCount && success)
+	// Verify the SD card has been initialized, and has entered in the Transfer Mode
+	if (context.currentState == SD_STATE_INITIALIZED)
 	{
-		// Wait until the SD cards enters to the ready for data
-		// by updating Card Status register and querying it via the command line
-		do
+		if (sdReadCardStatus())
 		{
-			if (!sdReadCardStatus())
+			if (context.cardStatus.currentState == SD_CURRENT_STATE_TRAN)
 			{
-				success = false;
-			}
-		} while(success && !context.cardStatus.readyForData);
-
-		// Compute the amount of blocks to be sent in the current loop
-		if (blockCount > maximumBlockCount)
-		{
-			recvBlocksCount = maximumBlockCount;
-		}
-		else
-		{
-			recvBlocksCount = blockCount;
-		}
-
-		// If succeeds entering the ready for data status,
-		// performs a single or multiple read
-		if (success)
-		{
-			success = false;
-			command.index = blockCount == 1 ? SD_READ_SINGLE_BLOCK : SD_READ_MULTIPLE_BLOCK;
-			command.argument = blockAddress;
-			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-			command.responseType = SDHC_RESPONSE_TYPE_R1;
-			data.readBuffer = readBuffer;
-			data.writeBuffer = NULL;
-			data.blockSize = SD_BLOCK_LENGTH;
-			data.blockCount = recvBlocksCount;
-			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
-			{
-				// Move the read buffer to the next block position, and change the
-				// next address of memory to be read in the memory map of the sd card
-				readBuffer = readBuffer + recvBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
-				blockAddress = blockAddress + recvBlocksCount * SD_BLOCK_LENGTH;
-				blockCount -= recvBlocksCount;
 				success = true;
+
+				// Compute the address of the starting block
+				uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
+
+				// Get the maximum block length supported but either the SD card or the
+				// lower layer of software/hardware. The maximum block count is measured
+				// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed.
+				uint32_t maximumBlockCount = context.csd.readBlockLength < sdhcGetBlockCount() ? context.csd.readBlockLength : sdhcGetBlockCount();
+				maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
+
+				// Iterate sending blocks using the maximum amount available in the
+				// lower layer of software and hardware, until it has sent all blocks.
+				while (blockCount && success)
+				{
+					// Wait until the SD cards enters to the ready for data
+					// by updating Card Status register and querying it via the command line
+					do
+					{
+						if (!sdReadCardStatus())
+						{
+							success = false;
+						}
+					} while(success && !context.cardStatus.readyForData);
+
+					// Compute the amount of blocks to be sent in the current loop
+					if (blockCount > maximumBlockCount)
+					{
+						recvBlocksCount = maximumBlockCount;
+					}
+					else
+					{
+						recvBlocksCount = blockCount;
+					}
+
+					// If succeeds entering the ready for data status,
+					// performs a single or multiple read
+					if (success)
+					{
+						success = false;
+						command.index = blockCount == 1 ? SD_READ_SINGLE_BLOCK : SD_READ_MULTIPLE_BLOCK;
+						command.argument = blockAddress;
+						command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+						command.responseType = SDHC_RESPONSE_TYPE_R1;
+						data.readBuffer = readBuffer;
+						data.writeBuffer = NULL;
+						data.blockSize = SD_BLOCK_LENGTH;
+						data.blockCount = recvBlocksCount;
+						if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
+						{
+							if (!context.cardStatus.addressError && !context.cardStatus.outOfRangeError)
+							{
+								// Move the read buffer to the next block position, and change the
+								// next address of memory to be read in the memory map of the sd card
+								readBuffer = readBuffer + recvBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
+								blockAddress = blockAddress + recvBlocksCount * SD_BLOCK_LENGTH;
+								blockCount -= recvBlocksCount;
+								success = true;
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -714,62 +747,77 @@ bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount)
 	uint32_t sendBlocksCount;
 	sdhc_command_t command;
 	sdhc_data_t data;
-	bool success = true;
+	bool success = false;
 
-	// Compute the address of the starting block
-	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
-
-	// Get the maximum block length supported but either the SD card or the
-	// lower layer of software/hardware. The maximum block count is measured
-	// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed
-	uint32_t maximumBlockCount = context.csd.writeBlockLength < sdhcGetBlockCount() ? context.csd.writeBlockLength : sdhcGetBlockCount();
-	maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
-
-	// Iterate sending blocks using the maximum amount available in the
-	// lower layer of software and hardware, until it has sent all blocks.
-	while (blockCount && success)
+	// Verify the SD card has been initialized, and has entered in the Transfer Mode
+	if (context.currentState == SD_STATE_INITIALIZED)
 	{
-		// Wait until the SD cards enters to the ready for data
-		// by updating Card Status register and querying it via the command line
-		do
+		if (sdReadCardStatus())
 		{
-			if (!sdReadCardStatus())
+			if (context.cardStatus.currentState == SD_CURRENT_STATE_TRAN)
 			{
-				success = false;
-			}
-		} while(success && !context.cardStatus.readyForData);
-
-		// Compute the amount of blocks to be sent in the current loop
-		if (blockCount > maximumBlockCount)
-		{
-			sendBlocksCount = maximumBlockCount;
-		}
-		else
-		{
-			sendBlocksCount = blockCount;
-		}
-
-		// If succeeds entering the ready for data status,
-		// performs a single or multiple write
-		if (success)
-		{
-			success = false;
-			command.index = blockCount == 1 ? SD_WRITE_SINGLE_BLOCK : SD_WRITE_MULTIPLE_BLOCK;
-			command.argument = blockAddress;
-			command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-			command.responseType = SDHC_RESPONSE_TYPE_R1;
-			data.readBuffer = NULL;
-			data.writeBuffer = writeBuffer;
-			data.blockSize = SD_BLOCK_LENGTH;
-			data.blockCount = sendBlocksCount;
-			if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
-			{
-				// Move the write buffer to the next block position, and change the
-				// next address of memory to be read in the memory map of the sd card
-				writeBuffer = writeBuffer + sendBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
-				blockAddress = blockAddress + sendBlocksCount * SD_BLOCK_LENGTH;
-				blockCount -= sendBlocksCount;
 				success = true;
+
+				// Compute the address of the starting block
+				uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
+
+				// Get the maximum block length supported but either the SD card or the
+				// lower layer of software/hardware. The maximum block count is measured
+				// as the maximum quantity of blocks of SD_BLOCK_LENGTH bytes allowed
+				uint32_t maximumBlockCount = context.csd.writeBlockLength < sdhcGetBlockCount() ? context.csd.writeBlockLength : sdhcGetBlockCount();
+				maximumBlockCount = maximumBlockCount / SD_BLOCK_LENGTH;
+
+				// Iterate sending blocks using the maximum amount available in the
+				// lower layer of software and hardware, until it has sent all blocks.
+				while (blockCount && success)
+				{
+					// Wait until the SD cards enters to the ready for data
+					// by updating Card Status register and querying it via the command line
+					do
+					{
+						if (!sdReadCardStatus())
+						{
+							success = false;
+						}
+					} while(success && !context.cardStatus.readyForData);
+
+					// Compute the amount of blocks to be sent in the current loop
+					if (blockCount > maximumBlockCount)
+					{
+						sendBlocksCount = maximumBlockCount;
+					}
+					else
+					{
+						sendBlocksCount = blockCount;
+					}
+
+					// If succeeds entering the ready for data status,
+					// performs a single or multiple write
+					if (success)
+					{
+						success = false;
+						command.index = blockCount == 1 ? SD_WRITE_SINGLE_BLOCK : SD_WRITE_MULTIPLE_BLOCK;
+						command.argument = blockAddress;
+						command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+						command.responseType = SDHC_RESPONSE_TYPE_R1;
+						data.readBuffer = NULL;
+						data.writeBuffer = writeBuffer;
+						data.blockSize = SD_BLOCK_LENGTH;
+						data.blockCount = sendBlocksCount;
+						if (sdhcTransfer(&command, &data) == SDHC_ERROR_OK)
+						{
+							if (!context.cardStatus.addressError && !context.cardStatus.outOfRangeError)
+							{
+								// Move the write buffer to the next block position, and change the
+								// next address of memory to be read in the memory map of the sd card
+								writeBuffer = writeBuffer + sendBlocksCount * SD_BLOCK_LENGTH / sizeof(uint32_t);
+								blockAddress = blockAddress + sendBlocksCount * SD_BLOCK_LENGTH;
+								blockCount -= sendBlocksCount;
+								success = true;
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -779,69 +827,99 @@ bool sdWrite(uint32_t* writeBuffer, uint32_t blockNumber, uint32_t blockCount)
 
 bool sdErase(uint32_t blockNumber, uint32_t blockCount)
 {
-	bool success = true;
 	sdhc_command_t command;
+	bool success = false;
 
-	// Compute the address of the starting block
-	uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
-
-	// Wait until the SD cards enters to the ready for data
-	// by updating Card Status register and querying it via the command line
-	do
+	// Verify the SD card has been initialized, and has entered in the Transfer Mode
+	if (context.currentState == SD_STATE_INITIALIZED)
 	{
-		if (!sdReadCardStatus())
+		if (sdReadCardStatus())
 		{
-			success = false;
-		}
-	} while(success && !context.cardStatus.readyForData);
-
-	// Performs a ERASE_WR_BLK_START, sets the start address for the erasing process
-	if (success)
-	{
-		success = false;
-		command.index = SD_ERASE_WR_BLK_START;
-		command.argument = blockAddress;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_R1;
-		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
-		{
-			success = true;
-		}
-	}
-
-	// Performs a ERASE_WR_BLK_END, sets the end address for the erasing process
-	if (success)
-	{
-		success = false;
-		command.index = SD_ERASE_WR_BLK_END;
-		command.argument = blockAddress + (blockCount - 1) * SD_BLOCK_LENGTH;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_R1;
-		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
-		{
-			success = true;
-		}
-	}
-
-	// Performs a ERASE, starts the erasing process
-	if (success)
-	{
-		success = false;
-		command.index = SD_ERASE;
-		command.argument = 0;
-		command.commandType = SDHC_COMMAND_TYPE_NORMAL;
-		command.responseType = SDHC_RESPONSE_TYPE_R1b;
-		if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
-		{
-			// Wait the process to be finished
-			success = true;
-			do
+			if (context.cardStatus.currentState == SD_CURRENT_STATE_TRAN)
 			{
-				if (!sdReadCardStatus())
+				success = true;
+
+				// Compute the address of the starting block
+				uint32_t blockAddress = blockNumber * SD_BLOCK_LENGTH;
+
+				// Wait until the SD cards enters to the ready for data
+				// by updating Card Status register and querying it via the command line
+				do
+				{
+					if (!sdReadCardStatus())
+					{
+						success = false;
+					}
+				} while(success && !context.cardStatus.readyForData);
+
+				// Performs a ERASE_WR_BLK_START, sets the start address for the erasing process
+				if (success)
 				{
 					success = false;
+					command.index = SD_ERASE_WR_BLK_START;
+					command.argument = blockAddress;
+					command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+					command.responseType = SDHC_RESPONSE_TYPE_R1;
+					if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+					{
+						if (!context.cardStatus.eraseParamError &&
+							!context.cardStatus.eraseSeqError &&
+							!context.cardStatus.addressError &&
+							!context.cardStatus.outOfRangeError)
+						{
+							success = true;
+						}
+					}
 				}
-			} while(success && !context.cardStatus.readyForData);
+
+				// Performs a ERASE_WR_BLK_END, sets the end address for the erasing process
+				if (success)
+				{
+					success = false;
+					command.index = SD_ERASE_WR_BLK_END;
+					command.argument = blockAddress + (blockCount - 1) * SD_BLOCK_LENGTH;
+					command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+					command.responseType = SDHC_RESPONSE_TYPE_R1;
+					if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+					{
+						if (!context.cardStatus.eraseParamError &&
+							!context.cardStatus.eraseSeqError &&
+							!context.cardStatus.addressError &&
+							!context.cardStatus.outOfRangeError)
+						{
+							success = true;
+						}
+					}
+				}
+
+				// Performs a ERASE, starts the erasing process
+				if (success)
+				{
+					success = false;
+					command.index = SD_ERASE;
+					command.argument = 0;
+					command.commandType = SDHC_COMMAND_TYPE_NORMAL;
+					command.responseType = SDHC_RESPONSE_TYPE_R1b;
+					if (sdhcTransfer(&command, NULL) == SDHC_ERROR_OK)
+					{
+						if (!context.cardStatus.eraseParamError &&
+							!context.cardStatus.eraseSeqError &&
+							!context.cardStatus.addressError &&
+							!context.cardStatus.outOfRangeError)
+						{
+							// Wait the process to be finished
+							success = true;
+							do
+							{
+								if (!sdReadCardStatus())
+								{
+									success = false;
+								}
+							} while(success && !context.cardStatus.readyForData);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -907,14 +985,21 @@ void sdOnCardRemoved(sd_callback_t callback)
 
 static void sdContextSetCardStatus(uint32_t cardStatus)
 {
+	// Decoding the Card Status from the register received
 	context.cardStatus.applicationCommand = (cardStatus & SD_CARD_STATUS_APP_CMD_MASK) ? true : false;
 	context.cardStatus.blockLenError = (cardStatus & SD_CARD_STATUS_BLOCK_LEN_ERROR_MASK) ? true : false;
 	context.cardStatus.readyForData = (cardStatus & SD_CARD_STATUS_READY_FOR_DATA_MASK) ? true : false;
 	context.cardStatus.currentState = (cardStatus & SD_CARD_STATUS_CURRENT_STATE_MASK) >> SD_CARD_STATUS_CURRENT_STATE_SHIFT;
+	context.cardStatus.addressError = (cardStatus & SD_CARD_STATUS_ADDRESS_ERROR_MASK) >> SD_CARD_STATUS_ADDRESS_ERROR_SHIFT;
+	context.cardStatus.eraseParamError = (cardStatus & SD_CARD_STATUS_ERASE_PARAM_MASK) >> SD_CARD_STATUS_ERASE_PARAM_SHIFT;
+	context.cardStatus.eraseSeqError = (cardStatus & SD_CARD_STATUS_ERASE_SEQ_MASK) >> SD_CARD_STATUS_ERASE_SEQ_SHIFT;
+	context.cardStatus.outOfRangeError = (cardStatus & SD_CARD_STATUS_OUT_OF_RANGE_MASK) >> SD_CARD_STATUS_OUT_OF_RANGE_SHIFT;
+	context.cardStatus.isCardLocked = (cardStatus & SD_CARD_STATUS_CARD_IS_LOCKED_MASK) >> SD_CARD_STATUS_CARD_IS_LOCKED_SHIFT;
 }
 
 static void sdContextSetSdStatus(uint32_t* sdStatus)
 {
+	// Decoding SD status from the register received
     context.sdStatus.busWidth = (uint8_t)((sdStatus[0U] & 0xC0000000U) >> 30U);                                       		/* 511-510 */
     context.sdStatus.securedMode = (uint8_t)((sdStatus[0U] & 0x20000000U) >> 29U);                                     		/* 509 */
     context.sdStatus.sdCardType = (uint16_t)((sdStatus[0U] & 0x0000FFFFU));                                             	/* 495-480 */
