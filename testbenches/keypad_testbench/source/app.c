@@ -1,68 +1,64 @@
-/*******************************************************************************
-  @file     matrix_wrapper_testbench.h
-  @brief    Kernel abstraction layer between application and the MCU
-  @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
- ******************************************************************************/
-
-#ifndef MATRIX_WRAPPER_H_
-#define MATRIX_WRAPPER_H_
+/********************************************************************************
+  @file     App.c
+  @brief    Application functions
+  @author   N. Magliola, G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
+ *******************************************************************************/
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "../drivers/HAL/keypad/keypad.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+
 /*******************************************************************************
- * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
+ * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-typedef enum
+static void keypadCallback(keypad_events_t event);
+
+/*******************************************************************************
+ * VARIABLES TYPES DEFINITIONS
+ ******************************************************************************/
+
+/*******************************************************************************
+ * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
+ ******************************************************************************/
+static keypad_events_t ev;
+
+/*******************************************************************************
+ *******************************************************************************
+                        GLOBAL FUNCTION DEFINITIONS
+ *******************************************************************************
+ ******************************************************************************/
+
+/* Called once at the beginning of the program */
+void appInit (void)
 {
-	// Graphic Modes
-	BAR_MODE	= 0b00000001,
-	CENTRE_MODE	= 0b00000010,
+    keypadInit();
+    keypadSubscribe(keypadCallback);
+}
 
-	// Scale Modes
-	LINEAR_MODE = 0b01000000,
-	LOGARITHMIC_MODE = 0b10000000
-} vumeter_modes_t;
+/* Called repeatedly in an infinite loop */
+void appRun (void)
+{
 
-typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-} pixel_t;
-
+}
 
 /*******************************************************************************
- * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
+ *******************************************************************************
+                        LOCAL FUNCTION DEFINITIONS
+ *******************************************************************************
  ******************************************************************************/
-
-/*******************************************************************************
- * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
- ******************************************************************************/
-
-/*******************************************************************************
- * SERVICES
- ******************************************************************************/
-
-void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness);
-
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness);
-
-/*******************************************************************************
- * EVENT GENERATORS INTERFACE
- ******************************************************************************/
-
+static void keypadCallback(keypad_events_t event)
+{
+	ev.source = event.source;
+	ev.id = event.id;
+}
 
 /*******************************************************************************
  ******************************************************************************/
-
-#endif
-

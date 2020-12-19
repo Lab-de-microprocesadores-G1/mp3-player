@@ -1,44 +1,30 @@
 /*******************************************************************************
-  @file     matrix_wrapper_testbench.h
-  @brief    Kernel abstraction layer between application and the MCU
-  @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
+  @file     systick.h
+  @brief    Systick simple timer driver
+  @author   N. Magliola, G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef MATRIX_WRAPPER_H_
-#define MATRIX_WRAPPER_H_
+#ifndef _SYSTICK_H_
+#define _SYSTICK_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include <stdint.h>
 #include <stdbool.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define SYSTICK_ISR_FREQUENCY_HZ   	1000U
+#define CPU_FREQUENCY_HZ           	100000000UL
+#define SYSTICK_TICK_MS			   	(1000U / SYSTICK_ISR_FREQUENCY_HZ)
+#define SYSTICK_MS2TICKS(x)			((x) / SYSTICK_TICK_MS)
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
-
-typedef enum
-{
-	// Graphic Modes
-	BAR_MODE	= 0b00000001,
-	CENTRE_MODE	= 0b00000010,
-
-	// Scale Modes
-	LINEAR_MODE = 0b01000000,
-	LOGARITHMIC_MODE = 0b10000000
-} vumeter_modes_t;
-
-typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-} pixel_t;
-
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -48,21 +34,15 @@ typedef struct {
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
-/*******************************************************************************
- * SERVICES
- ******************************************************************************/
-
-void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness);
-
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness);
-
-/*******************************************************************************
- * EVENT GENERATORS INTERFACE
- ******************************************************************************/
+/**
+ * @brief Initialise SysTic driver
+ * @param funcallback Function to be call every SysTick
+ * @return Initialization and registration succeed
+ */
+bool systickInit (void (*funcallback)(void));
 
 
 /*******************************************************************************
  ******************************************************************************/
 
-#endif
-
+#endif // _SYSTICK_H_
