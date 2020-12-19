@@ -5,19 +5,19 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../source/app.c \
-../source/arm_fir_data.c \
+../source/in_out_data.c \
 ../source/math_helper.c \
 ../source/semihost_hardfault.c 
 
 OBJS += \
 ./source/app.o \
-./source/arm_fir_data.o \
+./source/in_out_data.o \
 ./source/math_helper.o \
 ./source/semihost_hardfault.o 
 
 C_DEPS += \
 ./source/app.d \
-./source/arm_fir_data.d \
+./source/in_out_data.d \
 ./source/math_helper.d \
 ./source/semihost_hardfault.d 
 
