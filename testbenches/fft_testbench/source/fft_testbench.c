@@ -9,8 +9,8 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "arm_math.h"
-#include "arm_const_structs.h"
+#include "../CMSIS/arm_math.h"
+#include "../CMSIS/arm_const_structs.h"
 #include "fft_testbench.h"
 
 /*******************************************************************************
@@ -52,6 +52,13 @@ void FFTInit(void)
 	arm_rfft_init_f32(&rfft, &cfft, FFT_LENGTH, 0, 1);
 }
 
+void FFT(uint16_t* in)
+{
+  unsigned len = FFT_LENGTH;
+  float output[1152], input[1152];
+  arm_rfft_f32(&rfft, input, output);
+
+}
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
