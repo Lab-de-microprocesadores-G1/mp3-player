@@ -16,9 +16,10 @@ C_DEPS :=
 SUBDIRS := \
 CMSIS \
 board \
-drivers/MCAL/fsl_clock \
-drivers/MCAL/fsl_common \
-drivers/MCAL/fsl_uart \
+drivers/MCAL/equaliser \
+drivers/MCAL/equaliser/fsl_clock \
+drivers/MCAL/equaliser/fsl_common \
+drivers/MCAL/equaliser/fsl_uart \
 drivers/MCAL/gpio \
 source \
 startup \
