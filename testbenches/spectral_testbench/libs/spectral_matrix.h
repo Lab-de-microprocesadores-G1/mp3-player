@@ -1,5 +1,5 @@
 /*******************************************************************************
-  @file     matrix_wrapper_testbench.h
+  @file     spectral_matrix.h
   @brief    Kernel abstraction layer between application and the MCU
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
@@ -52,9 +52,9 @@ typedef struct {
  * SERVICES
  ******************************************************************************/
 
-void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode);
+void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness);
 
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode);
+void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness);
 
 /*******************************************************************************
  * EVENT GENERATORS INTERFACE

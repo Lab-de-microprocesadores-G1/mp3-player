@@ -17,18 +17,26 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+
 #define FRAME_SIZE 1042
+#define DISPLAY_SIZE	       	  8	// Display side number of digits (8x8)
+#define FULL_SCALE 				  7
+
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static void keypadCallback(keypad_events_t event);// static void privateFunction(void);
+static void keypadCallback(keypad_events_t event);	// static void privateFunction(void);
+static void moveEqBand(uint8_t side);
 
 /*******************************************************************************
  * VARIABLES TYPES DEFINITIONS
  ******************************************************************************/
 
-// typedef int  my_int_t;
+typedef enum{
+	MOVE_EQ_RIGHT,
+	MOVE_EQ_LEFT
+}move_eq_band_t;
 
 /*******************************************************************************
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
@@ -36,6 +44,18 @@ static void keypadCallback(keypad_events_t event);// static void privateFunction
 
 static keypad_events_t  keypadEv;
 static bool newKeypadEv;
+
+static ws2812_pixel_t kernelDisplayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
+static uint8_t currentEqBand = 0;
+static double colValues[8];
+static ws2812_pixel_t clear = {0,0,0};
+
+
+/*******************************************************************************
+ * EXTERN VARIABLES
+ ******************************************************************************/
+
+extern float32_t sineInputs[8][FRAME_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -46,13 +66,22 @@ static bool newKeypadEv;
 /* Called once at the beginning of the program */
 void appInit (void)
 {
-    eqInit(FRAME_SIZE);
+    //Matrix initialisation
 	WS2812Init();
+	WS2812SetDisplayBuffer(kernelDisplayMatrix, DISPLAY_SIZE * DISPLAY_SIZE);
+
+	//equalisator initialisation
+	eqInit(FRAME_SIZE);
+
+	//Keypad initialisation
 	keypadInit();
 	keypadSubscribe(keypadCallback);
-	cfftInit(FRAME_SIZE);
-	newKeypadEv = false;
 
+	//fft initialisation
+	cfftInit(FRAME_SIZE);
+
+	//Local variables
+	newKeypadEv = false;
 }
 
 /* Called repeatedly in an infinite loop */
@@ -62,23 +91,23 @@ void appRun (void)
 	{
 		switch (keypadEv.source)
 		{
-			case KEYPAD_ENCODER_LEFT:
+			case KEYPAD_ENCODER_LEFT:	// Left encoder moves between selected eq bands.
 			{
 				if(keypadEv.id == KEYPAD_PRESSED)
 				{
-
+					
 				}
 				else if(keypadEv.id == KEYPAD_ROTATION_CLKW)
 				{
-					
+					moveEqBand(MOVE_EQ_RIGHT);
 				}
 				else if(keypadEv.id == KEYPAD_ROTATION_ANTICLKW)
 				{
-
+					moveEqBand(MOVE_EQ_LEFT);
 				}
 				break;
 			}
-			case KEYPAD_ENCODER_RIGHT:
+			case KEYPAD_ENCODER_RIGHT:	// Changes equalisation gains of current selected eq band.
 			{
 				if(keypadEv.id == KEYPAD_PRESSED)
 				{
@@ -122,6 +151,20 @@ static void keypadCallback(keypad_events_t event)
 	keypadEv.source = event.source;
 	keypadEv.id = event.id;
 	newKeypadEv = true;
+}
+
+
+void moveEqBand(uint8_t side)
+{
+	if (side == MOVE_EQ_RIGHT)
+	{
+		
+	}
+	else
+	{
+		
+	}
+	
 }
 
 /*******************************************************************************
