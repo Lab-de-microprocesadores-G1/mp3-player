@@ -14,9 +14,12 @@
  ******************************************************************************/
 
 #include "mp3decoder.h"
+#include  "../helix/pub/mp3dec.h"
+#include "../id3tagParser/read_id3.h"
 #include <string.h>
 #include <stdbool.h>  
 #include <stdio.h>
+
 
 
 
@@ -26,6 +29,7 @@
 
 #define MP3DECODER_MODE_NORMAL  0
 #define MP3_FRAME_BUFFER_BYTES  6913                                         // MP3 buffer size (in bytes)
+#define DEFAULT_ID3_FIELD       "Unknown"
 
 #define MP3_PC_TESTBENCH
 //#define MP3_ARM_TESTBENCH
@@ -44,13 +48,20 @@ typedef struct
   uint32_t      fileSize;                                       // file size
   uint32_t      bytesRemaining;                                 // Encoded MP3 bytes remaining to be processed by either offset or decodeMP3
   bool          fileOpened;                                     // true if there is a loaded file
+  uint16_t      lastFrameLength;                                // Last frame length
   
   // MP3-encoded buffer
   uint8_t       mp3FrameBuffer[MP3_FRAME_BUFFER_BYTES];         // buffer for MP3-encoded frames
   uint32_t      top;                                            // current position in frame buffer (points to top)
   uint32_t      bottom;                                         // current position at info end in frame buffer
 
+  // ID3 tag
+  bool                  hasID3Tag;                              // True if the file has valid ID3 tag
+  mp3decoder_tag_data_t ID3Data;                                // Parsed data from ID3 tag
+
+
 }mp3decoder_context_t;
+
 
 
 /*******************************************************************************
@@ -71,6 +82,12 @@ static void flushFileToBuffer();
  * @brief Copies from Helix data structure to own structure
  */
 static void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixData);
+
+
+/*
+ * @brief Reads ID3 tag from MP3 file and updates file pointer after tag info
+ */
+static void readID3Tag(void);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -98,6 +115,7 @@ void MP3DecoderInit(void)
   dec.top = 0;
   dec.fileSize = 0;
   dec.bytesRemaining = 0;
+  dec.hasID3Tag = false;
   printf("Decoder initialized. Buffer size is %d bytes\n", MP3_FRAME_BUFFER_BYTES);
 }
 
@@ -117,6 +135,7 @@ bool MP3LoadFile(const char* filename)
     dec.top = 0;
     dec.fileSize = 0;
     dec.bytesRemaining = 0;
+    dec.hasID3Tag = false;
   }
 
   // Open new file
@@ -135,7 +154,11 @@ bool MP3LoadFile(const char* filename)
 
     dec.mp3File = fp;
     dec.fileOpened = true;
+
+    // read ID3 tag and update pointers
+    readID3Tag();
     
+    // flush file to buffer
     flushFileToBuffer();
 
     #ifdef MP3_PC_TESTBENCH
@@ -199,7 +222,7 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     // scroll encoded info up in array if necessary (TESTED-WORKING)
     if( (dec.top > 0)  && ( (dec.bottom - dec.top ) > 0) && (dec.bottom - dec.top < MP3_FRAME_BUFFER_BYTES))
     {  
-        //memcopy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
+        //memcpy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
         memmove(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
         dec.bottom = dec.bottom - dec.top;
         dec.top = 0;
@@ -214,6 +237,7 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
         #ifdef MP3_PC_TESTBENCH
         printf("Empty buffer.\n");
         #endif
+
     }
     else if (dec.bottom == MP3_DECODED_BUFFER_SIZE)
     {
@@ -264,6 +288,7 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     if(res == ERR_MP3_NONE) // if decoding successful
     {
       uint16_t decodedBytes = dec.bottom - dec.top - bytesLeft;
+      dec.lastFrameLength = decodedBytes;
 
       #ifdef MP3_PC_TESTBENCH
       printf("Frame decoded!. MP3 frame size was %d bytes\n", decodedBytes);
@@ -302,14 +327,25 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
     }
     else // if (res == -6)
     {        
-      dec.top++;
-      dec.bytesRemaining--;
-      #ifdef MP3_PC_TESTBENCH
-      printf("Error: %d\n", res);
-      #endif
-      
-      // If invalid header, try with next frame
-      return MP3GetDecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
+
+      if (dec.bytesRemaining <= dec.lastFrameLength)
+      {
+         #ifdef MP3_PC_TESTBENCH
+         printf("Dropped frame\n");
+         #endif
+         return MP3DECODER_FILE_END;
+      }
+      else
+      {
+        dec.top++;
+        dec.bytesRemaining--;
+        #ifdef MP3_PC_TESTBENCH
+        printf("Error: %d\n", res);
+        #endif
+
+        // If invalid header, try with next frame
+        return MP3GetDecodedFrame(outBuffer, bufferSize, samplesDecoded); //! H-quearlo
+      }
     }
   }
   else
@@ -318,6 +354,23 @@ mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, ui
   }
   
   return ret;
+
+}
+
+bool MP3GetTagData(mp3decoder_tag_data_t* data)
+{
+    bool ret = false;
+    if (dec.hasID3Tag)
+    {
+        strcpy(data->album, dec.ID3Data.album);
+        strcpy(data->artist, dec.ID3Data.artist);
+        strcpy(data->title, dec.ID3Data.title);
+        strcpy(data->trackNum, dec.ID3Data.trackNum);
+        strcpy(data->year, dec.ID3Data.year);     
+        ret = true;
+    }
+
+    return ret;
 }
 /*******************************************************************************
  *******************************************************************************
@@ -363,7 +416,49 @@ void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixData)
     mp3Data->sampleCount = helixData->outputSamps;
 }
 
+void readID3Tag(void)
+{
 
+    if (has_ID3_tag(dec.mp3File))
+    {
+        dec.hasID3Tag = true;
+
+        if (!read_ID3_info(TITLE_ID3, dec.ID3Data.title, ID3_MAX_FIELD_SIZE, dec.mp3File))
+            strcpy(dec.ID3Data.title, DEFAULT_ID3_FIELD);
+
+        if (!read_ID3_info(ALBUM_ID3, dec.ID3Data.album, ID3_MAX_FIELD_SIZE, dec.mp3File))
+            strcpy(dec.ID3Data.album, DEFAULT_ID3_FIELD);
+
+        if (!read_ID3_info(ARTIST_ID3, dec.ID3Data.artist, ID3_MAX_FIELD_SIZE, dec.mp3File))
+            strcpy(dec.ID3Data.artist, DEFAULT_ID3_FIELD);
+
+        if (!read_ID3_info(YEAR_ID3, dec.ID3Data.year, 10, dec.mp3File))
+            strcpy(dec.ID3Data.year, DEFAULT_ID3_FIELD);
+
+        if (!read_ID3_info(TRACK_NUM_ID3, dec.ID3Data.trackNum, 10, dec.mp3File))
+            strcpy(dec.ID3Data.trackNum, DEFAULT_ID3_FIELD);
+
+        unsigned int tagSize = get_ID3_size(dec.mp3File);
+
+        #ifdef MP3_PC_TESTBENCH
+        printf("ID3 Track found.\n");
+        printf("ID3 Tag is %d bytes long\n", tagSize);
+        fseek(dec.mp3File, tagSize, SEEK_SET);
+        #endif    
+
+        dec.bytesRemaining -= tagSize; //! INIT bytesRemaining before calling this function!
+
+
+
+    }
+    else
+    {
+        rewind(dec.mp3File);
+    }
+
+
+
+}
 /*******************************************************************************
  *******************************************************************************
 						            INTERRUPT SERVICE ROUTINES

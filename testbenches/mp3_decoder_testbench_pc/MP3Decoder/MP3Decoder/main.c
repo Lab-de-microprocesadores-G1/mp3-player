@@ -26,9 +26,9 @@
 #define SAMPLE_RATE		11025
 #endif
 #ifdef PIZZA_CONMIGO
-#define FILEPATH		"C:/Users/nicot/Downloads/PizzaConmigo_notag.mp3"
-#define FILEPATH_WAV	"C:/Users/nicot/Downloads/PizzaConmigo.wav"
-#define SAMPLE_RATE		48000
+#define FILEPATH		"D:/Users/Joaco/Desktop/playground/HelixMP3Test/testfiles/sullivan.mp3"
+#define FILEPATH_WAV	"D:/Users/Joaco/Desktop/playground/HelixMP3Test/testfiles/PizzaConmigo.wav"
+#define SAMPLE_RATE		44100
 #endif
 #ifdef SULLIVAN
 #define FILEPATH		"C:/Users/nicot/Downloads/sullivan.mp3"
@@ -56,6 +56,7 @@ int main(void)
 	uint8_t j = 0;
 	WavFile *wavIn, *wavOut, *wav;
 	mp3decoder_frame_data_t frameData;
+	mp3decoder_tag_data_t ID3Data;
 
 
 	#ifndef SAMPLE
@@ -96,6 +97,14 @@ int main(void)
 			{
 				printf("[APP] FILE ENDED. Decoded %d frames.\n",i-1);
 				wav_close(wav);
+				MP3GetTagData(&ID3Data);
+				printf("\nSONG INFO\n");
+				printf("TITLE: %s\n", ID3Data.title);
+				printf("ARTIST: %s\n", ID3Data.artist);
+				printf("ALBUM: %s\n", ID3Data.album);
+				printf("TRACK NUM: %s\n", ID3Data.trackNum);
+				printf("YEAR: %s\n", ID3Data.year);
+
 				break;
 			}
 			else

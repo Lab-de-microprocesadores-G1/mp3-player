@@ -12,7 +12,7 @@
  ******************************************************************************/
 #include  <stdbool.h>
 #include  <stdint.h>
-#include  "../helix/pub/mp3dec.h"
+
 
 
 /*******************************************************************************
@@ -20,6 +20,7 @@
  ******************************************************************************/
 
 #define MP3_DECODED_BUFFER_SIZE (4*1152)                                     // maximum frame size if max bitrate is used (in samples)
+#define ID3_MAX_FIELD_SIZE      50
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -45,8 +46,12 @@ typedef struct
 
 typedef struct
 {
-    char* songName;
-    char* artist;
+    uint8_t title[ID3_MAX_FIELD_SIZE];
+    uint8_t artist[ID3_MAX_FIELD_SIZE];
+    uint8_t album[ID3_MAX_FIELD_SIZE];
+    uint8_t trackNum[10];
+    uint8_t year[10];
+
 } mp3decoder_tag_data_t;
 
 /*******************************************************************************
@@ -99,6 +104,7 @@ bool MP3GetNextFrameData(mp3decoder_frame_data_t *data);
 * @returns  result code (MP3DECODER_ERROR, MP3DECODER_NOERROR, MP3DECODER_FILE_END, MP3DECODER_NO_FILE, MP3DECODER_BUFFER_OVERFLOW)
 */
 mp3decoder_result_t MP3GetDecodedFrame(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded);
+
 
 
 /*******************************************************************************

@@ -155,8 +155,8 @@
     <ClCompile Include="helix\real\stproc.c" />
     <ClCompile Include="helix\real\subband.c" />
     <ClCompile Include="helix\real\trigtabs_fixpt.c" />
+    <ClCompile Include="id3tagParser\read_id3.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="main2.c" />
     <ClCompile Include="mp3decoder\mp3decoder.c" />
     <ClCompile Include="wav.c" />
   </ItemGroup>
@@ -168,6 +168,7 @@
     <ClInclude Include="helix\pub\statname.h" />
     <ClInclude Include="helix\real\assembly.h" />
     <ClInclude Include="helix\real\coder.h" />
+    <ClInclude Include="id3tagParser\read_id3.h" />
     <ClInclude Include="mp3decoder\mp3decoder.h" />
     <ClInclude Include="wav.h" />
   </ItemGroup>

@@ -66,10 +66,10 @@
     <ClCompile Include="mp3decoder\mp3decoder.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="main2.c">
+    <ClCompile Include="wav.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wav.c">
+    <ClCompile Include="id3tagParser\read_id3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -99,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wav.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="id3tagParser\read_id3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
