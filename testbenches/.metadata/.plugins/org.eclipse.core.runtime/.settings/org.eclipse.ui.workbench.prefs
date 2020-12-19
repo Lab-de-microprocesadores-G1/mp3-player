@@ -1,18 +1,22 @@
 //org.eclipse.ui.commands/state/com.nxp.mcuxpresso.power.ui.setProbeType/org.eclipse.ui.commands.radioState=nopower
 //org.eclipse.ui.commands/state/org.eclipse.ui.navigator.resources.nested.changeProjectPresentation/org.eclipse.ui.commands.radioState=false
 //org.eclipse.ui.commands/state/org.eclipse.wst.xml.views.XPathView.processor.xpathprocessor/org.eclipse.ui.commands.radioState=xpath10
+<<<<<<< HEAD
+ENABLED_DECORATORS=org.eclipse.ui.LinkedResourceDecorator\:true,org.eclipse.ui.SymlinkDecorator\:true,org.eclipse.ui.VirtualResourceDecorator\:true,org.eclipse.ui.ContentTypeDecorator\:true,org.eclipse.ui.ResourceFilterDecorator\:false,org.eclipse.cdt.ui.indexedFiles\:false,org.eclipse.cdt.managedbuilder.ui.excludedFile\:true,org.eclipse.cdt.managedbuilder.ui.includeFolder\:true,org.eclipse.cdt.internal.ui.CustomBuildSettingsDecorator\:false,org.eclipse.jdt.ui.override.decorator\:true,org.eclipse.jdt.ui.interface.decorator\:true,org.eclipse.jdt.ui.buildpath.decorator\:true,org.eclipse.team.cvs.ui.decorator\:true,com.crt.advproject.gui.CRTCustomBuildSettingsDecorator\:true,com.crt.dsfdebug.decorator\:true,org.eclipse.egit.ui.internal.decorators.GitLightweightDecorator\:true,com.nxp.mcuxpresso.core.datamodels.sdkNatureDecorator\:true,
+=======
 ACTIVE_HYPERLINK_COLOR=255,200,0
 CONFLICTING_COLOR=232,14,64
 CONTENT_ASSIST_BACKGROUND_COLOR=46,52,56
 CONTENT_ASSIST_FOREGROUND_COLOR=233,235,237
 COUNTER_COLOR=0,208,255
 DECORATIONS_COLOR=181,152,86
-ENABLED_DECORATORS=org.eclipse.ui.LinkedResourceDecorator\:true,org.eclipse.ui.SymlinkDecorator\:true,org.eclipse.ui.VirtualResourceDecorator\:true,org.eclipse.ui.ContentTypeDecorator\:true,org.eclipse.ui.ResourceFilterDecorator\:false,org.eclipse.mylyn.context.ui.decorator.interest\:true,org.eclipse.cdt.ui.indexedFiles\:false,org.eclipse.cdt.managedbuilder.ui.excludedFile\:true,org.eclipse.cdt.managedbuilder.ui.includeFolder\:true,org.eclipse.cdt.internal.ui.CustomBuildSettingsDecorator\:false,org.eclipse.jdt.ui.override.decorator\:true,org.eclipse.jdt.ui.interface.decorator\:true,org.eclipse.jdt.ui.buildpath.decorator\:true,org.eclipse.mylyn.tasks.ui.decorators.task\:true,org.eclipse.team.cvs.ui.decorator\:true,com.crt.advproject.gui.CRTCustomBuildSettingsDecorator\:true,com.crt.dsfdebug.decorator\:true,org.eclipse.egit.ui.internal.decorators.GitLightweightDecorator\:true,org.eclipse.mylyn.team.ui.changeset.decorator\:true,com.nxp.mcuxpresso.core.datamodels.sdkNatureDecorator\:true,
+ENABLED_DECORATORS=org.eclipse.ui.LinkedResourceDecorator\:true,org.eclipse.ui.SymlinkDecorator\:true,org.eclipse.ui.VirtualResourceDecorator\:true,org.eclipse.ui.ContentTypeDecorator\:true,org.eclipse.ui.ResourceFilterDecorator\:false,org.eclipse.debug.ui.prototype.decorator\:true,org.eclipse.cdt.ui.indexedFiles\:false,org.eclipse.cdt.managedbuilder.ui.excludedFile\:true,org.eclipse.cdt.managedbuilder.ui.includeFolder\:true,org.eclipse.cdt.internal.ui.CustomBuildSettingsDecorator\:false,org.eclipse.team.cvs.ui.decorator\:true,com.crt.advproject.gui.CRTCustomBuildSettingsDecorator\:true,org.eclipse.jdt.ui.override.decorator\:true,org.eclipse.jdt.ui.interface.decorator\:true,org.eclipse.jdt.ui.buildpath.decorator\:true,org.eclipse.jdt.internal.ui.without.test.code.decorator\:true,com.nxp.mcuxpresso.core.datamodels.sdkNatureDecorator\:true,com.nxp.mcuxpresso.core.datamodels.ui.multicoreProjectDecorator\:true,com.nxp.mcuxpresso.core.debug.support.linkserver.launch.\:true,org.eclipse.egit.ui.internal.decorators.GitLightweightDecorator\:true,org.eclipse.egit.ui.internal.repository.RepositoryTreeNodeDecorator\:true,com.nxp.mcuxpresso.addons.docsupport.ui.decorators.projectdecorator\:true,
 ERROR_COLOR=247,68,117
 HYPERLINK_COLOR=111,197,238
 INCOMING_COLOR=31,179,235
 OUTGOING_COLOR=235,237,239
 RESOLVED_COLOR=104,203,16
+>>>>>>> 26758158628b51e7b89eb4b773ab36025400c666
 UIActivities.org.eclipse.cdt.debug.dsfgdbActivity=true
 cdataBorder=0,254,254
 cdataText=255,255,255

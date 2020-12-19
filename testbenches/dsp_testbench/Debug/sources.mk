@@ -14,13 +14,12 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+CMSIS \
 board \
-component/lists \
-component/serial_manager \
-component/uart \
-device \
-drivers \
+drivers/MCAL/fsl_clock \
+drivers/MCAL/fsl_common \
+drivers/MCAL/fsl_uart \
+drivers/MCAL/gpio \
 source \
 startup \
-utilities \
 

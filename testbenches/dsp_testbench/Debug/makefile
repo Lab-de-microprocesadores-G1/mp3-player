@@ -8,15 +8,14 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include utilities/subdir.mk
 -include startup/subdir.mk
 -include source/subdir.mk
--include drivers/subdir.mk
--include device/subdir.mk
--include component/uart/subdir.mk
--include component/serial_manager/subdir.mk
--include component/lists/subdir.mk
+-include drivers/MCAL/gpio/subdir.mk
+-include drivers/MCAL/fsl_uart/subdir.mk
+-include drivers/MCAL/fsl_common/subdir.mk
+-include drivers/MCAL/fsl_clock/subdir.mk
 -include board/subdir.mk
+-include CMSIS/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -37,7 +36,7 @@ all: dsp_testbench.axf
 dsp_testbench.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"C:\Users\facun\mcuxpresso\01\SDKPackages\SDK_2.8.2_FRDM-K64F\CMSIS\DSP\Lib\GCC" -Xlinker -Map="dsp_testbench.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -T frdmk64f_hello_world_Debug.ld -o "dsp_testbench.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"C:\Users\facun\mcuxpresso\01\SDKPackages\SDK_2.8.2_FRDM-K64F\CMSIS\DSP\Lib\GCC" -Xlinker -Map="dsp_testbench.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -T "dsp_testbench_Debug.ld" -o "dsp_testbench.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

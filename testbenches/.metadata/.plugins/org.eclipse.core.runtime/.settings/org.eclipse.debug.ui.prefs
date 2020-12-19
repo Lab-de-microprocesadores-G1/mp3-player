@@ -14,6 +14,7 @@ org.eclipse.debug.ui.consoleBackground=25,29,31
 org.eclipse.debug.ui.errorColor=204,223,50
 org.eclipse.debug.ui.inColor=216,216,216
 org.eclipse.debug.ui.outColor=216,216,216
+org.eclipse.debug.ui.save_dirty_editors_before_launch=always
 org.eclipse.debug.ui.switch_perspective_on_suspend=never
 org.eclipse.debug.ui.user_view_bindings=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\r\n<viewBindings>\r\n<view id\="com.crt.peripheral.PeripheralView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="closed"/>\r\n</view>\r\n<view id\="com.nxp.lpcxpresso.debug.ui.views.NXPGlobalVariablesView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="closed"/>\r\n</view>\r\n<view id\="org.eclipse.debug.ui.MemoryView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="opened"/>\r\n</view>\r\n<view id\="org.eclipse.debug.ui.RegisterView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="opened"/>\r\n</view>\r\n<view id\="org.eclipse.debug.ui.ModuleView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="closed"/>\r\n</view>\r\n<view id\="org.eclipse.debug.ui.ExpressionView">\r\n<perspective id\="org.eclipse.debug.ui.DebugPerspective" userAction\="opened"/>\r\n</view>\r\n</viewBindings>\r\n
 overriddenByCSS=,org.eclipse.debug.ui.PREF_CHANGED_VALUE_BACKGROUND,org.eclipse.debug.ui.changedDebugElement,org.eclipse.debug.ui.consoleBackground,org.eclipse.debug.ui.errorColor,org.eclipse.debug.ui.inColor,org.eclipse.debug.ui.outColor,
