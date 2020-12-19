@@ -10822,3 +10822,432 @@ java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.Sched
 
 !ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:30:35.491
 !MESSAGE Unable to find Trace Service for '(gdb[61].proc[42000].threadGroup[i1],gdb[61].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:33.718
+!MESSAGE Unable to find Trace Service for 'gdb[62].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:33.768
+!MESSAGE Unable to find Trace Service for 'gdb[62].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:33.818
+!MESSAGE Unable to find Trace Service for 'gdb[62].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:33.878
+!MESSAGE Unable to find Trace Service for 'gdb[62].proc[42000].threadGroup[i1]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:36.178
+!MESSAGE Unable to find Trace Service for '(gdb[62].proc[42000].threadGroup[i1],gdb[62].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:50:36.228
+!MESSAGE Unable to find Trace Service for '(gdb[62].proc[42000].threadGroup[i1],gdb[62].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.543
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@a41262): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@42c500): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@18b424): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@42c500): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:53:49.543
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@42c500): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.543
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@18b424): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #4 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@42c500): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #4 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.598
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@3e6389' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.648
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@1836a7f' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.688
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@165c63e' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.728
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@b7f436' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.768
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@1f8055b' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:53:49.808
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@15d5fd1' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:54:08.598
+!MESSAGE Unable to find Trace Service for '(gdb[63].proc[42000].threadGroup[i1],gdb[63].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:54:08.668
+!MESSAGE Unable to find Trace Service for '(gdb[63].proc[42000].threadGroup[i1],gdb[63].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.363
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@4a9f6a): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e258b8): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@15a27a1): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e258b8): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 05:58:27.363
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e258b8): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.363
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@15a27a1): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1e258b8): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.402
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.402
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@ccbab4' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.402
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@a8914e): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@ccbab4' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.442
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.442
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@12563c9' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.442
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@86a90): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@12563c9' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.502
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.502
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@140fd91' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.502
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1d12b01): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@140fd91' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.543
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.543
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@1d0e909' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.543
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@1c4633e): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@1d0e909' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.592
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.592
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@13c9810' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.592
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@caa420): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@13c9810' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.653
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.653
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@14f0d16' resulted in a rejected execution exception.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 05:58:27.653
+!MESSAGE Request for monitor: 'RequestMonitor (com.crt.dsfdebug.ui.DebugAllHelper$3@137566f): Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: '[Lorg.eclipse.cdt.dsf.mi.service.IMIContainerDMContext;@14f0d16' resulted in a rejected execution exception. null' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:58:45.102
+!MESSAGE Unable to find Trace Service for '(gdb[64].proc[42000].threadGroup[i1],gdb[64].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 05:58:45.163
+!MESSAGE Unable to find Trace Service for '(gdb[64].proc[42000].threadGroup[i1],gdb[64].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:00:33.343
+!MESSAGE Unable to find Trace Service for '(gdb[65].proc[42000].threadGroup[i1],gdb[65].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:00:33.403
+!MESSAGE Unable to find Trace Service for '(gdb[65].proc[42000].threadGroup[i1],gdb[65].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:04:05.402
+!MESSAGE Unable to find Trace Service for '(gdb[66].proc[42000].threadGroup[i1],gdb[66].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:04:05.457
+!MESSAGE Unable to find Trace Service for '(gdb[66].proc[42000].threadGroup[i1],gdb[66].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.ui 4 4 2020-12-19 06:04:07.662
+!MESSAGE Conflicting handlers for org.eclipse.ui.navigate.backwardHistory: {ActionHandler(org.eclipse.ui.internal.NavigationHistoryAction@df2165)} vs {ActionHandler(org.eclipse.ui.internal.dialogs.PreferencePageHistory$1@156db37)}
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.297
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@18b466d): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@deb1ca): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@c0fa1e): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@deb1ca): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 06:05:18.297
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@deb1ca): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.297
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@c0fa1e): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #3 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@deb1ca): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #3 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.342
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@3cca51' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.397
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@d24ba9' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.442
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@ecf1ae' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.492
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@1ddb8eb' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.537
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@28622a' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:18.592
+!MESSAGE Request for monitor: '[Lorg.eclipse.cdt.dsf.debug.service.IRunControl$IExecutionDMContext;@216121' resulted in a rejected execution exception.
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:05:36.472
+!MESSAGE Unable to find Trace Service for '(gdb[67].proc[42000].threadGroup[i1],gdb[67].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:05:36.512
+!MESSAGE Unable to find Trace Service for '(gdb[67].proc[42000].threadGroup[i1],gdb[67].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:59.542
+!MESSAGE Composite status
+!SUBENTRY 1 org.eclipse.cdt.dsf.gdb.ui 4 0 2020-12-19 06:05:59.542
+!MESSAGE Task java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@160f355 rejected from org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor@5c4b4b[Shutting down, pool size = 1, active threads = 1, queued tasks = 6, completed tasks = 5448]
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:59.542
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.internal.ui.actions.GdbDisconnectCommand$1@18a856d): Status ERROR: org.eclipse.cdt.dsf.gdb.ui code=0 Task java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@160f355 rejected from org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor@5c4b4b[Shutting down, pool size = 1, active threads = 1, queued tasks = 6, completed tasks = 5448] null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:59.582
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor@daec72): Status ERROR: org.eclipse.cdt.dsf code=10005 Composite status null children=[Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #1 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1eeb6cd): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #1 null Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@2c6d64): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #1 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1eeb6cd): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #1 null' resulted in a rejected execution exception. null]' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 0 2020-12-19 06:05:59.582
+!MESSAGE Executor shut down while executing Sequence Sequence "", result for executing step #1 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1eeb6cd): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #1
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10005 2020-12-19 06:05:59.582
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.GdbLaunch$4@2c6d64): Status ERROR: org.eclipse.cdt.dsf code=0 Executor shut down while executing Sequence Sequence "", result for executing step #1 = Status ERROR: org.eclipse.cdt.dsf code=10005 Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.gdb.launching.ShutdownSequence$ServiceShutdownStep$1@1eeb6cd): Status OK: unknown code=0 OK null' resulted in a rejected execution exception. null, step #1 null' resulted in a rejected execution exception.
+
+!ENTRY org.eclipse.debug.ui 4 2 2020-12-19 06:05:59.617
+!MESSAGE Problems occurred when invoking code from plug-in: "org.eclipse.debug.ui".
+!STACK 0
+java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@1e8072 rejected from org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor@5c4b4b[Shutting down, pool size = 1, active threads = 1, queued tasks = 6, completed tasks = 5448]
+	at java.util.concurrent.ThreadPoolExecutor$AbortPolicy.rejectedExecution(ThreadPoolExecutor.java:2063)
+	at java.util.concurrent.ThreadPoolExecutor.reject(ThreadPoolExecutor.java:830)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.delayedExecute(ScheduledThreadPoolExecutor.java:326)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.schedule(ScheduledThreadPoolExecutor.java:533)
+	at org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor.schedule(DefaultDsfExecutor.java:438)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.execute(ScheduledThreadPoolExecutor.java:622)
+	at org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor.execute(DefaultDsfExecutor.java:462)
+	at org.eclipse.cdt.dsf.gdb.internal.ui.actions.DsfTerminateCommand.canExecute(DsfTerminateCommand.java:70)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.updateCommand(DebugCommandService.java:178)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.postUpdate(DebugCommandService.java:153)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.debugContextChanged(DebugCommandService.java:234)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService$2.run(DebugWindowContextService.java:231)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.notify(DebugWindowContextService.java:228)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.notify(DebugWindowContextService.java:212)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.debugContextChanged(DebugWindowContextService.java:452)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider$1.run(AbstractDebugContextProvider.java:82)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider.fire(AbstractDebugContextProvider.java:79)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$ContextProviderProxy.debugContextChanged(LaunchView.java:519)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider$1.run(AbstractDebugContextProvider.java:82)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider.fire(AbstractDebugContextProvider.java:79)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider.possibleChange(LaunchView.java:405)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider$Visitor.visit(LaunchView.java:327)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.doAccept(VMDelta.java:365)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.doAccept(VMDelta.java:368)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.accept(VMDelta.java:360)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider.modelChanged(LaunchView.java:435)
+	at org.eclipse.debug.internal.ui.viewers.model.TreeModelContentProvider.doModelChanged(TreeModelContentProvider.java:431)
+	at org.eclipse.debug.internal.ui.viewers.model.TreeModelContentProvider.modelChanged(TreeModelContentProvider.java:400)
+	at org.eclipse.cdt.dsf.ui.viewmodel.DefaultVMModelProxyStrategy$1.run(DefaultVMModelProxyStrategy.java:155)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.cdt.dsf.ui.viewmodel.DefaultVMModelProxyStrategy.fireModelChanged(DefaultVMModelProxyStrategy.java:159)
+	at org.eclipse.cdt.dsf.ui.viewmodel.update.AbstractCachingVMProvider$6.handleSuccess(AbstractCachingVMProvider.java:898)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor.handleCompleted(RequestMonitor.java:385)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor$2.run(RequestMonitor.java:312)
+	at org.eclipse.cdt.dsf.ui.concurrent.SimpleDisplayExecutor.runInSwtThread(SimpleDisplayExecutor.java:117)
+	at org.eclipse.cdt.dsf.ui.concurrent.SimpleDisplayExecutor$1.run(SimpleDisplayExecutor.java:80)
+	at org.eclipse.swt.widgets.RunnableLock.run(RunnableLock.java:37)
+	at org.eclipse.swt.widgets.Synchronizer.runAsyncMessages(Synchronizer.java:182)
+	at org.eclipse.swt.widgets.Display.runAsyncMessages(Display.java:4213)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3820)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1150)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:336)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1039)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:680)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:336)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:594)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:148)
+	at org.eclipse.ui.internal.ide.application.IDEApplication.start(IDEApplication.java:151)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:196)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:134)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:104)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:388)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:243)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:653)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:590)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1499)
+
+!ENTRY org.eclipse.debug.ui 4 120 2020-12-19 06:05:59.652
+!MESSAGE Error logged from Debug UI: 
+!STACK 0
+java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@1e8072 rejected from org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor@5c4b4b[Shutting down, pool size = 1, active threads = 1, queued tasks = 6, completed tasks = 5448]
+	at java.util.concurrent.ThreadPoolExecutor$AbortPolicy.rejectedExecution(ThreadPoolExecutor.java:2063)
+	at java.util.concurrent.ThreadPoolExecutor.reject(ThreadPoolExecutor.java:830)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.delayedExecute(ScheduledThreadPoolExecutor.java:326)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.schedule(ScheduledThreadPoolExecutor.java:533)
+	at org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor.schedule(DefaultDsfExecutor.java:438)
+	at java.util.concurrent.ScheduledThreadPoolExecutor.execute(ScheduledThreadPoolExecutor.java:622)
+	at org.eclipse.cdt.dsf.concurrent.DefaultDsfExecutor.execute(DefaultDsfExecutor.java:462)
+	at org.eclipse.cdt.dsf.gdb.internal.ui.actions.DsfTerminateCommand.canExecute(DsfTerminateCommand.java:70)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.updateCommand(DebugCommandService.java:178)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.postUpdate(DebugCommandService.java:153)
+	at org.eclipse.debug.internal.ui.commands.actions.DebugCommandService.debugContextChanged(DebugCommandService.java:234)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService$2.run(DebugWindowContextService.java:231)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.notify(DebugWindowContextService.java:228)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.notify(DebugWindowContextService.java:212)
+	at org.eclipse.debug.internal.ui.contexts.DebugWindowContextService.debugContextChanged(DebugWindowContextService.java:452)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider$1.run(AbstractDebugContextProvider.java:82)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider.fire(AbstractDebugContextProvider.java:79)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$ContextProviderProxy.debugContextChanged(LaunchView.java:519)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider$1.run(AbstractDebugContextProvider.java:82)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.ui.contexts.AbstractDebugContextProvider.fire(AbstractDebugContextProvider.java:79)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider.possibleChange(LaunchView.java:405)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider$Visitor.visit(LaunchView.java:327)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.doAccept(VMDelta.java:365)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.doAccept(VMDelta.java:368)
+	at org.eclipse.cdt.dsf.ui.viewmodel.VMDelta.accept(VMDelta.java:360)
+	at org.eclipse.debug.internal.ui.views.launch.LaunchView$TreeViewerContextProvider.modelChanged(LaunchView.java:435)
+	at org.eclipse.debug.internal.ui.viewers.model.TreeModelContentProvider.doModelChanged(TreeModelContentProvider.java:431)
+	at org.eclipse.debug.internal.ui.viewers.model.TreeModelContentProvider.modelChanged(TreeModelContentProvider.java:400)
+	at org.eclipse.cdt.dsf.ui.viewmodel.DefaultVMModelProxyStrategy$1.run(DefaultVMModelProxyStrategy.java:155)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.cdt.dsf.ui.viewmodel.DefaultVMModelProxyStrategy.fireModelChanged(DefaultVMModelProxyStrategy.java:159)
+	at org.eclipse.cdt.dsf.ui.viewmodel.update.AbstractCachingVMProvider$6.handleSuccess(AbstractCachingVMProvider.java:898)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor.handleCompleted(RequestMonitor.java:385)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor$2.run(RequestMonitor.java:312)
+	at org.eclipse.cdt.dsf.ui.concurrent.SimpleDisplayExecutor.runInSwtThread(SimpleDisplayExecutor.java:117)
+	at org.eclipse.cdt.dsf.ui.concurrent.SimpleDisplayExecutor$1.run(SimpleDisplayExecutor.java:80)
+	at org.eclipse.swt.widgets.RunnableLock.run(RunnableLock.java:37)
+	at org.eclipse.swt.widgets.Synchronizer.runAsyncMessages(Synchronizer.java:182)
+	at org.eclipse.swt.widgets.Display.runAsyncMessages(Display.java:4213)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3820)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1150)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:336)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1039)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:680)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:336)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:594)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:148)
+	at org.eclipse.ui.internal.ide.application.IDEApplication.start(IDEApplication.java:151)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:196)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:134)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:104)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:388)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:243)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:653)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:590)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1499)
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:06:17.662
+!MESSAGE Unable to find Trace Service for '(gdb[68].proc[42000].threadGroup[i1],gdb[68].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:06:17.722
+!MESSAGE Unable to find Trace Service for '(gdb[68].proc[42000].threadGroup[i1],gdb[68].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:08:20.291
+!MESSAGE Unable to find Trace Service for '(gdb[69].proc[42000].threadGroup[i1],gdb[69].proc[42000].OSthread[1]).thread[1].frame[0]'
+
+!ENTRY com.nxp.mcuxpresso.trace.core 4 0 2020-12-19 06:08:20.360
+!MESSAGE Unable to find Trace Service for '(gdb[69].proc[42000].threadGroup[i1],gdb[69].proc[42000].OSthread[1]).thread[1].frame[0]'
+!SESSION 2020-12-19 11:33:28.718 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_161
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=es_AR
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2020-12-19 11:34:04.461
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY org.eclipse.jface 2 0 2020-12-19 11:34:51.126
+!MESSAGE Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+!SUBENTRY 1 org.eclipse.jface 2 0 2020-12-19 11:34:51.126
+!MESSAGE A conflict occurred for CTRL+U:
+Binding(CTRL+U,
+	ParameterizedCommand(Command(com.nxp.swtools.clocks.commands.unlockAll,Unlock All Settings,
+		,
+		Category(org.eclipse.core.commands.categories.autogenerated,Uncategorized,Commands that were either auto-generated or have no category,true),
+		org.eclipse.ui.internal.WorkbenchHandlerServiceHandler@1682e71,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+U,
+	ParameterizedCommand(Command(org.eclipse.jdt.debug.ui.commands.Execute,Execute,
+		Evaluate selected text,
+		Category(org.eclipse.debug.ui.category.run,Run/Debug,Run/Debug command category,true),
+		org.eclipse.ui.internal.WorkbenchHandlerServiceHandler@14c83f1,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 11:35:02.012
+!MESSAGE Using manifest XSD 'rsc/manifest_v3.3.xsd' for manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 11:35:02.311
+!MESSAGE Using SDK manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY org.eclipse.launchbar.core 2 0 2020-12-19 11:35:13.234
+!MESSAGE Enablement expression is missing for descriptor type org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2020-12-19 11:35:13.312
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2020-12-19 11:35:13.375
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.egit.ui 2 0 2020-12-19 11:35:14.031
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\Lucas A. Kammann'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-19 11:40:32.431
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.number'
+
+!ENTRY org.eclipse.jface.text 2 0 2020-12-19 11:40:32.470
+!MESSAGE Duplicate template id: 'org.eclipse.wst.xslt.templates.xpath.round'
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 11:47:57.434
+!MESSAGE Request monitor: 'Sequence "", result for executing step #0 = Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null' resulted in a cancel status: Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null, even though the request is not set to cancel.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 11:47:57.494
+!MESSAGE Request monitor: 'Sequence "Initializing debugger services", result for executing step #0 = Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null' resulted in a cancel status: Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null, even though the request is not set to cancel.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 11:47:57.534
+!MESSAGE Request monitor: 'RequestMonitor (org.eclipse.cdt.dsf.concurrent.RequestMonitorWithProgress@200b3d): Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null' resulted in a cancel status: Status CANCEL: com.pemicro.debug.gdbjtag.pne code=1 PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate. null, even though the request is not set to cancel.
+
+!ENTRY com.pemicro.debug.gdbjtag.pne 4 5012 2020-12-19 11:47:57.634
+!MESSAGE Error in services launch sequence
+!STACK 1
+org.eclipse.core.runtime.CoreException: PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate.
+	at org.eclipse.cdt.dsf.concurrent.Sequence.abortExecution(Sequence.java:582)
+	at org.eclipse.cdt.dsf.concurrent.Sequence.access$4(Sequence.java:574)
+	at org.eclipse.cdt.dsf.concurrent.Sequence$2.handleErrorOrWarning(Sequence.java:431)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor.handleFailure(RequestMonitor.java:424)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor.handleCompleted(RequestMonitor.java:387)
+	at org.eclipse.cdt.dsf.concurrent.RequestMonitor$2.run(RequestMonitor.java:312)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$201(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:293)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+!SUBENTRY 1 com.pemicro.debug.gdbjtag.pne 8 1 2020-12-19 11:47:57.634
+!MESSAGE PEmicro GDB Launch Failure : The GDB Server was not able to establish a connection to the target processor. Please check your connections and power. Verify that the launch settings in the Debug Configuration are accurate.
+
+!ENTRY org.eclipse.cdt.dsf 4 10005 2020-12-19 12:02:54.023
+!MESSAGE Request for monitor: 'RequestMonitor (org.eclipse.cdt.dsf.mi.service.MIRunControl$9@728b96): Status ERROR: org.eclipse.cdt.dsf.gdb code=10001 Context cannot be suspended. null' resulted in an error.
+!SUBENTRY 1 org.eclipse.cdt.dsf.gdb 4 10001 2020-12-19 12:02:54.023
+!MESSAGE Context cannot be suspended.
+
+!ENTRY org.eclipse.debug.core 4 125 2020-12-19 12:03:08.604
+!MESSAGE Error logged from Debug Core: 
+!STACK 1
+org.eclipse.core.runtime.CoreException: Target not available.
+	at org.eclipse.cdt.dsf.concurrent.Query.get(Query.java:111)
+	at org.eclipse.cdt.dsf.debug.sourcelookup.DsfSourceLookupParticipant.getSourceName(DsfSourceLookupParticipant.java:161)
+	at org.eclipse.cdt.dsf.debug.sourcelookup.DsfSourceLookupParticipant.findSourceElements(DsfSourceLookupParticipant.java:80)
+	at org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector$SourceLookupQuery.run(AbstractSourceLookupDirector.java:142)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector.doSourceLookup(AbstractSourceLookupDirector.java:505)
+	at org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector.getSourceElement(AbstractSourceLookupDirector.java:785)
+	at org.eclipse.cdt.dsf.debug.ui.sourcelookup.DsfSourceDisplayAdapter$LookupJob.performLookup(DsfSourceDisplayAdapter.java:220)
+	at org.eclipse.cdt.dsf.debug.ui.sourcelookup.DsfSourceDisplayAdapter$LookupJob.run(DsfSourceDisplayAdapter.java:200)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)
+!SUBENTRY 1 org.eclipse.cdt.dsf 4 10001 2020-12-19 12:03:08.604
+!MESSAGE Target not available.
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 12:27:25.323
+!MESSAGE Using manifest XSD 'rsc/manifest_v3.3.xsd' for manifest 'FRDM-K64F_manifest_v3_3.xml'.
+
+!ENTRY com.nxp.mcuxpresso.core.datamodels 1 0 2020-12-19 12:27:25.537
+!MESSAGE Using SDK manifest 'FRDM-K64F_manifest_v3_3.xml'.

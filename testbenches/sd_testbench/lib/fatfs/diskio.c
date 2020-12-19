@@ -47,7 +47,20 @@ DSTATUS disk_initialize (
 	switch (pdrv)
 	{
 		case DEVICE_SD:
-			stat = sdCardInit() ? 0 : STA_NOINIT;
+			sdInit();
+			switch (sdGetState())
+			{
+				case SD_STATE_INITIALIZED:
+					stat = 0;
+					break;
+				case SD_STATE_CONNECTED:
+				case SD_STATE_ERROR:
+					stat = sdCardInit() ? 0 : STA_NOINIT;
+					break;
+				default:
+					stat = STA_NOINIT;
+					break;
+			}
 			break;
 	}
 

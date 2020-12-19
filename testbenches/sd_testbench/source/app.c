@@ -14,23 +14,18 @@
 #include "drivers/HAL/button/button.h"
 #include "drivers/MCAL/sdhc/sdhc.h"
 #include "board.h"
+#include "lib/fatfs/ff.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define BUFFER_SIZE		4096
-
-// #define SD_READ_TESTBENCH
-// #define SD_WRITE_TESTBENCH
-#define SD_ERASE_TESTBENCH
+#define BUFFER_SIZE	100
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static void onCardInserted(void);
-static void onCardRemoved(void);
 static void onButtonPressed(void);
 
 /*******************************************************************************
@@ -41,11 +36,12 @@ static void onButtonPressed(void);
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool 	runInitCardFlag;
-static bool		goCardFlag;
-
-static bool		alreadyInitCard;
-static uint8_t	buffer[BUFFER_SIZE];
+static bool     init;
+static bool 	flag;
+static FATFS	fat;
+static FIL		file;
+static FRESULT	fr;
+static char		buffer[BUFFER_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -65,70 +61,41 @@ void appInit (void)
 
 	/* Initialization of the LED driver */
 	ledInit();
-
-	/* SD Initialization Sequence */
-	sdInit();
-	sdOnCardInserted(onCardInserted);
-	sdOnCardRemoved(onCardRemoved);
-
-	/* Status led initialization */
-	if (sdIsCardInserted())
-	{
-		ledSet(LED_GREEN);
-
-		runInitCardFlag = true;
-	}
 }
 
 /* Called repeatedly in an infinite loop */
 void appRun (void)
 {
-	if (runInitCardFlag)
+	if (!init)
 	{
-		runInitCardFlag = false;
+		/* Mount the default drive */
+		fr = f_mount(&fat, "", 1);
 
-		if (!alreadyInitCard)
-		{
-			if (sdCardInit())
-			{
-				uint64_t size = sdGetSize();
-				alreadyInitCard = true;
-				ledSet(LED_BLUE);
-			}
-			else
-			{
-				ledSet(LED_RED);
-			}
-		}
+		init = true;
 	}
 
-	if (goCardFlag)
+	if (init && flag)
 	{
-		goCardFlag = false;
-#ifdef SD_READ_TESTBENCH
-		if (sdRead((uint32_t*)buffer, 2040877, 2))
-		{
-			ledClear(LED_BLUE);
-		}
-#endif
+		flag = false;
 
-#ifdef SD_WRITE_TESTBENCH
-		for (uint32_t i = 0 ; i < 2048 ; i++)
-		{
-			buffer[i] = i / 512 + 0xAA;
-		}
-		if (sdWrite((uint32_t*)buffer, 0, 4))
-		{
-			ledClear(LED_BLUE);
-		}
-#endif
+		// Test creating some folders
+		fr = f_mkdir("user");
+		fr = f_mkdir("backup");
 
-#ifdef SD_ERASE_TESTBENCH
-		if (sdErase(2352678, 4))
+		// Test changing current directory
+		fr = f_chdir("user");
+
+		// Tests creating a file
+		fr = f_open(&file, "random_file.txt", FA_OPEN_ALWAYS | FA_WRITE);
+
+		// Tests writing a file
+		if (fr == FR_OK)
 		{
-			ledClear(LED_BLUE);
+			fr = f_printf(&file, "Hello World!");
 		}
-#endif
+
+		// Tests closing a file
+		fr = f_close(&file);
 	}
 }
 
@@ -137,27 +104,11 @@ void appRun (void)
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************/
 
-static void onCardInserted(void)
-{
-	ledSet(LED_GREEN);
-}
-
-static void onCardRemoved(void)
-{
-	ledClear(LED_GREEN);
-	ledClear(LED_BLUE);
-	ledClear(LED_RED);
-}
-
 static void onButtonPressed(void)
 {
-	if (alreadyInitCard)
+	if (!flag)
 	{
-		goCardFlag = true;
-	}
-	else
-	{
-		runInitCardFlag = true;
+		flag = true;
 	}
 }
 
