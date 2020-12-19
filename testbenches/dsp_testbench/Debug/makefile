@@ -11,9 +11,10 @@ RM := rm -rf
 -include startup/subdir.mk
 -include source/subdir.mk
 -include drivers/MCAL/gpio/subdir.mk
--include drivers/MCAL/fsl_uart/subdir.mk
--include drivers/MCAL/fsl_common/subdir.mk
--include drivers/MCAL/fsl_clock/subdir.mk
+-include drivers/MCAL/equaliser/fsl_uart/subdir.mk
+-include drivers/MCAL/equaliser/fsl_common/subdir.mk
+-include drivers/MCAL/equaliser/fsl_clock/subdir.mk
+-include drivers/MCAL/equaliser/subdir.mk
 -include board/subdir.mk
 -include CMSIS/subdir.mk
 -include subdir.mk
