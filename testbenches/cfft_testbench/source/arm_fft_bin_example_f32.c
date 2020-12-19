@@ -94,8 +94,7 @@
   */
 
 
-#include "arm_math.h"
-#include "arm_const_structs.h"
+#include "drivers/MCAL/cfft/cfft.h"
 
 #define TEST_LENGTH_SAMPLES 2048
 
@@ -103,6 +102,7 @@
 * External Input and Output buffer Declarations for FFT Bin Example
 * ------------------------------------------------------------------- */
 extern float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
+static float32_t cfftOutput[TEST_LENGTH_SAMPLES];
 static float32_t testOutput[TEST_LENGTH_SAMPLES/2];
 
 /* ------------------------------------------------------------------
@@ -125,14 +125,16 @@ int32_t main(void)
   arm_status status;
   float32_t maxValue;
 
+  cfftInit(CFFT_1024);
+
   status = ARM_MATH_SUCCESS;
 
   /* Process the data through the CFFT/CIFFT module */
-  arm_cfft_f32(&arm_cfft_sR_f32_len1024, testInput_f32_10khz, ifftFlag, doBitReverse);
+  cfft(testInput_f32_10khz, cfftOutput, doBitReverse);
 
   /* Process the data through the Complex Magnitude Module for
   calculating the magnitude at each bin */
-  arm_cmplx_mag_f32(testInput_f32_10khz, testOutput, fftSize);
+  cfftGetMag(cfftOutput, testOutput);
 
   /* Calculates maxValue and returns corresponding BIN value */
   arm_max_f32(testOutput, fftSize, &maxValue, &testIndex);
