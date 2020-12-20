@@ -1,0 +1,11 @@
+* C:\Users\nicot\OneDrive\Documents\MCUXpressoIDE_10.2.0_759\Micros\TPs\tpf-mp3-player\miscellaneous\Audio\signal_conditioning.asc
+XU1 N002 N003 Vcc Vee N003 TL08X
+V1 N001 0 SINE(1.65 1.65 50)
+V2 Vcc 0 5
+V3 Vee 0 -5
+C1 N002 N001 1µ
+R1 N002 0 500k
+.tran 0 1 0 10u
+.lib C:\Users\nicot\OneDrive\Documents\LTspiceXVII\Models\Opamps_Comparators_ST.lib
+.backanno
+.end

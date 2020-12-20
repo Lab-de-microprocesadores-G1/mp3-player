@@ -47,6 +47,8 @@ static double colValues[8] = {7,2,0,4,1,0,7,6};
 static double colBrightness[8] = {1,1,1,1,1,1,1,1};
 static ws2812_pixel_t clear = {0,0,0};
 
+static double colBrightness[8] = {1,1,1,1,1,1,1,1};
+
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS

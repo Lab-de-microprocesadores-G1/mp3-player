@@ -16,10 +16,10 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define SIGNAL_FREQ		1
+#define SIGNAL_FREQ		441
 #define PI 				3.14159265
 #define SAMPLE_RATE 	44100
-#define BUFFER_SIZE 	(SAMPLE_RATE / SIGNAL_FREQ)
+#define BUFFER_SIZE 	(SAMPLE_RATE / SIGNAL_FREQ * 20) // (SAMPLE_RATE / SIGNAL_FREQ)
 #define FRAME_SIZE		1024
 #define PIT_CHANNEL 	1
 #define PEAK_VALUE		4096
@@ -63,7 +63,7 @@ void appInit (void)
 	// Fill buffers
 	for (uint32_t i = 0 ; i < BUFFER_SIZE ; i++)
 	{
-		double aux = 2 * PI * i / BUFFER_SIZE;
+		double aux = 2 * PI * i * SIGNAL_FREQ / (double) SAMPLE_RATE;
 		signal[i] = adjustSample(sin(aux), 1, true);
 	}
 
