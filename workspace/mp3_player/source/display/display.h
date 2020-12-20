@@ -20,7 +20,7 @@
 #define DISPLAY_ROW_SIZE		(8)
 #define DISPLAY_COL_SIZE		(8)
 #define DISPLAY_SIZE			(DISPLAY_ROW_SIZE * DISPLAY_COL_SIZE)
-#define DISPLAY_FPS_MS			(100)
+#define DISPLAY_FPS_MS			(1000)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS

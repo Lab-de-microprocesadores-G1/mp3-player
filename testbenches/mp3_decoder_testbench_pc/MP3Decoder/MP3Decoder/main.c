@@ -10,10 +10,10 @@
 //#define MAIN_DEBUG
 
 //#define HAYDN
-//#define PIZZA_CONMIGO
+#define PIZZA_CONMIGO
 //#define SULLIVAN
 //#define SAMPLE
-#define BOCA
+//#define BOCA
 
 #define INTBUF
 
@@ -107,6 +107,11 @@ int main(void)
 				printf("[APP] Frame %d decoded.\n", i);
 				#endif
 				i++;
+				if (i == 4)
+				{
+					i++;
+					i--;
+				}
 				sr = frameData.sampleRate;
 				#ifdef MAIN_DEBUG
 				printf("[APP] FRAME SAMPLE RATE: %d \n", sr);

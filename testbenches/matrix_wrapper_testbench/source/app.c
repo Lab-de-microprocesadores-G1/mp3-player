@@ -9,7 +9,7 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "matrix_wrapper_testbench.h"
+#include "matrix_wrapper.h"
 #include  "../drivers/HAL/WS2812/WS2812.h"
 #include  "../drivers/HAL/timer/timer.h"
 
@@ -19,6 +19,7 @@
 
 #define DISPLAY_SIZE	       	  8	// Display side number of digits (8x8)
 #define FULL_SCALE 				  7
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
@@ -43,8 +44,7 @@ static ws2812_pixel_t kernelDisplayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
 
 static tim_id_t timer_id;
 
-static double colValues[8] = {7,2,0,4,1,0,7,6};
-static double colBrightness[8] = {1,1,1,1,1,1,1,1};
+static float colValues[8] = {7,2,0,4,1,0,7,6};
 static ws2812_pixel_t clear = {0,0,0};
 
 /*******************************************************************************
@@ -75,10 +75,9 @@ void appRun()
     	}
     	for(int i = 0; i < 8; i++)
     	{
-    		//colValues[i] = rand() % FULL_SCALE;
-    		//colValues[i] = 15;
+    		colValues[i] = rand() % (FULL_SCALE + 1);
     	}
-    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE, colBrightness);
+    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE);
         WS2812Update();
     }
 
