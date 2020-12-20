@@ -1,18 +1,16 @@
-/*******************************************************************************
-  @file     matrix_wrapper_testbench.h
-  @brief    Kernel abstraction layer between application and the MCU
+/***************************************************************************//**
+  @file     dac.h
+  @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef MATRIX_WRAPPER_H_
-#define MATRIX_WRAPPER_H_
+#ifndef MCAL_DAC_DAC_H_
+#define MCAL_DAC_DAC_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-
 #include <stdint.h>
-#include <stdbool.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -21,48 +19,39 @@
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
-
-typedef enum
-{
-	// Graphic Modes
-	BAR_MODE	= 0b00000001,
-	CENTRE_MODE	= 0b00000010,
-
-	// Scale Modes
-	LINEAR_MODE = 0b01000000,
-	LOGARITHMIC_MODE = 0b10000000
-} vumeter_modes_t;
+typedef enum {
+	DAC_0,
+	DAC_COUNT
+} dac_id_t;
 
 typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-} pixel_t;
-
+	uint8_t swTrigger : 1;	// 1 to use software trigger
+} dac_cfg_t;
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
+
+/*
+ * @brief Initializes the DAC peripheral
+ * @param id 		DAC to be used
+ * @param config	Peripheral configurations
+ */
+void dacInit(dac_id_t id, dac_cfg_t config);
+
+/*
+ * @brief Writes a value to the output.
+ * @param id		DAC to be used
+ * @param value		number 0-4095 will determine Vout
+ */
+void dacWrite(dac_id_t id, uint16_t value);
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
 /*******************************************************************************
- * SERVICES
- ******************************************************************************/
-
-void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness);
-
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness);
-
-/*******************************************************************************
- * EVENT GENERATORS INTERFACE
  ******************************************************************************/
 
 
-/*******************************************************************************
- ******************************************************************************/
-
-#endif
-
+#endif /* MCAL_DAC_DAC_H_ */

@@ -31,6 +31,10 @@
 #define SW2_ACTIVE		LOW
 #define SW3_ACTIVE		LOW
 
+#define PIN_DECODE_TIME PORTNUM2PIN(PC, 5)	// PTC5
+#define PIN_FILE_TIME	PORTNUM2PIN(PC, 7)	// PTC7
+#define PIN_HELIX_TIME  PORTNUM2PIN(PC, 9)	// PTC9
+
 // Active Status
 #define LED_ACTIVE      LOW
 

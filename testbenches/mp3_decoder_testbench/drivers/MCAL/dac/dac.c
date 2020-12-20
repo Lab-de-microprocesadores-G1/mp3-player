@@ -1,36 +1,31 @@
-
-/*******************************************************************************
-  @file     app.c
-  @brief    App 
+/***************************************************************************//**
+  @file     dac.c
+  @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
-
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "matrix_wrapper.h"
-#include  "../drivers/HAL/WS2812/WS2812.h"
-#include  "../drivers/HAL/timer/timer.h"
+#include "dac.h"
+#include "MK64F12.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-
-#define DISPLAY_SIZE	       	  8	// Display side number of digits (8x8)
-#define FULL_SCALE 				  7
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
 /*******************************************************************************
- * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
+ * VARIABLES WITH GLOBAL SCOPE
  ******************************************************************************/
 
 /*******************************************************************************
- * VARIABLES WITH GLOBAL SCOPE
+ * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
+
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -40,53 +35,40 @@
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static ws2812_pixel_t kernelDisplayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
-
-static tim_id_t timer_id;
-
-static float colValues[8] = {7,2,0,4,1,0,7,6};
-static ws2812_pixel_t clear = {0,0,0};
-
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-
-void appInit(void)
+void dacInit(dac_id_t id, dac_cfg_t config)
 {
-    WS2812Init();
-    timerInit();
-    WS2812SetDisplayBuffer(kernelDisplayMatrix, DISPLAY_SIZE*DISPLAY_SIZE);
-    timer_id = timerGetId();
-    timerStart(timer_id, TIMER_MS2TICKS(300), TIM_MODE_PERIODIC, NULL);
+	DAC_Type * dacPointers[] = DAC_BASE_PTRS;
+
+	// Clock gating for DAC peripheral
+	SIM->SCGC2 |= SIM_SCGC2_DAC0(1);
+	SIM->SCGC2 |= SIM_SCGC2_DAC1(1);
+
+	// Enable DAC operation with given trigger
+	dacPointers[id]->C0 = DAC_C0_DACEN(1) | DAC_C0_DACRFS(1) | DAC_C0_DACTRGSEL(config.swTrigger);
 }
 
-void appRun()
+void dacWrite(dac_id_t id, uint16_t value)
 {
-    if(timerExpired(timer_id))
-    {
-    	for(int i = 0; i < DISPLAY_SIZE; i++)
-    	{
-    		for(int j = 0; j < DISPLAY_SIZE; j++)
-			{
-				kernelDisplayMatrix[i][j] = clear;
-			}
-    	}
-    	for(int i = 0; i < 8; i++)
-    	{
-    		colValues[i] = rand() % (FULL_SCALE + 1);
-    	}
-    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE);
-        WS2812Update();
-    }
+	DAC_Type * dacPointers[] = DAC_BASE_PTRS;
 
+	// Write to DAC data registers, both LOW and HIGH
+	dacPointers[id]->DAT[0].DATH = DAC_DATH_DATA1(value >> 8);
+	dacPointers[id]->DAT[0].DATL = DAC_DATL_DATA0(value);
 }
-
-
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
+ *******************************************************************************
+ ******************************************************************************/
+
+/*******************************************************************************
+ *******************************************************************************
+						            INTERRUPT SERVICE ROUTINES
  *******************************************************************************
  ******************************************************************************/
 

@@ -1,36 +1,33 @@
-
-/*******************************************************************************
-  @file     app.c
-  @brief    App 
+/***************************************************************************//**
+  @file     pit.c
+  @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
-
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "matrix_wrapper.h"
-#include  "../drivers/HAL/WS2812/WS2812.h"
-#include  "../drivers/HAL/timer/timer.h"
+#include "pit.h"
+#include "MK64F12.h"
+
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define DISPLAY_SIZE	       	  8	// Display side number of digits (8x8)
-#define FULL_SCALE 				  7
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
 /*******************************************************************************
- * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
+ * VARIABLES WITH GLOBAL SCOPE
  ******************************************************************************/
 
 /*******************************************************************************
- * VARIABLES WITH GLOBAL SCOPE
+ * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
+
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -40,53 +37,45 @@
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static ws2812_pixel_t kernelDisplayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
-
-static tim_id_t timer_id;
-
-static float colValues[8] = {7,2,0,4,1,0,7,6};
-static ws2812_pixel_t clear = {0,0,0};
-
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-
-void appInit(void)
+void pitInit(pit_channel_t channel)
 {
-    WS2812Init();
-    timerInit();
-    WS2812SetDisplayBuffer(kernelDisplayMatrix, DISPLAY_SIZE*DISPLAY_SIZE);
-    timer_id = timerGetId();
-    timerStart(timer_id, TIMER_MS2TICKS(300), TIM_MODE_PERIODIC, NULL);
+  	// Clock gating for PIT peripheral
+	SIM->SCGC6 |= SIM_SCGC6_PIT(1);
+
+	// Enable module
+	PIT->MCR = PIT_MCR_MDIS(0);
+
+    NVIC_EnableIRQ(PIT1_IRQn);
 }
 
-void appRun()
+void pitStart(pit_channel_t channel)
 {
-    if(timerExpired(timer_id))
-    {
-    	for(int i = 0; i < DISPLAY_SIZE; i++)
-    	{
-    		for(int j = 0; j < DISPLAY_SIZE; j++)
-			{
-				kernelDisplayMatrix[i][j] = clear;
-			}
-    	}
-    	for(int i = 0; i < 8; i++)
-    	{
-    		colValues[i] = rand() % (FULL_SCALE + 1);
-    	}
-    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE);
-        WS2812Update();
-    }
-
+  PIT->CHANNEL[channel].TCTRL = PIT_TCTRL_TEN(1); // start PIT (enable timer)
 }
 
+void pitStop(pit_channel_t channel)
+{
+  PIT->CHANNEL[channel].TCTRL = (PIT->CHANNEL[channel].TCTRL & ~PIT_TCTRL_TEN_MASK); // stop PIT (disable timer)
+}
 
+void pitSetInterval(pit_channel_t channel, uint32_t ticks)
+{
+  PIT->CHANNEL[channel].LDVAL = ticks; // load cnt value
+}
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
+ *******************************************************************************
+ ******************************************************************************/
+
+/*******************************************************************************
+ *******************************************************************************
+						            INTERRUPT SERVICE ROUTINES
  *******************************************************************************
  ******************************************************************************/
 
