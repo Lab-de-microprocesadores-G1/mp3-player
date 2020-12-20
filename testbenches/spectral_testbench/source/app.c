@@ -21,8 +21,8 @@
 #define FRAME_SIZE 					1024
 #define DISPLAY_SIZE	       	  	8	// Display side number of digits (8x8)
 #define FULL_SCALE 				  	300
-#define SELECTED_BRIGHTNESS		  	1.0
-#define DEFAULT_BRIGHTNESS			0.6
+#define SELECTED_BRIGHTNESS		  	0.6
+#define DEFAULT_BRIGHTNESS			0.02
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
@@ -183,15 +183,15 @@ void moveEqBand(uint32_t side)
 {
 	if (side == MOVE_EQ_RIGHT)
 	{
-		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
+		vumeterSingle((pixel_t *)kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
 		currentEqBand = (currentEqBand + 1) % 8;
-		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
+		vumeterSingle((pixel_t *)kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
         WS2812Update();
 	}
 	else
 	{
 		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
-		currentEqBand == 0 ? currentEqBand = 7 : (currentEqBand - 1);
+		currentEqBand == 0 ? currentEqBand = 7 : (currentEqBand--);
 		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
         WS2812Update();
 	}

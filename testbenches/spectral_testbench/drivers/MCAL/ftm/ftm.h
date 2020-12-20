@@ -25,16 +25,6 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-// ¡IMPORTANT USE WARNING!
-// The FTM driver supports two operation modes, user may define which will be used, according
-// to whether the peripheral will be used in legacy mode or in advanced mode. This depends on
-// the FlexTimer Module functionalities required.
-// When advanced features are not used, it is recommended to use the legacy mode.
-// 		* FTM_DRIVER_LEGACY_MODE 			Selects the legacy mode
-// 		* FTM_DRIVER_ADVANCED_MODE			Selects the advanced mode
-#define FTM_DRIVER_LEGACY_MODE
-// #define FTM_DRIVER_ADVANCED_MODE
-
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
@@ -116,12 +106,6 @@ void ftmInit(ftm_instance_t instance, uint8_t prescaler, uint16_t module);
 void ftmStart(ftm_instance_t instance);
 
 /*
- * @brief Restarts the FlexTimer module, enabling the clock and clearing the current counter value.
- * @param instance		FTM instance
- */
-void ftmRestart(ftm_instance_t instance);
-
-/*
  * @brief Stops running the FlexTimer module.
  * @param instance		FTM Instance
  */
@@ -164,13 +148,6 @@ void ftmChannelSetCount(ftm_instance_t instance, ftm_channel_t channel, uint16_t
 uint16_t ftmChannelGetCount(ftm_instance_t instance, ftm_channel_t channel);
 
 /*
- * @brief Returns the pointer to the current value of the channel counter.
- * @param instance		FTM Instance
- * @param channel		FTM Channel
- */
-volatile uint32_t* ftmChannelCounter(ftm_instance_t instance, ftm_channel_t channel);
-
-/*
  * @brief Registers action to be done on channel event. This event is either the match event
  * 		  when running as output (Output Compare, PWM), or the edge detection event when running
  * 		  as input (Input Capture). Registering a callback through this service automatically enables
@@ -180,13 +157,6 @@ volatile uint32_t* ftmChannelCounter(ftm_instance_t instance, ftm_channel_t chan
  * @param callback		Callback to be called on channel event
  */
 void ftmChannelSubscribe(ftm_instance_t instance, ftm_channel_t channel, void (*callback)(uint16_t));
-
-/*
- * @brief Enables the channel requests to trigger DMA requests.
- * @param instance		FTM Instance
- * @param channel		FTM Channel
- */
-void ftmChannelEnableDMA(ftm_instance_t instance, ftm_channel_t channel);
 
 /*************************************
 *                                    *
