@@ -67,8 +67,8 @@ void HD44780WriteChar(uint8_t line, uint8_t col, uint8_t character);
 
 /**
  * @brief Writes the given string from the specified position up to col + len.
- * 			If col + len is larger than HD44780_COL_COUNT, extra characters are ignored.
- * 			To write longer strings see HD44780WriteRotatingString()
+ * 		  If col + len is larger than HD44780_COL_COUNT, extra characters are ignored.
+ * 	 	  To write longer strings see HD44780WriteRotatingString()
  * @param line		Cursor position line, can be 0 or 1
  * @param col		Cursor position column, can be 0 through 15
  * @param buffer	String to be written
