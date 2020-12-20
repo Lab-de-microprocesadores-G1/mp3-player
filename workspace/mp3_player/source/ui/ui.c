@@ -28,35 +28,62 @@
 
 #define UI_FILE_SYSTEM_ROOT 	  "/"
 #define UI_BUFFER_SIZE          512
+#define UI_EQUALISER_GAIN_MIN   (0.0)
+#define UI_EQUALISER_GAIN_STEP  (0.2)
+#define UI_EQUALISER_GAIN_MAX   (10.0)
+#define UI_EQUALISER_BAND_COUNT (8)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
 typedef enum {
-  UI_STATE_MENU,              // Displaying the main menu to the user
-  UI_STATE_FILE_SYSTEM,       // Navigating the file system
-  UI_STATE_EQUALIZER          // Configuring the equalizer filter
+  UI_STATE_MENU,                // Displaying the main menu to the user
+  UI_STATE_FILE_SYSTEM,         // Navigating the file system
+  UI_STATE_EQUALISER            // Configuring the equaliser filter
 } ui_state_t;
 
 typedef enum {
-  UI_OPTION_FILE_SYSTEM,      // File system menu option
-  UI_OPTION_EQUALIZER,        // Equalizer menu option
+  UI_OPTION_FILE_SYSTEM,        // File system menu option
+  UI_OPTION_EQUALISER,          // Equaliser menu option
 
   UI_OPTION_COUNT
-} ui_menu_options_t;
+} ui_main_menu_options_t;
+
+typedef enum {
+  UI_EQUALISER_STATE_MENU,      // Equaliser menu state
+  UI_EQUALISER_STATE_CUSTOM     // Custom menu state
+} ui_equaliser_state_t;
+
+typedef enum {
+  UI_EQUALISER_OPTION_JAZZ,     // Jazz option for the equaliser setting
+  UI_EQUALISER_OPTION_ROCK,     // Rock option for the equaliser setting
+  UI_EQUALISER_OPTION_CLASSIC,  // Classic option for the equaliser setting
+  UI_EQUALISER_OPTION_CUSTOM,   // Custom option for the equaliser setting
+  
+  UI_EQUALISER_OPTION_COUNT
+} ui_equaliser_menu_options_t;
 
 typedef struct {
-  uint8_t currentOptionIndex;  // Index of the current menu option
+  ui_main_menu_options_t currentOptionIndex;  // Index of the current menu option
 } ui_menu_context_t;
 
-typedef struct {
-  uint32_t  currentFileIndex;             // Current file index
-  char      currentPath[UI_BUFFER_SIZE];  // Path of the current directory
-  FILINFO   currentFile;                  // Current file information
-  FRESULT   currentError;                 // Error variable for the FatFs handler
-  DIR       currentDirectory;             // Directory of current position in file system
+typedef struct {  
+  uint32_t  currentFileIndex;                 // Current file index
+  char      currentPath[UI_BUFFER_SIZE];      // Path of the current directory
+  FILINFO   currentFile;                      // Current file information
+  FRESULT   currentError;                     // Error variable for the FatFs handler
+  DIR       currentDirectory;                 // Directory of current position in file system
 } ui_file_system_context_t;
+
+typedef struct {
+  ui_equaliser_state_t        eqState;        // Current equaliser state
+  ui_equaliser_menu_options_t eqOption;       // Current equaliser option selected
+
+  bool 		hasEqBandSelected;                  	// Whether a band is selected or not
+  uint16_t	currentEqBandSelected;              	// Index of the current equaliser band selected
+  double  	eqBandGain[UI_EQUALISER_BAND_COUNT]; 	// Equaliser gains
+} ui_equaliser_context_t;
 
 /*******************************************************************************
  * VARIABLES WITH GLOBAL SCOPE
@@ -101,10 +128,10 @@ static void uiRunMenu(event_t event);
  */
 static void uiRunFileSystem(event_t event);
 /**
- * @brief Cycle the UI in the equalizer state.
+ * @brief Cycle the UI in the Equaliser state.
  * @param event   Next event
  */
-static void uiRunEqualizer(event_t event);
+static void uiRunEqualiser(event_t event);
 
 /**
  * @brief Initializes the UI in the menu state.
@@ -116,26 +143,41 @@ static void uiInitMenu(void);
  */
 static void uiInitFileSystem(void);
 
+/**
+ * @brief Initializes the UI in the equaliser state.
+ */
+static void uiInitEqualiser(void); 
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static const char*  MENU_OPTIONS[UI_OPTION_COUNT] = {
+static const char*  MAIN_MENU_OPTIONS[UI_OPTION_COUNT] = {
   "Sistema de archivos",
   "Ecualizador"
 };
+
+static const char* EQUALISER_MENU_OPTIONS[UI_EQUALISER_OPTION_COUNT] = {
+  "Jazz",
+  "Rock",
+  "Classic",
+  "Custom"
+};
+
+static char* MESSAGE[256];
 
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool			    messageChanged = false;				// Internal flag for changing the LCD message
-static bool         alreadyInit = false;                // Internal flag for initialization process
-static ui_state_t   currentState;         				// Current state of the user interface module
-static const char*  currentMessage;                     // Current message being displayed
+static bool			    		messageChanged = false;		// Internal flag for changing the LCD message
+static bool         			alreadyInit = false;        // Internal flag for initialization process
+static ui_state_t   			currentState;         		// Current state of the user interface module
+static const char*  			currentMessage;             // Current message being displayed
 
-static ui_menu_context_t        menuContext;            // Context for the menu state of the UI module
-static ui_file_system_context_t fsContext;              // Context for the file system state of the UI module
+static ui_menu_context_t        menuContext;            	// Context for the menu state of the UI module
+static ui_file_system_context_t fsContext;              	// Context for the file system state of the UI module
+static ui_equaliser_context_t 	eqContext;                	// Context for the equalisator UI module
 
 /*******************************************************************************
  *******************************************************************************
@@ -174,8 +216,8 @@ void uiRun(event_t event)
       uiRunFileSystem(event);
       break;
       
-    case UI_STATE_EQUALIZER:
-      uiRunEqualizer(event);
+    case UI_STATE_EQUALISER:
+      uiRunEqualiser(event);
       break;
 
     default:
@@ -220,6 +262,10 @@ static void uiSetState(ui_state_t state)
     case UI_STATE_FILE_SYSTEM:
       uiInitFileSystem();
       break;
+      
+    case UI_STATE_EQUALISER:
+      uiInitEqualiser();
+      break;
 
     default:
       break;
@@ -235,7 +281,7 @@ static void uiRunMenu(event_t event)
       {
         menuContext.currentOptionIndex--;
       }
-      uiSetDisplayString(MENU_OPTIONS[menuContext.currentOptionIndex]);
+      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
       break;
 
     case EVENTS_RIGHT:
@@ -243,7 +289,7 @@ static void uiRunMenu(event_t event)
       {
         menuContext.currentOptionIndex++;
       }
-      uiSetDisplayString(MENU_OPTIONS[menuContext.currentOptionIndex]);
+      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
       break;
 
     case EVENTS_ENTER:
@@ -349,9 +395,100 @@ static void uiRunFileSystem(event_t event)
   }
 }
 
-static void uiRunEqualizer(event_t event)
+static void uiRunEqualiser(event_t event)
 {
+  if (eqContext.eqState == UI_EQUALISER_STATE_MENU)
+  {
+    switch (event.id)
+    {
+      case EVENTS_LEFT:
+        if (eqContext.eqOption)
+        {
+          eqContext.eqOption--;
+        }
+        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
+        break;
 
+      case EVENTS_RIGHT:
+        if ((eqContext.eqOption + 1) < UI_EQUALISER_OPTION_COUNT)
+        {
+          eqContext.eqOption++;
+        }
+        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
+        break;
+
+      case EVENTS_EXIT:
+      case EVENTS_ENTER:
+        if (eqContext.eqOption == UI_EQUALISER_OPTION_CUSTOM)
+        {
+          eqContext.eqState = UI_EQUALISER_STATE_CUSTOM;
+          eqContext.hasEqBandSelected = false;
+          eqContext.currentEqBandSelected = 0;
+        }
+        else
+        {
+          uiSetState(UI_STATE_MENU);
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+  else if (eqContext.eqState == UI_EQUALISER_STATE_CUSTOM)
+  {
+    switch (event.id)
+    {
+      case EVENTS_LEFT:
+        if (eqContext.hasEqBandSelected)
+        {
+          if ((eqContext.eqBandGain[eqContext.currentEqBandSelected] - UI_EQUALISER_GAIN_STEP) > UI_EQUALISER_GAIN_MIN)
+          {
+            eqContext.eqBandGain[eqContext.currentEqBandSelected] -= UI_EQUALISER_GAIN_STEP;
+          }
+        }
+        else
+        {
+          if (eqContext.currentEqBandSelected)
+          {
+            eqContext.currentEqBandSelected--;
+          }
+        }
+        break;
+
+      case EVENTS_RIGHT:
+        if (eqContext.hasEqBandSelected)
+        {
+          if ((eqContext.eqBandGain[eqContext.currentEqBandSelected] + UI_EQUALISER_GAIN_STEP) < UI_EQUALISER_GAIN_MAX)
+          {
+            eqContext.eqBandGain[eqContext.currentEqBandSelected] += UI_EQUALISER_GAIN_STEP;
+          }
+        }
+        else
+        {
+          if ((eqContext.currentEqBandSelected + 1) < UI_EQUALISER_BAND_COUNT)
+          {
+            eqContext.currentEqBandSelected++;
+          }
+        }
+        break;
+
+      case EVENTS_EXIT:
+      case EVENTS_ENTER:
+        if (eqContext.hasEqBandSelected)
+        {
+          uiSetState(UI_STATE_MENU);
+        }
+        else
+        {
+          eqContext.hasEqBandSelected = true;
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 static void uiInitMenu(void)
@@ -359,7 +496,7 @@ static void uiInitMenu(void)
   // Sets the initial option of the menu state, and changes the
   // corresponding string representing this options in the LCD display.
   menuContext.currentOptionIndex = UI_OPTION_FILE_SYSTEM;
-  uiSetDisplayString(MENU_OPTIONS[menuContext.currentOptionIndex]);
+  uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
 }
 
 static void uiFileSystemOpenDirectory(void)
@@ -395,6 +532,14 @@ static void uiInitFileSystem(void)
 
   // Open the directory
   uiFileSystemOpenDirectory();
+}
+
+static void uiInitEqualiser(void)
+{
+  // Sets the initial option of the equaliser state, and changes the
+  // corresponding string representing this options in the LCD display.
+  eqContext.eqOption = UI_EQUALISER_OPTION_JAZZ;
+  uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
 }
 
 /*******************************************************************************

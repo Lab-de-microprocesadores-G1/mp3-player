@@ -11,6 +11,7 @@
 #include "lib/event_queue/event_queue.h"
 #include "lib/queue/queue.h"
 #include "drivers/HAL/keypad/keypad.h"
+#include "drivers/HAL/sd/sd.h"
 #include "events.h"
 
 #include <stdbool.h>
@@ -31,13 +32,23 @@
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-/*
+/**
  * @brief Callback to be called when the keypad raises an event.
  * @param event		Event being catched
  */
 static void onKeyPadEvent(keypad_events_t event);
 
-/*
+/**
+ * @brief Callback to be called when the SD is removed
+ */
+static void onSdCardRemoved(void);
+
+/**
+ * @brief Callback to be called when the SD is removed
+ */
+static void onSdCardInserted(void);
+
+/**
  * @brief Event generator which provides access to the internal events of the hardware queue.
  */
 static void* hardwareQueueEventGenerator(void);
@@ -50,11 +61,11 @@ static void* hardwareQueueEventGenerator(void);
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool 			alreadyInit = false;							// Internal flag to detect initialization
-static event_t 			hardwareQueueBuffer[QUEUE_STANDARD_MAX_SIZE];	// Hardware queue buffer for asynchronous events
-static event_t 			eventQueueBuffer[QUEUE_STANDARD_MAX_SIZE];		// Event queue buffer used as memory buffer
-static queue_t 			hardwareQueue;									// Hardware queue handler
-static event_queue_t 	eventQueue;										// Event queue handler
+static bool 					alreadyInit = false;													// Internal flag to detect initialization
+static event_t 				hardwareQueueBuffer[QUEUE_STANDARD_MAX_SIZE];	// Hardware queue buffer for asynchronous events
+static event_t 				eventQueueBuffer[QUEUE_STANDARD_MAX_SIZE];		// Event queue buffer used as memory buffer
+static queue_t 				hardwareQueue;																// Hardware queue handler
+static event_queue_t 	eventQueue;																		// Event queue handler
 
 /*******************************************************************************
  *******************************************************************************
@@ -69,6 +80,11 @@ void eventsInit(void)
 		// Raise the internal flag, to avoid running the initialization of the
 		// driver more than once. Skips the initialization routine;
 		alreadyInit = true;
+
+		// Initialization of the sd driver
+		sdInit();
+		sdOnCardInserted(onSdCardInserted);
+		sdOnCardRemoved(onSdCardRemoved);
 
 		// Initialization of the keypad driver
 		keypadInit();
@@ -171,6 +187,18 @@ static void onKeyPadEvent(keypad_events_t event)
 static void* hardwareQueueEventGenerator(void)
 {
 	return pop(&hardwareQueue);
+}
+
+static void onSdCardRemoved(void)
+{
+	event_t event = { .id = EVENTS_SD_REMOVED };
+	push(&hardwareQueue, (void*)(&event));
+}
+
+static void onSdCardInserted(void)
+{
+	event_t event = { .id = EVENTS_SD_INSERTED};
+	push(&hardwareQueue, (void*)(&event));
 }
 
 /*******************************************************************************

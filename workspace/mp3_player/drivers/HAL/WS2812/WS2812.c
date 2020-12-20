@@ -10,7 +10,7 @@
 
 #include "WS2812.h"
 
-#include "../../MCAL/pwm_dma/pwm_dma.h"
+#include "drivers/MCAL/pwm_dma/pwm_dma.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -26,7 +26,6 @@
 #define WS2812_FTM_MODULO     62                                              // for 800kbps rate needed in WS2812 leds
 #define WS2812_HIGH_DUTY      42                                              // Duty value for '1' binit
 #define WS2812_LOW_DUTY       20                                              // Duty value for '0' binit
-#define WS2812_DELAY_LOOP	  2500											  // Loop cycles to generate a delay in update
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -35,15 +34,15 @@
 // Declaring the context of WS2812 data structure
 typedef struct {
   /* Display buffer */
-  ws2812_pixel_t*    	buffer;
-  size_t      			bufferSize;
+  ws2812_pixel_t*    buffer;
+  size_t      bufferSize;
 
   /* Controller variables */
-  uint16_t 	  			firstFrame[WS2812_FRAME_SIZE];
-  uint16_t    			secondFrame[WS2812_FRAME_SIZE];
+  uint16_t 	  firstFrame[WS2812_FRAME_SIZE];
+  uint16_t    secondFrame[WS2812_FRAME_SIZE];
   
   /* Internal controller flags */
-  bool 					alreadyInitialized;
+  bool alreadyInitialized;
 } ws2812_context_t;
 
 /*******************************************************************************
@@ -92,36 +91,15 @@ void WS2812Init(void)
   }
 }
 
-bool WS2812SetDisplayBuffer(ws2812_pixel_t* buffer, size_t size)
+void WS2812SetDisplayBuffer(ws2812_pixel_t* buffer, size_t size)
 {
-  bool success = false;
-  if (pwmdmaAvailable())
-  {
-	// If the driver is available, then there is no update currently running,
-	// and it's safe to change the display buffer. Changes are not allowed during a
-	// process of update.
-	success = true;
-    context.buffer = buffer;
-    context.bufferSize = size;
-  }
-  return success;
+  context.buffer = buffer;
+  context.bufferSize = size;
 }
 
-bool WS2812Update(void)
+void WS2812Update(void)
 {
-  bool success = false;
-  if (pwmdmaAvailable())
-  {
-    success = true;
-
-    // Minimum delay between updates, required to ensure that the WS2812 leds go transparent on the value loaded
-    // during the serial communication in the previous update process.
-    for (uint16_t i = 0 ; i < WS2812_DELAY_LOOP ; i++);
-
-    // Run the update with the pwm dma driver
-    pwmdmaStart(context.firstFrame, context.secondFrame, WS2812_FRAME_SIZE, context.bufferSize / WS2812_FRAME_LED_SIZE, false);
-  }
-  return success;
+  pwmdmaStart(context.firstFrame, context.secondFrame, WS2812_FRAME_SIZE, context.bufferSize / WS2812_FRAME_LED_SIZE, false);
 }
 
 /*******************************************************************************

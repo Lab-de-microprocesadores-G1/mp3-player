@@ -10,16 +10,12 @@
 
 #include "hardware.h"
 #include "ftm.h"
-#include "drivers/MCAL/gpio/gpio.h"
-#include "MK64F12.h"
+#include "../gpio/gpio.h"
+#include "../../../CMSIS/MK64F12.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-
-#if !defined(FTM_DRIVER_LEGACY_MODE) && !defined(FTM_DRIVER_ADVANCED_MODE)
-	#error	Need to define the operation mode of the driver.
-#endif
 
 #define CHANNEL_MASK(x)		(0x00000001 << (x))
 
@@ -145,29 +141,18 @@ void ftmInit(ftm_instance_t instance, uint8_t prescaler, uint16_t module)
 	ftmInstances[instance]->MOD = module - 1;
 
 	// Enable advanced mode
-#ifdef FTM_DRIVER_LEGACY_MODE
-	ftmInstances[instance]->MODE = (ftmInstances[instance]->MODE & ~FTM_MODE_FTMEN_MASK) | FTM_MODE_FTMEN(0);
-#endif
-#ifdef FTM_DRIVER_ADVANCED_MODE
-	ftmInstances[instance]->MODE = (ftmInstances[instance]->MODE & ~FTM_MODE_FTMEN_MASK) | FTM_MODE_FTMEN(1);
-#endif
+	ftmInstances[instance]->MODE |= FTM_MODE_FTMEN(1);
 }
 
 void ftmStart(ftm_instance_t instance)
 {
-	ftmInstances[instance]->SC = (ftmInstances[instance]->SC & ~FTM_SC_CLKS_MASK) | FTM_SC_CLKS(FTM_CLOCK_SYSTEM);
-}
-
-void ftmRestart(ftm_instance_t instance)
-{
-	ftmStop(instance);
 	ftmInstances[instance]->CNT = 0;
-	ftmStart(instance);
+	ftmInstances[instance]->SC |= FTM_SC_CLKS(FTM_CLOCK_SYSTEM);
 }
 
 void ftmStop(ftm_instance_t instance)
 {
-	ftmInstances[instance]->SC = (ftmInstances[instance]->SC & ~FTM_SC_CLKS_MASK) | FTM_SC_CLKS(0);
+	ftmInstances[instance]->SC &= (~FTM_SC_CLKS_MASK);
 }
 
 uint16_t ftmGetCount(ftm_instance_t instance)
@@ -197,11 +182,6 @@ uint16_t ftmChannelGetCount(ftm_instance_t instance, ftm_channel_t channel)
 	return ftmInstances[instance]->CONTROLS[channel].CnV;
 }
 
-volatile uint32_t* ftmChannelCounter(ftm_instance_t instance, ftm_channel_t channel)
-{
-	return &(ftmInstances[instance]->CONTROLS[channel].CnV);
-}
-
 void ftmChannelSubscribe(ftm_instance_t instance, ftm_channel_t channel, void (*callback)(uint16_t))
 {
 	if (callback)
@@ -212,12 +192,6 @@ void ftmChannelSubscribe(ftm_instance_t instance, ftm_channel_t channel, void (*
 		// Registers the callback to be called when channel match occurs
 		ftmChannelCallbacks[instance][channel] = callback;
 	}
-}
-
-void ftmChannelEnableDMA(ftm_instance_t instance, ftm_channel_t channel)
-{
-	ftmInstances[instance]->CONTROLS[channel].CnSC = (ftmInstances[instance]->CONTROLS[channel].CnSC & ~FTM_CnSC_DMA_MASK) | FTM_CnSC_DMA(1);
-	ftmInstances[instance]->CONTROLS[channel].CnSC = (ftmInstances[instance]->CONTROLS[channel].CnSC & ~FTM_CnSC_CHIE_MASK) | FTM_CnSC_CHIE(1);
 }
 
 void ftmInputCaptureInit(ftm_instance_t instance, ftm_channel_t channel, ftm_ic_mode_t mode)
@@ -245,7 +219,7 @@ void ftmOutputCompareInit(ftm_instance_t instance, ftm_channel_t channel, ftm_oc
 void ftmOutputCompareStart(ftm_instance_t instance, ftm_channel_t channel, uint16_t count)
 {
 	// Forces the output channel to its initial value registered during the initialization process
-	ftmInstances[instance]->MODE = (ftmInstances[instance]->MODE & ~FTM_MODE_INIT_MASK) | FTM_MODE_INIT(1);
+	ftmInstances[instance]->MODE |= FTM_MODE_INIT(1);
 
 	// Enables the matching process on the selected channel and updates the current count
 	ftmInstances[instance]->CONTROLS[channel].CnV = ftmInstances[instance]->CNT + count;
@@ -263,7 +237,7 @@ void ftmOutputCompareStop(ftm_instance_t instance, ftm_channel_t channel)
 void ftmPwmInit(ftm_instance_t instance, ftm_channel_t channel, ftm_pwm_mode_t mode, ftm_pwm_alignment_t alignment, uint16_t duty, uint16_t period)
 {
 	// Configure up or up/down counter 
-	ftmInstances[instance]->SC = (ftmInstances[instance]->SC & ~FTM_SC_CPWMS_MASK) | FTM_SC_CPWMS(alignment == FTM_PWM_CENTER_ALIGNED ? 1 : 0);
+	ftmInstances[instance]->SC |= FTM_SC_CPWMS(alignment == FTM_PWM_CENTER_ALIGNED ? 1 : 0);
 
 	// Configure channel to PWM on the given mode and alignment
 	ftmInstances[instance]->CONTROLS[channel].CnSC = FTM_CnSC_MSB(1) | FTM_CnSC_ELSB(1) | FTM_CnSC_ELSA(mode == FTM_PWM_LOW_PULSES ? 1 : 0);
@@ -383,7 +357,7 @@ static void setFtmChannelMux(ftm_instance_t instance, ftm_channel_t channel)
 	PORT_Type* 	ports[] = PORT_BASE_PTRS;
 	pin_t 		pin = ftmChannelPins[instance][channel];
 	uint8_t 	alt = ftmChannelAlts[instance][channel];
-	ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] = PORT_PCR_MUX(alt);
+	ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] |= PORT_PCR_MUX(alt);
 }
 
 /******************************************************************************/

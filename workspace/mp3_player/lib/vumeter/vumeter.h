@@ -1,15 +1,18 @@
 /*******************************************************************************
-  @file     events.h
-  @brief    Event abstraction layer for the application
+  @file     vumeter.h
+  @brief    Vumeter controller
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef EVENTS_EVENTS_H_
-#define EVENTS_EVENTS_H_
+#ifndef MATRIX_WRAPPER_H_
+#define MATRIX_WRAPPER_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
+
+#include <stdint.h>
+#include <stdbool.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -20,27 +23,20 @@
  ******************************************************************************/
 
 typedef enum {
-	EVENTS_NONE,							// No events where generated
-	EVENTS_PREVIOUS,					// Previous button was pressed
-	EVENTS_PLAY_PAUSE,				// Play and pause button was pressed
-	EVENTS_NEXT,							// Next button was pressed
-	EVENTS_LEFT,							// Rotative encoder was rotated to the left
-	EVENTS_RIGHT,							// Rotative encoder was rotated to the right
-	EVENTS_ENTER,							// Rotative encoder button was pressed
-	EVENTS_EXIT,							// Double press detected on the rotative encoder button
-	EVENTS_VOLUME_INCREASE,		// Volume encoder was rotated to the increase direction
-	EVENTS_VOLUME_DECREASE,		// Volume encoder was rotated to the decrease direction
-	EVENTS_VOLUME_TOGGLE,			// Volume encoder was pressed, toggle between mute/unmute
-	EVENTS_SD_INSERTED,				// SD card was inserted
-	EVENTS_SD_REMOVED,				// SD card was removed
-	EVENTS_SD_FRAME_FINISHED,	// Frame processing finished in the output stage
+	// Graphic Modes
+	BAR_MODE	= 0b00000001,
+	CENTRE_MODE	= 0b00000010,
 
-	EVENTS_COUNT
-} event_id_t;
+	// Scale Modes
+	LINEAR_MODE = 0b01000000,
+	LOGARITHMIC_MODE = 0b10000000
+} vumeter_modes_t;
 
 typedef struct {
-	event_id_t	id;
-} event_t;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} pixel_t;
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -50,18 +46,36 @@ typedef struct {
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
-/*
- * @brief Initialization of the events abstraction layer.
- */
-void eventsInit(void);
+/*******************************************************************************
+ * SERVICES
+ ******************************************************************************/
 
-/*
- * @brief Returns the next event.
+/**
+ * @brief Run the vumeter for each column of the given matrix, with the given values.
+ * @param input			Input matrix
+ * @param colValues		Array with the values
+ * @param colQty		Amount of columns
+ * @param fullScale		Full scale range
+ * @param mode			Vumeter mode
  */
-event_t eventsGetNextEvent(void);
+void vumeterMultiple(pixel_t* input, float* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode);
+
+/**
+ * @brief Run the vumeter for a single column.
+ * @param col
+ * @param value
+ * @param colQty
+ * @param fullScale
+ * @param vumeterMode
+ */
+void vumeterSingle(pixel_t* col, float value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode);
+
+/*******************************************************************************
+ * EVENT GENERATORS INTERFACE
+ ******************************************************************************/
 
 /*******************************************************************************
  ******************************************************************************/
 
+#endif
 
-#endif /* EVENTS_EVENTS_H_ */

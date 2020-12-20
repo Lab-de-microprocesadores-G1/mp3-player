@@ -1,6 +1,6 @@
-/*******************************************************************************
-  @file     display.c
-  @brief    RGB display abstraction layer
+/***************************************************************************//**
+  @file     equaliser.c
+  @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
@@ -8,10 +8,9 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include "drivers/HAL/timer/timer.h"
-#include "display.h"
-
-#include <stdbool.h>
+#include "cfft.h"
+#include "arm_const_structs.h"
+#include <stdio.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -29,11 +28,8 @@
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-/*
- * @brief Callback to be called on FPS event triggered by the timer driver,
- * 		  used to update the display.
- */
-static void	onDisplayFpsUpdate(void);
+static arm_cfft_instance_f32 * cfftSizeToInstance(cfft_size_t size);
+static uint32_t cfftInstanceToSize(arm_cfft_instance_f32 * instance);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -43,9 +39,7 @@ static void	onDisplayFpsUpdate(void);
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static ws2812_pixel_t 	displayBuffer[DISPLAY_SIZE];	// Internal display buffer
-static bool 						alreadyInit = false;					// Internal flag for initialization process
-static bool							displayLocked = false;				// Internal flag for avoid updates when changing display content
+arm_cfft_instance_f32 * cfftInstance;
 
 /*******************************************************************************
  *******************************************************************************
@@ -53,31 +47,26 @@ static bool							displayLocked = false;				// Internal flag for avoid updates w
  *******************************************************************************
  ******************************************************************************/
 
-void displayInit(void)
+void cfftInit(cfft_size_t size)
 {
-	if (!alreadyInit)
-	{
-		// Raise the already initialized flag, to avoid multiple initialization
-		alreadyInit = true;
-
-		// Initialization of the lower layer WS2812 driver
-		WS2812Init();
-		WS2812SetDisplayBuffer(displayBuffer, DISPLAY_SIZE);
-
-		// Initialization of the timer driver
-		timerInit();
-		timerStart(timerGetId(), TIMER_MS2TICKS(DISPLAY_FPS_MS), TIM_MODE_PERIODIC, onDisplayFpsUpdate);
-	}
+  cfftInstance = cfftSizeToInstance(size);
 }
 
-void displayFlip(ws2812_pixel_t* buffer)
+void cfft(float32_t * inputF32, float32_t * outputF32, bool doBitReverse)
 {
-	displayLocked = true;
-	for (uint32_t i = 0 ; i < DISPLAY_SIZE ; i++)
-	{
-		displayBuffer[i] = buffer[i];
-	}
-	displayLocked = false;
+  memcpy(outputF32, inputF32, cfftInstanceToSize(cfftInstance) * sizeof(float32_t));    // Copying input array to preserve it.
+  arm_cfft_f32(cfftInstance, outputF32, false, doBitReverse);
+}
+
+void icfft(float32_t * inputF32, float32_t * outputF32, bool doBitReverse)
+{
+  memcpy(outputF32, inputF32, cfftInstanceToSize(cfftInstance) * 2 * sizeof(float32_t));    // Copying input array to preserve it.
+  arm_cfft_f32(cfftInstance, outputF32, true, doBitReverse);
+}
+
+void cfftGetMag(float32_t * inputF32, float32_t * outputF32)
+{
+  arm_cmplx_mag_f32(inputF32, outputF32, cfftInstanceToSize(cfftInstance));
 }
 
 /*******************************************************************************
@@ -85,18 +74,46 @@ void displayFlip(ws2812_pixel_t* buffer)
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-
-static void	onDisplayFpsUpdate(void)
+arm_cfft_instance_f32 * cfftSizeToInstance(cfft_size_t size)
 {
-	if (!displayLocked)
-	{
-		WS2812Update();
-	}
+  arm_cfft_instance_f32 * instance = &arm_cfft_sR_f32_len1024;
+
+  switch (size)
+  {
+  case CFFT_16: instance = &arm_cfft_sR_f32_len16; break;
+  case CFFT_32: instance = &arm_cfft_sR_f32_len32; break;
+  case CFFT_64: instance = &arm_cfft_sR_f32_len64; break;
+  case CFFT_128: instance = &arm_cfft_sR_f32_len128; break;
+  case CFFT_256: instance = &arm_cfft_sR_f32_len256; break;
+  case CFFT_512: instance = &arm_cfft_sR_f32_len512; break;
+  case CFFT_1024: instance = &arm_cfft_sR_f32_len1024; break;
+  case CFFT_2048: instance = &arm_cfft_sR_f32_len2048; break;
+  case CFFT_4096: instance = &arm_cfft_sR_f32_len4096; break;
+  }
+
+  return instance;
+}
+
+uint32_t cfftInstanceToSize(arm_cfft_instance_f32 * instance)
+{
+  uint32_t size = 1024;
+
+  if (instance == &arm_cfft_sR_f32_len16) size = 16;
+  else if (instance == &arm_cfft_sR_f32_len32) size = 32;
+  else if (instance == &arm_cfft_sR_f32_len64) size = 64;
+  else if (instance == &arm_cfft_sR_f32_len128) size = 128;
+  else if (instance == &arm_cfft_sR_f32_len256) size = 256;
+  else if (instance == &arm_cfft_sR_f32_len512) size = 512;
+  else if (instance == &arm_cfft_sR_f32_len1024) size = 1024;
+  else if (instance == &arm_cfft_sR_f32_len2048) size = 2048;
+  else if (instance == &arm_cfft_sR_f32_len4096) size = 4096;
+
+  return size;
 }
 
 /*******************************************************************************
  *******************************************************************************
-						INTERRUPT SERVICE ROUTINES
+						            INTERRUPT SERVICE ROUTINES
  *******************************************************************************
  ******************************************************************************/
 

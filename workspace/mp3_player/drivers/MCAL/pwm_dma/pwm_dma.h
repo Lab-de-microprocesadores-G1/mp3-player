@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../ftm/ftm.h"
+#include "drivers/MCAL/ftm/ftm.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -51,20 +51,14 @@ void pwmdmaInit(uint8_t prescaler, uint16_t mod, ftm_instance_t ftmInstance, ftm
 void pwmdmaOnFrameUpdate(pwmdma_update_callback_t callback);
 
 /**
- * @brief Returns whether the pwmdma driver is available to run a transfer.
- */
-bool pwmdmaAvailable(void);
-
-/**
  * @brief Starts the PWM 
  * @param firstFrame    Pointer to the first frame
  * @param secondFrame   Pointer to the second frame
  * @param frameSize     Size of the frame
  * @param totalFrames   Total amount of frames
  * @param loop          Whether the transfer should run in loop or not
- * @returns				Whether the transfer process started or not
  */ 
-bool pwmdmaStart(uint16_t* firstFrame, uint16_t* secondFrame, size_t frameSize, size_t totalFrames, bool loop);
+void pwmdmaStart(uint16_t* firstFrame, uint16_t* secondFrame, size_t frameSize, size_t totalFrames, bool loop);
 
 
 /*******************************************************************************
