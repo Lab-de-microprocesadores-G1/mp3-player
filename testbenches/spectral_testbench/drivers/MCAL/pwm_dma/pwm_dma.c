@@ -138,7 +138,7 @@ void pwmdmaInit(uint8_t prescaler, uint16_t mod, ftm_instance_t ftmInstance, ftm
     // Enable DMAMUX for DMA_CHANNEL and select source
     DMAMUX->CHCFG[DMA_CHANNEL] = DMAMUX_CHCFG_ENBL(1) | DMAMUX_CHCFG_TRIG(0) | DMAMUX_CHCFG_SOURCE(pwmdmaFtm2DmaChannel(context.ftmInstance, context.ftmChannel));
 
-//    ftmStart(context.ftmInstance);
+  //  ftmStart(context.ftmInstance);
   }
 }
 

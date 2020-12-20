@@ -155,14 +155,8 @@ void ftmInit(ftm_instance_t instance, uint8_t prescaler, uint16_t module)
 
 void ftmStart(ftm_instance_t instance)
 {
-	ftmInstances[instance]->SC = (ftmInstances[instance]->SC & ~FTM_SC_CLKS_MASK) | FTM_SC_CLKS(FTM_CLOCK_SYSTEM);
-}
-
-void ftmRestart(ftm_instance_t instance)
-{
-	ftmStop(instance);
 	ftmInstances[instance]->CNT = 0;
-	ftmStart(instance);
+	ftmInstances[instance]->SC |= FTM_SC_CLKS(FTM_CLOCK_SYSTEM);
 }
 
 void ftmStop(ftm_instance_t instance)
