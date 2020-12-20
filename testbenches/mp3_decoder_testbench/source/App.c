@@ -49,7 +49,8 @@ static mp3decoder_tag_data_t ID3Tag;
 
 static uint32_t availableSamples = 0;
 static uint16_t frames[2][FRAME_SIZE];
-static uint8_t channelCount;
+static uint8_t 	channelCount;
+static bool 		canDecode = false;
 
 /*******************************************************************************
  *******************************************************************************
@@ -118,7 +119,7 @@ void appRun (void)
 	}
 	dacdmaStart();
 
-	while (res == MP3DECODER_NO_ERROR)
+	while (res == MP3DECODER_NO_ERROR && canDecode)
 	{
 		if (availableSamples < FRAME_SIZE * channelCount)
 		{
@@ -126,6 +127,12 @@ void appRun (void)
 			res = MP3GetDecodedFrame(decodedBuffer + availableSamples, MP3_DECODED_BUFFER_SIZE, &samplesDecoded);
 			availableSamples += samplesDecoded;
 		}
+		else
+		{
+			/* Enough decodification for buffer update => wait to be called again. Clear flag */
+			canDecode = false;
+		}
+		
 	}
 	dacdmaStop();
   }
@@ -139,13 +146,16 @@ void appRun (void)
 
 static void updateCallback(uint16_t * frameToUpdate)
 {
-    gpioToggle(PIN_DECODE_TIME);
+	gpioToggle(PIN_DECODE_TIME);
 	for (uint16_t i = 0 ; i < FRAME_SIZE ; i++)
 	{
 		frameToUpdate[i] = decodedBuffer[channelCount * i] / 16 + DAC_PEAK_VALUE / 2;
 	}
 	availableSamples -= FRAME_SIZE * channelCount;
 	memmove(decodedBuffer, decodedBuffer + FRAME_SIZE * channelCount, availableSamples);
+
+	/* Need more frames */
+	canDecode = true;
 }
 
 /*******************************************************************************
