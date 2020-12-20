@@ -10,6 +10,7 @@
 
 #include "lib/event_queue/event_queue.h"
 #include "lib/queue/queue.h"
+#include "drivers/MCAL/dac_dma/dac_dma.h"
 #include "drivers/HAL/keypad/keypad.h"
 #include "drivers/HAL/sd/sd.h"
 #include "events.h"
@@ -47,6 +48,12 @@ static void onSdCardRemoved(void);
  * @brief Callback to be called when the SD is removed
  */
 static void onSdCardInserted(void);
+
+/**
+ * @brief Callback to be called when frame has finished
+ * @param frame			Next frame to be updated
+ */
+static void onFrameFinished(uint16_t* frame);
 
 /**
  * @brief Event generator which provides access to the internal events of the hardware queue.
@@ -89,6 +96,10 @@ void eventsInit(void)
 		// Initialization of the keypad driver
 		keypadInit();
 		keypadSubscribe(onKeyPadEvent);
+
+		// Initialization of the dacdma
+		dacdmaInit();
+		dacdmaSetCallback(onFrameFinished);
 
 		// Initialization of the hardware queue handler
 		hardwareQueue = createQueue(&hardwareQueueBuffer, QUEUE_STANDARD_MAX_SIZE, sizeof(event_t));
@@ -198,6 +209,14 @@ static void onSdCardRemoved(void)
 static void onSdCardInserted(void)
 {
 	event_t event = { .id = EVENTS_SD_INSERTED};
+	push(&hardwareQueue, (void*)(&event));
+}
+
+static void onFrameFinished(uint16_t* frame)
+{
+	event_t event;
+	event.id = EVENTS_FRAME_FINISHED;
+	event.data.frame = frame;
 	push(&hardwareQueue, (void*)(&event));
 }
 

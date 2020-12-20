@@ -122,38 +122,16 @@ static hd44780_lcd_context_t context;
 
 static const uint8_t customCharacters[HD44780_CUSTOM_COUNT][HD44780_CHARACTER_ROWS] =
 {
-	// HD44780_CUSTOM_SIGNAL
+	// 	HD44780_CUSTOM_FOLDER
 	{
-		0b00001,
-		0b00001,
-		0b00101,
-		0b00101,
-		0b10101,
-		0b10101,
-		0b10101,
-		0b00000
-	},
-	// HD44780_CUSTOM_SIGNAL_A
-	{
-		0b00000,
-		0b00000,
-		0b00001,
-		0b00101,
-		0b10101,
-		0b10101,
-		0b10101,
-		0b00000
-	},
-	// HD44780_CUSTOM_SIGNAL_B
-	{
-		0b00000,
-		0b10000,
-		0b10000,
-		0b10000,
-		0b10000,
-		0b10000,
-		0b10000,
-		0b00000
+		0b11100,
+		0b10111,
+		0b10001,
+		0b10001,
+		0b10001,
+		0b10001,
+		0b10001,
+		0b11111
 	},
 	// HD44780_CUSTOM_MUSIC
 	{

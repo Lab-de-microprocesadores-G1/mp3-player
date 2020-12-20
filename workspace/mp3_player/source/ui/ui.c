@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include "ui.h"
+#include "../audio/audio.h"
 
 #include <stdbool.h>
 #include <string.h>
@@ -23,15 +24,15 @@
  ******************************************************************************/
 
 // UI module general parameters
-#define LCD_ROTATION_TIME_MS  	350
-#define LCD_LINE_NUMBER       	1
-
-#define UI_FILE_SYSTEM_ROOT 	  "/"
-#define UI_BUFFER_SIZE          512
-#define UI_EQUALISER_GAIN_MIN   (0.0)
-#define UI_EQUALISER_GAIN_STEP  (0.2)
-#define UI_EQUALISER_GAIN_MAX   (10.0)
-#define UI_EQUALISER_BAND_COUNT (8)
+#define UI_LCD_ROTATION_TIME_MS  	  350
+#define UI_LCD_FPS_MS              (200)
+#define UI_LCD_LINE_NUMBER       	  1
+#define UI_FILE_SYSTEM_ROOT 	      ""
+#define UI_BUFFER_SIZE              512
+#define UI_EQUALISER_GAIN_MIN       (0.0)
+#define UI_EQUALISER_GAIN_STEP      (0.2)
+#define UI_EQUALISER_GAIN_MAX       (10.0)
+#define UI_EQUALISER_BAND_COUNT     (8)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -97,7 +98,7 @@ typedef struct {
  * @brief Callback to be called on FPS event triggered by the timer driver,
  * 		  used to update the LCD.
  */
-static void	onLcdFpsUpdate(void);
+static void	uiLcdUpdate(void);
 
 /**
  * @brief Open a directory handler for the file system on the current path.
@@ -164,8 +165,6 @@ static const char* EQUALISER_MENU_OPTIONS[UI_EQUALISER_OPTION_COUNT] = {
   "Custom"
 };
 
-static char* MESSAGE[256];
-
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -197,7 +196,7 @@ void uiInit(void)
 
     // Initialization of the timer driver
     timerInit();
-    timerStart(timerGetId(), TIMER_MS2TICKS(UI_LCD_FPS_MS), TIM_MODE_PERIODIC, onLcdFpsUpdate);
+    timerStart(timerGetId(), TIMER_MS2TICKS(UI_LCD_FPS_MS), TIM_MODE_PERIODIC, uiLcdUpdate);
 
     // Initialize the internal state of the UI module
     uiSetState(UI_STATE_MENU);
@@ -231,14 +230,14 @@ void uiRun(event_t event)
  *******************************************************************************
  ******************************************************************************/
 
-static void	onLcdFpsUpdate(void)
+static void	uiLcdUpdate(void)
 {
   if (HD44780LcdInitReady())
   {
     if (messageChanged)
     {
       messageChanged = false;
-      HD44780WriteRotatingString(LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), LCD_ROTATION_TIME_MS);
+      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
     }
   }
 }
@@ -353,15 +352,14 @@ static void uiRunFileSystem(event_t event)
     case EVENTS_ENTER:
       if (fsContext.currentFile.fattrib == AM_DIR)
       {
-        // Append the folder name to the current directory path
-        sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], "/%s", fsContext.currentFile.fname);
+    	sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], strlen(fsContext.currentPath) ? "/%s" : "%s", fsContext.currentFile.fname);
 
         // Open the directory
         uiFileSystemOpenDirectory();  
       }
       else if (fsContext.currentFile.fattrib == AM_ARC)
       {
-        
+        audioSetFolder(fsContext.currentPath, fsContext.currentFile.fname, fsContext.currentFileIndex);
       }
       break;
 

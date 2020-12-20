@@ -11,6 +11,8 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
+#include <stdint.h>
+
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
@@ -33,13 +35,18 @@ typedef enum {
 	EVENTS_VOLUME_TOGGLE,			// Volume encoder was pressed, toggle between mute/unmute
 	EVENTS_SD_INSERTED,				// SD card was inserted
 	EVENTS_SD_REMOVED,				// SD card was removed
-	EVENTS_SD_FRAME_FINISHED,	// Frame processing finished in the output stage
+	EVENTS_FRAME_FINISHED,	// Frame processing finished in the output stage
 
 	EVENTS_COUNT
 } event_id_t;
 
+typedef union {
+	uint16_t* frame;
+} event_data_t;
+
 typedef struct {
-	event_id_t	id;
+	event_id_t		id;
+	event_data_t	data;
 } event_t;
 
 /*******************************************************************************

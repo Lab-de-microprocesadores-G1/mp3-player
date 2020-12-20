@@ -8,6 +8,7 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
+#include "audio/audio.h"
 #include "board/board.h"
 #include "events/events.h"
 #include "display/display.h"
@@ -46,6 +47,7 @@ void appInit (void)
  	eventsInit();
 	displayInit();
 	uiInit();
+	audioInit();
 
 	// FatFs mounting
 	f_mount(&fs, "", 0);
@@ -57,6 +59,7 @@ void appRun (void)
 	if (event.id != EVENTS_NONE)
 	{
 		uiRun(event);
+		audioRun(event);
 	}
 }
 
