@@ -46,7 +46,7 @@
 //Button pins
 #define PIN_BUTTON0                   	PORTNUM2PIN(PC, 9)  //PTC9
 #define PIN_BUTTON1                   	PORTNUM2PIN(PC, 8)  //PTC8
-#define PIN_BUTTON2                   	PORTNUM2PIN(PC, 1)  //PTC1
+#define PIN_BUTTON2                   	PORTNUM2PIN(PB, 19)  //PTB19
 
 #define BUTTONS_ACTIVE  LOW
     
