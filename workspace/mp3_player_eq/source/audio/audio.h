@@ -12,6 +12,7 @@
  ******************************************************************************/
 
 #include "events/events.h"
+#include "arm_math.h"
 
 #include <stdint.h>
 
@@ -49,6 +50,12 @@ void audioRun(event_t event);
  * @param index     Index of the filename in the directory
  */
 void audioSetFolder(const char* path, const char* file, uint8_t index);
+
+/**
+ * @brief Sets the current volume of the audio module.
+ * @param volume    Target volume
+ */
+void audioSetVolume(float32_t volume);
 
 /*******************************************************************************
  ******************************************************************************/

@@ -147,11 +147,11 @@ static void onKeyPadEvent(keypad_events_t event)
 		}
 		else if (event.id == KEYPAD_ROTATION_CLKW)
 		{
-			newEvent.id = EVENTS_LEFT;
+			newEvent.id = EVENTS_RIGHT;
 		}
 		else if (event.id == KEYPAD_ROTATION_COUNTER_CLKW)
 		{
-			newEvent.id = EVENTS_RIGHT;
+			newEvent.id = EVENTS_LEFT;
 		}
 	}
 	else if (event.source == KEYPAD_ENCODER_RIGHT)
@@ -173,7 +173,7 @@ static void onKeyPadEvent(keypad_events_t event)
 	{
 		if (event.id == KEYPAD_PRESSED)
 		{
-			newEvent.id = EVENTS_PREVIOUS;
+			newEvent.id = EVENTS_NEXT;
 		}
 	}
 	else if (event.source == KEYPAD_BUTTON_PLAY_PAUSE)
@@ -187,7 +187,7 @@ static void onKeyPadEvent(keypad_events_t event)
 	{
 		if (event.id == KEYPAD_PRESSED)
 		{
-			newEvent.id = EVENTS_NEXT;
+			newEvent.id = EVENTS_PREVIOUS;
 		}
 	}
 

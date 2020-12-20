@@ -15,9 +15,9 @@
 #include <stdio.h>
 
 #include "drivers/HAL/HD44780_LCD/HD44780_LCD.h"
-// #include "drivers/MCAL/equaliser/equaliser.h"
+#include "drivers/MCAL/equaliser/equaliser.h"
 #include "drivers/MCAL/dac_dma/dac_dma.h"
-// #include "drivers/MCAL/cfft/cfft.h"
+#include "drivers/MCAL/cfft/cfft.h"
 #include "drivers/HAL/timer/timer.h"
 
 #include "lib/mp3decoder/mp3decoder.h"
@@ -33,11 +33,12 @@
 #define AUDIO_LCD_ROTATION_TIME_MS  	  (350)
 #define AUDIO_LCD_LINE_NUMBER       	  (0)
 #define AUDIO_FRAME_SIZE 					      (1024)
-#define AUDIO_FULL_SCALE 				  	    (300)
+#define AUDIO_FULL_SCALE 				  	    (300000)
 #define AUDIO_DEFAULT_SAMPLE_RATE       (44100)
 #define AUDIO_MAX_FILENAME_LEN          (256)
 #define AUDIO_BUFFER_COUNT              (2)
 #define AUDIO_BUFFER_SIZE               (1024)
+#define AUDIO_FLOAT_MAX                 (1)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -72,8 +73,8 @@ typedef struct {
 
   // Display data
   struct {
-    pixel_t                 displayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
-    float                   colValues[DISPLAY_SIZE];
+    pixel_t                 displayMatrix[DISPLAY_COL_SIZE][DISPLAY_COL_SIZE];
+    float                   colValues[DISPLAY_COL_SIZE];
   } display;
   
   // MP3 data
@@ -83,17 +84,19 @@ typedef struct {
     uint32_t                sampleRate;               
   } mp3;      
   
-//  struct {
-//    float32_t filteredOutput[AUDIO_FRAME_SIZE];
-//    float32_t input[AUDIO_FRAME_SIZE * 2];
-//    float32_t output[AUDIO_FRAME_SIZE * 2];
-//    float32_t magOutput[AUDIO_FRAME_SIZE];
-//  } fft;
-//
-//  struct {
-//    float32_t input[AUDIO_BUFFER_SIZE];
-//    float32_t output[AUDIO_BUFFER_SIZE];
-//  } eq;
+ struct {
+   float32_t filteredOutput[AUDIO_FRAME_SIZE];
+   float32_t input[AUDIO_FRAME_SIZE * 2];
+   float32_t output[AUDIO_FRAME_SIZE * 2];
+   float32_t magOutput[AUDIO_FRAME_SIZE];
+ } fft;
+
+ struct {
+   float32_t input[AUDIO_BUFFER_SIZE];
+   float32_t output[AUDIO_BUFFER_SIZE];
+ } eq;
+
+ float32_t volume;
   
 } audio_context_t;
 
@@ -163,7 +166,6 @@ static void fillMatrix(void);
 static audio_context_t  context;
 static const pixel_t clearPixel = {0,0,0};
 
-
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
@@ -182,10 +184,10 @@ void audioInit(void)
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
     //fft initialization
-	// cfftInit(CFFT_1024);
+	  cfftInit(CFFT_1024);
 
     //equalisator initialisation
-    // eqInit(AUDIO_FRAME_SIZE);
+    eqInit(AUDIO_FRAME_SIZE);
     
     // MP3 Decoder init
     MP3DecoderInit();
@@ -250,10 +252,11 @@ void audioSetFolder(const char* path, const char* file, uint8_t index)
     // Start sound reproduction
     dacdmaStart();
   }
-  else
-  {
-    
-  }
+}
+
+void audioSetVolume(float32_t volume)
+{
+  context.volume = volume;
 }
 
 /*******************************************************************************
@@ -341,14 +344,15 @@ static void audioSetDisplayString(const char* message)
 
 static void fillMatrix(void)
 {
-  for(int i = 0; i < DISPLAY_SIZE; i++)
+  for(int i = 0; i < DISPLAY_COL_SIZE; i++)
   {
-    for(int j = 0; j < DISPLAY_SIZE; j++)
+    for(int j = 0; j < DISPLAY_COL_SIZE; j++)
     {
       context.display.displayMatrix[i][j] = clearPixel;
     }
   }
-  vumeterMultiple(context.display.displayMatrix, context.display.colValues, DISPLAY_SIZE, AUDIO_FULL_SCALE, BAR_MODE + LINEAR_MODE);
+  vumeterMultiple((ws2812_pixel_t*)context.display.displayMatrix, context.display.colValues, DISPLAY_COL_SIZE, AUDIO_FULL_SCALE, BAR_MODE + LINEAR_MODE);
+  displayFlip((ws2812_pixel_t*)context.display.displayMatrix);
 }
 
 void audioProcess(uint16_t* frame)
@@ -376,24 +380,44 @@ void audioProcess(uint16_t* frame)
     }
   }
 
-  // // Data conditioning for next stage
-  // for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
-  // {
-  //   context.eq.input[i] = (float32_t)context.decodedMP3Samples[channelCount*i];
-  // }
+  // Data conditioning for next stage
+  for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
+  {
+    context.eq.input[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
+    context.eq.output[i] = 0;
+  }
   
-  // // Equalise
-  // eqFilterFrame(context.eq.input, context.eq.output);
-  
-  // Compute FFT
+  // Equalising
+  eqFilterFrame(context.eq.input, context.eq.output);
 
-  // Multiply by volume.
+  // Computing FFT
+  for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
+	{
+		context.fft.input[i*2] = context.eq.output[i] /= AUDIO_FLOAT_MAX;
+		context.fft.input[i*2+1] = 0;
+		context.fft.output[i*2] = 0;
+		context.fft.output[i*2+1] = 0;
+    context.fft.magOutput[i] = 0;
+	}
+
+  cfft(context.fft.input, context.fft.output, true);
+	cfftGetMag(context.fft.output, context.fft.magOutput);
+
+	for (uint32_t i = 0; i < DISPLAY_COL_SIZE; i++)
+	{
+		arm_mean_f32(context.fft.magOutput + AUDIO_BUFFER_SIZE / 2 + i * AUDIO_BUFFER_SIZE / DISPLAY_COL_SIZE / 2, AUDIO_BUFFER_SIZE / DISPLAY_COL_SIZE / 2, context.display.colValues + i);
+	}
+
+  fillMatrix();
   
   // Write samples to output buffer
   for (uint16_t i = 0 ; i < AUDIO_BUFFER_SIZE ; i++)
   {
     // DAC output is unsigned, mono and 12 bit long
-    frame[i] = (context.decodedMP3Buffer[channelCount * i] / 16) + (DAC_FULL_SCALE / 2);
+
+    uint16_t aux = (uint16_t)((context.eq.output[i]) + (DAC_FULL_SCALE / 2));
+    frame[i] = aux;
+    // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
   context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount;
 }
