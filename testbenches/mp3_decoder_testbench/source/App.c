@@ -18,9 +18,11 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define FILEPATH 	"PizzaConmigo.mp3"
-#define FRAME_SIZE	1024
+#define FILEPATH 	"440tone.mp3"
+#define FRAME_SIZE	2048
 #define SAMPLE_RATE	44100
+
+#define DAC_PEAK_VALUE	4096
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
@@ -39,7 +41,7 @@ static void updateCallback(uint16_t * frameToUpdate);
 static bool     init;
 static FATFS	fat;
 static FRESULT	fr;
-int16_t         decodedBuffer[MP3_DECODED_BUFFER_SIZE + FRAME_SIZE];
+static int16_t  decodedBuffer[MP3_DECODED_BUFFER_SIZE +  3 * FRAME_SIZE];
 static uint16_t samplesDecoded;
 static mp3decoder_frame_data_t frameData;
 static mp3decoder_result_t res;
@@ -47,6 +49,7 @@ static mp3decoder_tag_data_t ID3Tag;
 
 static uint32_t availableSamples = 0;
 static uint16_t frames[2][FRAME_SIZE];
+static uint8_t channelCount;
 
 /*******************************************************************************
  *******************************************************************************
@@ -101,6 +104,10 @@ void appRun (void)
 	/* Get info from first frame to be decoded */
 	MP3GetNextFrameData(&frameData);
 
+	channelCount = frameData.channelCount;
+
+	int i = 0;
+
 	while ((availableSamples <  (3 * FRAME_SIZE)) && (res == MP3DECODER_NO_ERROR))
 	{
         gpioWrite(PIN_DECODE_TIME, HIGH);
@@ -109,20 +116,15 @@ void appRun (void)
         gpioWrite(PIN_DECODE_TIME, LOW);
 		availableSamples += samplesDecoded;
 	}
-	// dacdmaStart();
-	availableSamples = 0;
+	dacdmaStart();
 
 	while (res == MP3DECODER_NO_ERROR)
 	{
-		if (true)
+		if (availableSamples < FRAME_SIZE * channelCount)
 		{
-	        gpioWrite(PIN_DECODE_TIME, HIGH);
 			/* Decode mp3 frame */
 			res = MP3GetDecodedFrame(decodedBuffer + availableSamples, MP3_DECODED_BUFFER_SIZE, &samplesDecoded);
-	        gpioWrite(PIN_DECODE_TIME, LOW);
-	        for (uint32_t i = 0 ; i < 10000 ; i++);
-//			availableSamples += samplesDecoded;
-	        availableSamples = 0;
+			availableSamples += samplesDecoded;
 		}
 	}
 	dacdmaStop();
@@ -137,12 +139,13 @@ void appRun (void)
 
 static void updateCallback(uint16_t * frameToUpdate)
 {
+    gpioToggle(PIN_DECODE_TIME);
 	for (uint16_t i = 0 ; i < FRAME_SIZE ; i++)
 	{
-		frameToUpdate[i] = decodedBuffer[i];
+		frameToUpdate[i] = decodedBuffer[channelCount * i] / 16 + DAC_PEAK_VALUE / 2;
 	}
-	availableSamples -= FRAME_SIZE;
-	memmove(decodedBuffer, decodedBuffer + FRAME_SIZE, availableSamples);
+	availableSamples -= FRAME_SIZE * channelCount;
+	memmove(decodedBuffer, decodedBuffer + FRAME_SIZE * channelCount, availableSamples);
 }
 
 /*******************************************************************************

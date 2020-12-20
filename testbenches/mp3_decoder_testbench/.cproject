@@ -202,10 +202,10 @@
 								<option id="gnu.c.link.option.strip.1880943087" name="Omit all symbol information (-s)" superClass="gnu.c.link.option.strip"/>
 								<option id="gnu.c.link.option.noshared.1637019408" name="No shared libraries (-static)" superClass="gnu.c.link.option.noshared"/>
 								<option id="gnu.c.link.option.libs.1055038946" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" value=""/>
+									<listOptionValue builtIn="false" value="helix"/>
 								</option>
 								<option id="gnu.c.link.option.paths.886065257" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lib/helix}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\nicot\OneDrive\Documents\MCUXpressoIDE_10.2.0_759\Micros\TPs\tpf-mp3-player\testbenches\mp3_decoder_testbench\lib\helix&quot;"/>
 								</option>
 								<option id="gnu.c.link.option.ldflags.488642333" name="Linker flags" superClass="gnu.c.link.option.ldflags"/>
 								<option id="gnu.c.link.option.other.805512878" name="Other options (-Xlinker [option])" superClass="gnu.c.link.option.other" valueType="stringList">
