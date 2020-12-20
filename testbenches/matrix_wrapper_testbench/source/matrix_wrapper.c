@@ -7,7 +7,7 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "matrix_wrapper_testbench.h"
+#include "matrix_wrapper.h"
 #include  "../drivers/HAL/timer/timer.h"
 #include  <math.h>
 
@@ -60,7 +60,7 @@ const pixel_t vumeterPixelColours[NUMBER_OF_ROWS] = {{250,0,0},
 
 static uint8_t normalizedValue;
 static uint8_t amountOfCols;
-static uint8_t col_brightness;
+static double col_brightness;
 
 /*******************************************************************************
  *******************************************************************************
@@ -68,7 +68,7 @@ static uint8_t col_brightness;
  *******************************************************************************
  ******************************************************************************/
 
-void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness)
+void vumeterMultiple(pixel_t* input, float* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness)
 {
 	for(int i = 0; i < colQty; i++)
 	{
@@ -76,7 +76,7 @@ void vumeterMultiple(pixel_t* input, double* colValues, uint8_t colQty, double f
 	}
 }
 
-void vumeterSingle(pixel_t* col, double value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness)
+void vumeterSingle(pixel_t* col, float value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness)
 {
 	vumeter_modes_t graphicMode = vumeterMode & GRAPHIC_MODE_MASK;
 	vumeter_modes_t scaleMode = vumeterMode & SCALE_MODE_MASK;

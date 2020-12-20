@@ -9,7 +9,7 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "matrix_wrapper_testbench.h"
+#include "matrix_wrapper.h"
 #include  "../drivers/HAL/WS2812/WS2812.h"
 #include  "../drivers/HAL/timer/timer.h"
 
