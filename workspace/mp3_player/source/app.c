@@ -11,6 +11,7 @@
 #include "board/board.h"
 #include "events/events.h"
 #include "display/display.h"
+#include "drivers/HAL/HD44780_LCD/HD44780_LCD.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -42,6 +43,7 @@ void appInit (void)
 	boardInit();
  	eventsInit();
 	displayInit();
+	HD44780LcdInit();
 }
 
 void appRun (void)
@@ -51,15 +53,7 @@ void appRun (void)
 	{
 		if (event.id == EVENTS_PLAY_PAUSE)
 		{
-			for (uint32_t i = 0 ; i < DISPLAY_ROW_SIZE ; i++)
-			{
-				for (uint32_t j = 0 ; j < DISPLAY_COL_SIZE ; j++)
-				{
-					ws2812_pixel_t pixel = WS2812_COLOR_RED;
-					display[i][j] = pixel;
-				}
-			}
-			displayFlip(&display);
+
 		}
 	}
 }
