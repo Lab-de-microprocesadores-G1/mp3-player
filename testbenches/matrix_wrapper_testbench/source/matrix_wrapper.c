@@ -60,7 +60,6 @@ const pixel_t vumeterPixelColours[NUMBER_OF_ROWS] = {{250,0,0},
 
 static uint8_t normalizedValue;
 static uint8_t amountOfCols;
-static double col_brightness;
 
 /*******************************************************************************
  *******************************************************************************
@@ -68,20 +67,20 @@ static double col_brightness;
  *******************************************************************************
  ******************************************************************************/
 
-void vumeterMultiple(pixel_t* input, float* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode, double* brightness)
+void vumeterMultiple(pixel_t* input, float* colValues, uint8_t colQty, double fullScale, vumeter_modes_t mode)
 {
 	for(int i = 0; i < colQty; i++)
 	{
-		vumeterSingle(input + i, colValues[i], colQty, fullScale, mode, brightness[i]);
+		float aux = colValues[i];
+		vumeterSingle(input + i, colValues[i], colQty, fullScale, mode);
 	}
 }
 
-void vumeterSingle(pixel_t* col, float value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode, double brightness)
+void vumeterSingle(pixel_t* col, float value, uint8_t colQty, double fullScale, vumeter_modes_t vumeterMode)
 {
 	vumeter_modes_t graphicMode = vumeterMode & GRAPHIC_MODE_MASK;
 	vumeter_modes_t scaleMode = vumeterMode & SCALE_MODE_MASK;
 	amountOfCols = colQty;
-	col_brightness = brightness;
 
 	if(scaleMode == LOGARITHMIC_MODE)
 	{
@@ -131,9 +130,9 @@ static void barMode(pixel_t* col)
 	//Filling the colour matrix for bar mode
 	for(uint8_t i = 0; i < normalizedValue; i++)
 	{
-		col[amountOfCols*i].r = vumeterPixelColours[i].r * col_brightness;
-		col[amountOfCols*i].g = vumeterPixelColours[i].g * col_brightness;
-		col[amountOfCols*i].b = vumeterPixelColours[i].b * col_brightness;
+		col[amountOfCols*i].r = vumeterPixelColours[i].r;
+		col[amountOfCols*i].g = vumeterPixelColours[i].g;
+		col[amountOfCols*i].b = vumeterPixelColours[i].b;
 	}
 }
 
@@ -142,12 +141,12 @@ static void centreMode(pixel_t* col)
 	//Filling the colour matrix for centre mode
 	for(uint8_t i = 0; i < normalizedValue/2; i++)
 	{
-		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].r = vumeterPixelColours[i].r * col_brightness;
-		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].g = vumeterPixelColours[i].g * col_brightness;
-		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].b = vumeterPixelColours[i].b * col_brightness;
-		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].r = vumeterPixelColours[i].r * col_brightness;
-		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].g = vumeterPixelColours[i].g * col_brightness;
-		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].b = vumeterPixelColours[i].b * col_brightness;
+		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].r = vumeterPixelColours[i].r;
+		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].g = vumeterPixelColours[i].g;
+		col[amountOfCols*NUMBER_OF_ROWS/2 + i*amountOfCols].b = vumeterPixelColours[i].b;
+		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].r = vumeterPixelColours[i].r;
+		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].g = vumeterPixelColours[i].g;
+		col[amountOfCols*(NUMBER_OF_ROWS/2 - 1) - i*amountOfCols].b = vumeterPixelColours[i].b;
 	}
 }
 
