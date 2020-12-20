@@ -27,7 +27,7 @@
 #define SLEWRATE_K64F 			    PORT_PCR_SRE_MASK
 #define OPENDRAIN_K64F			    PORT_PCR_ODE_MASK
 #define LOCK_K64F				    PORT_PCR_LK_MASK
-#define FILTER_K64F				    PORT_PCR_PFE_MASK
+#define GPIO_FILTER_K64F			PORT_PCR_PFE_MASK
 #define DRIVESTRENGTH_K64F		  	PORT_PCR_DSE_MASK
 
 
@@ -142,9 +142,12 @@ void gpioMode (pin_t pin, uint32_t mode)
 	// Enabling the gate for the clock of each pin
 	clockGateEnable(pin);
 
+	// Save the current status of gpioIRQ
+	mode = ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] & PORT_PCR_IRQC_MASK;
+
 	// K64F converting mode flags
-	mode = SETTING(setting, INPUT) | SETTING(setting, OUTPUT) | SETTING(setting, PULLDOWN) |  SETTING(setting, PULLUP);
-	mode |= SETTING(setting, SLEWRATE) | SETTING(setting, OPENDRAIN) | SETTING(setting, LOCK) | SETTING(setting, FILTER);
+	mode |= SETTING(setting, INPUT) 	| SETTING(setting, OUTPUT) 		| SETTING(setting, PULLDOWN) 	|  SETTING(setting, PULLUP);
+	mode |= SETTING(setting, SLEWRATE) 	| SETTING(setting, OPENDRAIN) 	| SETTING(setting, LOCK) 		|  SETTING(setting, GPIO_FILTER);
 
 	// Setting MUX to GPIO alternative.
 	ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] = ( GPIO_MASK | ( mode & ~TYPE_MASK ) );
@@ -188,16 +191,24 @@ bool gpioRead (pin_t pin)
 
 bool gpioIRQ (pin_t pin, uint8_t irqMode, pinIrqFun_t irqFun)
 {
-	// Port pointer, back up interrupt status flag
 	PORT_Type* ports[] = PORT_BASE_PTRS;
 	IRQn_Type irqs[] = PORT_IRQS;
 
-	// PCR interruption mode configuration
-	ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] |= PORT_PCR_IRQC(irqMode);
-	drivers[PIN2PORT(pin)][PIN2NUM(pin)] = irqFun;
+	if (irqFun || irqMode == GPIO_IRQ_MODE_DISABLE)
+	{
+		// PCR interruption mode configuration
+		ports[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] |= PORT_PCR_IRQC(irqMode);
+		if (irqMode != GPIO_IRQ_MODE_DISABLE)
+		{
+			// Setting the driver's routine
+			drivers[PIN2PORT(pin)][PIN2NUM(pin)] = irqFun;
 
-	// NVIC local enable for the interrupt
-	NVIC_EnableIRQ(irqs[PIN2PORT(pin)]);
+			// NVIC local enable for the interrupt
+			NVIC_EnableIRQ(irqs[PIN2PORT(pin)]);
+		}
+	}
+
+	return !(irqFun);
 }
 
 void portHandler(uint8_t port)
@@ -224,6 +235,12 @@ void portHandler(uint8_t port)
 		isfr = isfr >> 1;
 	}
 }
+
+/*******************************************************************************
+ *******************************************************************************
+						INTERRUPT SERVICE ROUTINES
+ *******************************************************************************
+ ******************************************************************************/
 
 void PORTA_IRQHandler(void)
 {

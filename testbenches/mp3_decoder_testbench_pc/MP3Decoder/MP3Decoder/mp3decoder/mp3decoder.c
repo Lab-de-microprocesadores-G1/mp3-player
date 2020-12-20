@@ -3,22 +3,20 @@
   @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
-/**** TODO FOR mp3decoder.c ****/
-//todo  circular buffer issues (differentiate empty queue and 1 element in queue scenarios)
-//todo  handle errors when decoding
-//todo  handle errors when finding header pointer
-
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
+#include <string.h>
+#include <stdbool.h>  
 #include "mp3decoder.h"
 #include  "../helix/pub/mp3dec.h"
 #include "../id3tagParser/read_id3.h"
-#include <string.h>
-#include <stdbool.h>  
 
+#ifdef __arm__
+#include "lib/fatfs/ff.h"
+#endif
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -45,7 +43,12 @@ typedef struct
   MP3FrameInfo  lastFrameInfo;                                  // current MP3 frame info
   
   // MP3 file
+  #ifdef __arm__
+  FIL			file;
+  FIL*          mp3File;
+  #else
   FILE*         mp3File;                                        // MP3 file object
+  #endif
   uint32_t      fileSize;                                       // file size
   uint32_t      bytesRemaining;                                 // Encoded MP3 bytes remaining to be processed by either offset or decodeMP3
   bool          fileOpened;                                     // true if there is a loaded file
@@ -84,14 +87,59 @@ static void flushFileToBuffer();
  */
 static void copyFrameInfo(mp3decoder_frame_data_t* mp3Data, MP3FrameInfo* helixData);
 
-
 /*
  * @brief Reads ID3 tag from MP3 file and updates file pointer after tag info
  */
 static void readID3Tag(void);
 
-mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded, uint8_t depth);
+/*
+* @brief  Recursively decodes one mp3 frame (if available) to WAV format
+* 
+* @param  *outbuffer      pointer to output buffer (should have space for at least one frame samples)
+* @param  buffersize      number of available bytes in output buffer
+* @param  *samplesDecoded pointer to variable that will be updated with number of samples decoded (if process is successful)
+* 
+* @returns  result code (MP3DECODER_ERROR, MP3DECODER_NOERROR, MP3DECODER_FILE_END, MP3DECODER_NO_FILE, MP3DECODER_BUFFER_OVERFLOW)
+*/
+static mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize, uint16_t* samplesDecoded, uint8_t depth);
 
+/* FILE HANDLING FUNCTIONS */
+
+/**
+ * @brief Closes current file 
+ */
+static void closeFile(void);
+
+/**
+ * @brief Opens the given file
+ * @param filename  File to be opened
+ * @retval True if successfull
+ */ 
+static bool openFile(const char * filename);
+
+/**
+ * @brief Returns current file size
+ */ 
+static size_t currentFileSize();
+
+/**
+ * @brief Sets file cursor position to zero
+ */ 
+static void fileRewind();
+
+/**
+ * @brief Sets cursor position to pos
+ * @param pos
+ */ 
+static void fileSeek(size_t pos);
+
+/**
+ * @brief Reads the requested amount of bytes from the file
+ * @param buf Buffer 
+ * @param count Amount of elements
+ * @retval Amount of bytes read
+ */ 
+static size_t readFile(void * buf, size_t count);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -129,12 +177,11 @@ bool MP3LoadFile(const char* filename)
 {
   bool ret = false;
 
-  // Close previous file and context if necessary
-  if(dec.fileOpened)
+  if (dec.fileOpened)
   {
-    //f_close(&(dec.mp3File));         
-    file_close(dec.mp3File);
-    
+    // Close previous file and context if necessary
+    closeFile();
+
     // Reset context pointers and vars 
     dec.fileOpened = false;
     dec.bottom = 0;
@@ -144,23 +191,12 @@ bool MP3LoadFile(const char* filename)
     dec.hasID3Tag = false;
   }
 
-  // Open new file
-  //FRESULT fr = f_open(&(dec.mp3File), filename, FA_READ);
-  FIL* fp;
-  file_open(fp, filename, "rb");
-
-  // If successfully opened
-  if (fp)
+  // Open new file, if successfully opened
+  if (openFile(filename))
   {
-    //dec.fileSize = f_size(&(dec.mp3File));
-    /* getting file size */
-    file_seek_end(fp);
-    dec.fileSize = file_tell(fp);
-    dec.bytesRemaining = dec.fileSize;
-    file_seek_absolute(fp, 0);
-
-    dec.mp3File = fp;
     dec.fileOpened = true;
+    dec.fileSize = currentFileSize();
+    dec.bytesRemaining = dec.fileSize;
 
     // read ID3 tag and update pointers
     readID3Tag();
@@ -338,7 +374,7 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
               // If there weren't enough bytes on the buffer, try again
               return MP3GetDecodedFrameRec(outBuffer, bufferSize, samplesDecoded, depth + 1); //! H-quearlo
           }
-          else // if (res == -6)
+          else
           {
               if (dec.bytesRemaining <= dec.lastFrameLength)
               {
@@ -400,10 +436,7 @@ void flushFileToBuffer()
 
     // Fill buffer with info in mp3 file
     uint8_t* dest = dec.mp3FrameBuffer + dec.bottom;    
-
-    // bytesRead = file_read(dest, 1, (MP3_FRAME_BUFFER_BYTES - dec.bottom), dec.mp3File);
-    file_read(dec.mp3File, dest, (MP3_FRAME_BUFFER_BYTES - dec.bottom), bytesRead);
-
+    bytesRead = readFile(dest, (MP3_FRAME_BUFFER_BYTES - dec.bottom));
     // Update bottom pointer
     dec.bottom += bytesRead;
 
@@ -448,6 +481,7 @@ void readID3Tag(void)
         if (!read_ID3_info(TRACK_NUM_ID3, dec.ID3Data.trackNum, 10, dec.mp3File))
             strcpy(dec.ID3Data.trackNum, DEFAULT_ID3_FIELD);
 
+
         unsigned int tagSize = get_ID3_size(dec.mp3File);
 
         #ifdef MP3_PC_TESTBENCH
@@ -455,20 +489,99 @@ void readID3Tag(void)
         printf("ID3 Tag is %d bytes long\n", tagSize);
         #endif    
 
-        file_seek_absolute(dec.mp3File, tagSize);
-        dec.bytesRemaining -= tagSize; //! INIT bytesRemaining before calling this function!
-
-
+        fileSeek(tagSize);
+        dec.bytesRemaining -= tagSize;
 
     }
     else
     {
-        rewind(dec.mp3File);
+        fileRewind();
     }
-
-
-
 }
+
+/* FILE HANDLING FUNCTIONS */
+
+bool openFile(const char * filename)
+{
+    bool ret = false;
+    #ifdef __arm__
+    FRESULT fr = f_open(&dec.file, filename, FA_READ);
+    if (fr == FR_OK)
+    {
+    	dec.mp3File = &(dec.file);
+    	ret = true;
+    }
+    #else
+    dec.mp3File = fopen(filename, "rb"); 
+    ret = (dec.mp3File != NULL);
+    #endif
+    return ret;
+}
+
+void closeFile(void)
+{
+    #ifdef __arm__
+    f_close(dec.mp3File);
+    #else
+    fclose(dec.mp3File);
+    #endif
+}
+
+size_t currentFileSize()
+{
+  size_t result = 0;
+  if (dec.fileOpened)
+  {
+    #ifdef __arm__
+    result = f_size(dec.mp3File);
+    #else
+    fseek(dec.mp3File, 0L, SEEK_END);
+    result = ftell(dec.mp3File);
+    fileRewind();
+    fseek (dec.mp3File, 0, SEEK_SET);
+    #endif
+  }
+  return result;
+}
+
+void fileRewind()
+{
+    #ifdef __arm__
+    f_rewind(dec.mp3File);
+    #else
+    rewind(dec.mp3File);
+    #endif
+}
+
+void fileSeek(size_t pos)
+{
+    #ifdef __arm__
+    f_lseek(dec.mp3File, pos);
+    #else
+    fseek(dec.mp3File, pos, SEEK_SET);
+    #endif
+}
+
+size_t readFile(void * buf, size_t count)
+{
+    size_t ret = 0, read;
+    if (dec.fileOpened)
+    {
+      #ifdef __arm__
+      FRESULT fr;
+	  fr = f_read(dec.mp3File, ((uint8_t *)buf) + ret, count, &read);
+	  if (fr == FR_OK)
+	  {
+		ret = read;
+	  }
+      #else
+      ret = fread(buf, 1, count, dec.mp3File);
+      #endif
+    }
+    return ret;
+}
+
+
 /*******************************************************************************
  *******************************************************************************
 						            INTERRUPT SERVICE ROUTINES
