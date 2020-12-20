@@ -512,7 +512,7 @@ bool openFile(const char * filename)
     	ret = true;
     }
     #else
-    dec.mp3File = fopen(filename, "rb"); 
+    dec.mp3File = fopen(filename, "rb");
     ret = (dec.mp3File != NULL);
     #endif
     return ret;
