@@ -10,10 +10,10 @@
 //#define MAIN_DEBUG
 
 //#define HAYDN
-//#define PIZZA_CONMIGO
+#define PIZZA_CONMIGO
 //#define SULLIVAN
 //#define SAMPLE
-#define BOCA
+//#define BOCA
 
 #define INTBUF
 

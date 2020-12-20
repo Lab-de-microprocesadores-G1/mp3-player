@@ -1,26 +1,22 @@
-/*******************************************************************************
-  @file     systick.h
-  @brief    Systick simple timer driver
-  @author   N. Magliola, G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
+/***************************************************************************//**
+  @file     sd_disk.h
+  @brief    Low level SD disk I/O interface for FatFs
+  @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef _SYSTICK_H_
-#define _SYSTICK_H_
+#ifndef HAL_SD_SD_DISK_H_
+#define HAL_SD_SD_DISK_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include <stdbool.h>
+#include "lib/fatfs/ff.h"
+#include "lib/fatfs/diskio.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-
-#define SYSTICK_ISR_FREQUENCY_HZ   	1000U
-#define CPU_FREQUENCY_HZ           	100000000UL
-#define SYSTICK_TICK_MS			   	(1000U / SYSTICK_ISR_FREQUENCY_HZ)
-#define SYSTICK_MS2TICKS(x)			((x) / SYSTICK_TICK_MS)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -34,15 +30,40 @@
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
-/**
- * @brief Initialise SysTic driver
- * @param funcallback Function to be call every SysTick
- * @return Initialization and registration succeed
+/*
+ * @brief Performs a disk initialization on a sd.
  */
-bool systickInit (void (*funcallback)(void));
+DSTATUS sdDiskInitialize(void);
 
+/*
+ * @brief Returns the sd physical drive.
+ */
+DSTATUS sdDiskStatus(void);
+
+/*
+ * @brief Performs a sector read on a sd.
+ * @param buffer	Pointer to the memory buffer
+ * @param sector	Number of the sector
+ * @param count		Amount of sectors to be read
+ */
+DRESULT sdDiskRead(BYTE* buffer, DWORD sector, UINT count);
+
+/*
+ * @brief Performs a sector write on a sd.
+ * @param buffer	Pointer to the memory buffer
+ * @param sector	Number of the sector
+ * @param count		Amount of sectors to be written
+ */
+DRESULT sdDiskWrite(const BYTE* buffer, DWORD sector, UINT count);
+
+/*
+ * @brief Performs a control communication with the sd.
+ * @param command	Control command
+ * @param buffer	Pointer to the memory buffer
+ */
+DRESULT sdDiskIoctl(BYTE command, void* buffer);
 
 /*******************************************************************************
  ******************************************************************************/
 
-#endif // _SYSTICK_H_
+#endif /* HAL_SD_SD_DISK_H_ */
