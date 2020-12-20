@@ -96,12 +96,14 @@
 
 #include "drivers/MCAL/cfft/cfft.h"
 
-#define TEST_LENGTH_SAMPLES 2048
+#define TEST_LENGTH_SAMPLES 	2048
+#define SNR_THRESHOLD_F32    	130.0f
 
 /* -------------------------------------------------------------------
 * External Input and Output buffer Declarations for FFT Bin Example
 * ------------------------------------------------------------------- */
 extern float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
+extern float32_t refOutput[TEST_LENGTH_SAMPLES/2];
 static float32_t cfftOutput[TEST_LENGTH_SAMPLES];
 static float32_t testOutput[TEST_LENGTH_SAMPLES/2];
 
@@ -112,7 +114,7 @@ uint32_t fftSize = 1024;
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
 
-/* Reference index at which max energy of bin ocuurs */
+/* Reference index at which max energy of bin occurs */
 uint32_t refIndex = 213, testIndex = 0;
 
 /* ----------------------------------------------------------------------
@@ -138,6 +140,17 @@ int32_t main(void)
 
   /* Calculates maxValue and returns corresponding BIN value */
   arm_max_f32(testOutput, fftSize, &maxValue, &testIndex);
+
+  float32_t snr = arm_snr_f32(&refOutput[0], &testOutput[0], 1024);
+
+  if (snr < SNR_THRESHOLD_F32)
+  {
+	  status = ARM_MATH_TEST_FAILURE;
+  }
+  else
+  {
+	  status = ARM_MATH_SUCCESS;
+  }
 
   if (testIndex !=  refIndex)
   {

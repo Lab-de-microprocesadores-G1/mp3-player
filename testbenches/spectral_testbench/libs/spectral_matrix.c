@@ -92,11 +92,19 @@ void vumeterSingle(pixel_t* col, float value, uint8_t colQty, double fullScale, 
 		else
 		{
 			normalizedValue = (int)(log10(value) / log10(fullScale) * NUMBER_OF_ROWS + 0.5);
+			if (normalizedValue > 7 )
+			{
+				normalizedValue = 8;
+			}
 		}
 	}
 	else if(scaleMode == LINEAR_MODE)
 	{
 		normalizedValue = (int)(value / fullScale * NUMBER_OF_ROWS + 0.5);
+		if (normalizedValue > 7 )
+		{
+			normalizedValue = 8;
+		}
 	}
 	modeDispatcher(graphicMode, col);
 }

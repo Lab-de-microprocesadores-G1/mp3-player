@@ -13,6 +13,7 @@
 #include "../drivers/MCAL/cfft/cfft.h"
 #include "../drivers/HAL/keypad/keypad.h"
 #include "../drivers/HAL/WS2812/WS2812.h"
+#include "math_helper.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -21,7 +22,7 @@
 #define FRAME_SIZE 					1024
 #define DISPLAY_SIZE	       	  	8	// Display side number of digits (8x8)
 #define FULL_SCALE 				  	300
-#define SELECTED_BRIGHTNESS		  	0.6
+#define SELECTED_BRIGHTNESS		  	0.2
 #define DEFAULT_BRIGHTNESS			0.02
 
 /*******************************************************************************
@@ -71,6 +72,7 @@ static float32_t cfftMagOutput[FRAME_SIZE];
  ******************************************************************************/
 
 extern float32_t sineInput[FRAME_SIZE];
+extern float32_t refMagFft[FRAME_SIZE];
 
 /*******************************************************************************
  *******************************************************************************
@@ -190,9 +192,9 @@ void moveEqBand(uint32_t side)
 	}
 	else
 	{
-		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
+		vumeterSingle((pixel_t *)kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
 		currentEqBand == 0 ? currentEqBand = 7 : (currentEqBand--);
-		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
+		vumeterSingle((pixel_t *)kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
         WS2812Update();
 	}
 }
@@ -216,11 +218,18 @@ void downEqGain(void)
 void updateGain(void)
 {
 	eqSetFilterGain(eqGainValues[eqGains[currentEqBand]], currentEqBand);
+
+	for (uint32_t i = 0; i < FRAME_SIZE; i++)
+	{
+		filteredOutput[i] = 0;
+	}
 	eqFilterFrame(sineInput, filteredOutput);
 
 	for (uint32_t i = 0; i < FRAME_SIZE; i++)
 	{
 		cfftInput[i*2] = filteredOutput[i];
+		cfftOutput[i*2+1] = 0;
+		cfftOutput[i*2] = 0;
 	}
 
 	cfft(cfftInput, cfftOutput, true);
@@ -228,7 +237,7 @@ void updateGain(void)
 
 	for (uint32_t i = 0; i < DISPLAY_SIZE; i++)
 	{
-		arm_mean_f32(cfftMagOutput + i * FRAME_SIZE / DISPLAY_SIZE, FRAME_SIZE / DISPLAY_SIZE, colValues + i);
+		arm_mean_f32(cfftMagOutput + FRAME_SIZE / 2 + i * FRAME_SIZE / DISPLAY_SIZE / 2, FRAME_SIZE / DISPLAY_SIZE / 2, colValues + i);
 	}
 }
 
