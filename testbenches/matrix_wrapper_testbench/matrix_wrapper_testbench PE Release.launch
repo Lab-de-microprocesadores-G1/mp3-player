@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.pemicro.debug.gdbjtag.pne.launchConfigurationType">
-<stringAttribute key="com.crt.ctrlcenter.OFSemuDetails" value="PEMicro9018DE02"/>
+<stringAttribute key="com.crt.ctrlcenter.OFSemuDetails" value="PEMicro832B7E7C"/>
 <stringAttribute key="com.crt.ctrlcenter.serialNumber" value="USB1 - OpenSDA (9018DE02)"/>
 <stringAttribute key="com.nxp.mcuxpresso.ide.probe.manufacturer" value="P&amp;E Microcomputer Systems"/>
 <stringAttribute key="com.nxp.mcuxpresso.ide.probe.name" value="USB1 - OpenSDA (9018DE02)"/>

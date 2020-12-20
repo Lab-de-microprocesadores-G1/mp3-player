@@ -44,7 +44,7 @@ static ws2812_pixel_t kernelDisplayMatrix[DISPLAY_SIZE][DISPLAY_SIZE];
 static tim_id_t timer_id;
 
 static double colValues[8] = {7,2,0,4,1,0,7,6};
-
+static double colBrightness[8] = {1,1,1,1,1,1,1,1};
 static ws2812_pixel_t clear = {0,0,0};
 
 /*******************************************************************************
@@ -78,7 +78,7 @@ void appRun()
     		//colValues[i] = rand() % FULL_SCALE;
     		//colValues[i] = 15;
     	}
-    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, CENTRE_MODE + LINEAR_MODE);
+    	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE, colBrightness);
         WS2812Update();
     }
 

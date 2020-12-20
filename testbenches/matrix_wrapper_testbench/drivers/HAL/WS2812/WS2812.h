@@ -12,6 +12,7 @@
  ******************************************************************************/
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -29,10 +30,13 @@ typedef struct {
  ******************************************************************************/
 
 // Default hard-coded color palette
-#define WS2812_COLOR_RED      { 50, 0, 0 }
-#define WS2812_COLOR_BLUE     { 0, 0, 50 }
-#define WS2812_COLOR_GREEN    { 0, 50, 0 }
-#define WS2812_COLOR_WHITE    { 50, 50, 50 }
+#define WS2812_RGB(r, g, b)		{ (r), (g), (b) }
+#define WS2812_COLOR_BLACK    	WS2812_RGB(0, 0, 0)
+#define WS2812_COLOR_RED      	WS2812_RGB(255, 0, 0)
+#define WS2812_COLOR_GREEN    	WS2812_RGB(0, 255, 0)
+#define WS2812_COLOR_BLUE     	WS2812_RGB(0, 0, 255)
+#define WS2812_COLOR_WHITE   	WS2812_RGB(255, 255, 255)
+
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -42,22 +46,24 @@ typedef struct {
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
-/*
+/**
  * @brief Initializes the WS2812 driver
  */
 void WS2812Init(void);
 
-/*
+/**
  * @brief Sets display mirroring buffer
  * @param buffer  Array of pixels
  * @param size    Number of pixels in array
+ * @returns 	  Whether the buffer was saved or not
  */
-void WS2812SetDisplayBuffer(ws2812_pixel_t* buffer, size_t size);
+bool WS2812SetDisplayBuffer(ws2812_pixel_t* buffer, size_t size);
 
-/*
+/**
  * @brief Mirrors display buffer to the array of WS2812 leds
+ * @returns 	  Whether the update process started or not
  */
-void WS2812Update(void);
+bool WS2812Update(void);
 
 /*******************************************************************************
  ******************************************************************************/
