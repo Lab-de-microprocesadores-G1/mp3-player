@@ -33,10 +33,10 @@
  * PRIVATE VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-extern float32_t testInput_f32_1kHz_15kHz[320];
-extern float32_t refOutput[320];
+extern float32_t testInput_f32_1kHz_15kHz[1024];
+extern float32_t refOutput[1024];
 
-static float32_t testOutput[320];
+static float32_t testOutput[1024];
 float32_t  snr;
 
 /*******************************************************************************
@@ -48,9 +48,9 @@ float32_t  snr;
 /* Called once at the beginning of the program */
 void appInit (void)
 {
-    eqInit(320);
-    float32_t filterGains[8] = {3.0f, 0.1f, 6.0f, 0.5f, 2.0f, 0.0f, 0.9f, 5.0f};
-	eqSetFilterGains(filterGains);
+    eqInit(1024);
+//    float32_t filterGains[8] = {3.0f, 0.1f, 6.0f, 0.5f, 2.0f, 0.0f, 0.9f, 5.0f};
+//	eqSetFilterGains(filterGains);
 }
 
 /* Called repeatedly in an infinite loop */
@@ -65,7 +65,7 @@ void appRun (void)
 	** in MATLAB.
 	** ------------------------------------------------------------------- */
 
-	snr = arm_snr_f32(&refOutput[0], &testOutput[0], 320);
+	snr = arm_snr_f32(&refOutput[0], &testOutput[0], 1024);
 
 	if (snr < SNR_THRESHOLD_F32)
 	{
