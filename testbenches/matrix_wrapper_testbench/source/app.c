@@ -19,6 +19,7 @@
 
 #define DISPLAY_SIZE	       	  8	// Display side number of digits (8x8)
 #define FULL_SCALE 				  7
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
@@ -74,8 +75,7 @@ void appRun()
     	}
     	for(int i = 0; i < 8; i++)
     	{
-    		//colValues[i] = rand() % FULL_SCALE;
-    		//colValues[i] = 15;
+    		colValues[i] = rand() % (FULL_SCALE + 1);
     	}
     	vumeterMultiple(kernelDisplayMatrix, colValues, 8, FULL_SCALE, BAR_MODE + LINEAR_MODE);
         WS2812Update();
