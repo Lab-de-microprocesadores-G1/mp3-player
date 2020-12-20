@@ -39,7 +39,7 @@
 // Button pins
 #define PIN_PREVIOUS_BUTTON         PORTNUM2PIN(PC, 9)  // PTC9
 #define PIN_PLAY_PAUSE_BUTTON       PORTNUM2PIN(PC, 8)  // PTC8
-#define PIN_NEXT_BUTTON             PORTNUM2PIN(PC, 1)  // PTC1
+#define PIN_NEXT_BUTTON             PORTNUM2PIN(PB, 19) // PTC1
 
 // On Board User LEDs
 #define PIN_LED_RED     			PORTNUM2PIN(PB, 22) // PTB22

@@ -19,13 +19,16 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define KEYPAD_DOUBLE_PRESS_MS		(450)
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
 typedef enum {
-	KEYPAD_PRESSED,					// Button was pressed
-	KEYPAD_ROTATION_CLKW,			// Clockwise rotation of a rotative encoder
+	KEYPAD_PRESSED,								// Button was pressed
+	KEYPAD_DOUBLE_PRESSED,				// Button was pressed two times
+	KEYPAD_ROTATION_CLKW,					// Clockwise rotation of a rotative encoder
 	KEYPAD_ROTATION_COUNTER_CLKW	// Counter clockwise rotation of a rotative encoder
 } keypad_ev_id_t;
 

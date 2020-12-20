@@ -114,6 +114,10 @@ static void onKeyPadEvent(keypad_events_t event)
 		{
 			newEvent.id = EVENTS_ENTER;
 		}
+		else if (event.id == KEYPAD_DOUBLE_PRESSED)
+		{
+			newEvent.id = EVENTS_EXIT;
+		}
 		else if (event.id == KEYPAD_ROTATION_CLKW)
 		{
 			newEvent.id = EVENTS_LEFT;

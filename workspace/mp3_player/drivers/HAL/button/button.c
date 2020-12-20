@@ -18,11 +18,13 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define	SYSTICK_MS				( 1.0 / SYSTICK_ISR_FREQUENCY_HZ * 1000.0 )
-#define MS2TICKS(ms)  			( (ms) / SYSTICK_MS )
+#define	SYSTICK_MS					( 1.0 / SYSTICK_ISR_FREQUENCY_HZ * 1000.0 )
+#define MS2TICKS(ms)  				( (ms) / SYSTICK_MS )
 
-#define	LKP_MS					3000
+#define	LKP_MS						3000
 #define TYPEMATIC_MS			500 // 500ms for debug
+
+#define DOUBLE_CLICK_THRESHOLD	200		//200ms fot double click
 
 #define	BUTTON_DEVELOPMENT_MODE 1
 
@@ -48,13 +50,13 @@ typedef enum {
 // Button structure
 typedef struct {
 	// Button static properties
-	const pin_t 	pinNumber;			// Board pin assigned to button
-	const bool 		activeState;		// Whether the button is active high or low
-	const bool 		pullEnable;			// Enable/Disable pullup/down
+	const pin_t 		pinNumber;			// Board pin assigned to button
+	const bool 			activeState;		// Whether the button is active high or low
+	const bool 			pullEnable;			// Enable/Disable pullup/down
 	const uint32_t 	debounceMillis;		// Milliseconds to wait for debounce
 
 	// External event emitters, call this functions on each event
-	void 			(*evCallbacks[BUTTON_EV_COUNT]) (void);
+	void 						(*evCallbacks[BUTTON_EV_COUNT]) (void);
 
 	// FSM state
 	buttonFsmState_t fsmState;
@@ -88,9 +90,9 @@ static button_t buttons[BUTTON_COUNT] = {
 	//Pin	  					ActiveState 		PE		MsBounce
 	{ PIN_LEFT_ENCODER_BUTTON,	BUTTONS_ACTIVE, 	true,	100 	},
 	{ PIN_RIGHT_ENCODER_BUTTON,	BUTTONS_ACTIVE, 	true,	100  	},
-	{ PIN_PREVIOUS_BUTTON,		BUTTONS_ACTIVE, 	true,	100  	},
-	{ PIN_PLAY_PAUSE_BUTTON,	BUTTONS_ACTIVE, 	true,	100  	},
-	{ PIN_NEXT_BUTTON,			BUTTONS_ACTIVE, 	true,	100  	}
+	{ PIN_PREVIOUS_BUTTON,			BUTTONS_ACTIVE, 	true,	100  	},
+	{ PIN_PLAY_PAUSE_BUTTON,		BUTTONS_ACTIVE, 	true,	100  	},
+	{ PIN_NEXT_BUTTON,					BUTTONS_ACTIVE, 	true,	100  	}
 };
 
 

@@ -15,6 +15,7 @@
 #include "../../../board/board.h"
 #include "../button/button.h"
 #include "../encoder/encoder.h"
+#include "../timer/timer.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -45,6 +46,8 @@ static void onPreviousButtonPressed(void);
 static void onPlayPauseButtonPressed(void);
 static void onNextButtonPressed(void);
 
+static void onLeftEncoderTimeout(void);
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -55,6 +58,8 @@ static void onNextButtonPressed(void);
 
 static keypad_callback_t userCallback;
 static bool alreadyInit = false;
+static bool leftEncoderWasPressed = false;
+static tim_id_t	timerId;
 
 /*******************************************************************************
  *******************************************************************************
@@ -68,6 +73,10 @@ void keypadInit(void)
 	{
 		// Raise the already initialized flag for the keypad driver
 		alreadyInit = true;
+
+		// Initializes the timer
+		timerInit();
+		timerId = timerGetId();
 
 		// Initializes buttons
 		buttonInit();
@@ -123,14 +132,22 @@ static void onLeftEncoderCounterClockwise(void)
 
 static void onLeftEncoderPressed(void)
 {
-	keypad_events_t event = {
-		.source = KEYPAD_ENCODER_LEFT,
-		.id = KEYPAD_PRESSED
-	};
-
-	if (userCallback)
+	if (leftEncoderWasPressed)
 	{
-		userCallback(event);
+		leftEncoderWasPressed = false;
+		keypad_events_t event = {
+			.source = KEYPAD_ENCODER_LEFT,
+			.id = KEYPAD_DOUBLE_PRESSED
+		};
+		if (userCallback)
+		{
+			userCallback(event);
+		}
+	}
+	else
+	{
+		leftEncoderWasPressed = true;
+		timerStart(timerId, TIMER_MS2TICKS(KEYPAD_DOUBLE_PRESS_MS), TIM_MODE_SINGLESHOT, onLeftEncoderTimeout);
 	}
 }
 
@@ -209,6 +226,24 @@ static void onNextButtonPressed(void)
 	if (userCallback)
 	{
 		userCallback(event);
+	}
+}
+
+static void onLeftEncoderTimeout(void)
+{
+	if (leftEncoderWasPressed)
+	{
+		leftEncoderWasPressed = false;
+
+		keypad_events_t event = {
+			.source = KEYPAD_ENCODER_LEFT,
+			.id = KEYPAD_PRESSED
+		};
+
+		if (userCallback)
+		{
+			userCallback(event);
+		}
 	}
 }
 
