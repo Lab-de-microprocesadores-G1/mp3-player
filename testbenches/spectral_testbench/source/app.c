@@ -191,7 +191,7 @@ void moveEqBand(uint32_t side)
 	else
 	{
 		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, DEFAULT_BRIGHTNESS);
-		currentEqBand == 0 ? currentEqBand = 7 : (currentEqBand - 1);
+		currentEqBand == 0 ? currentEqBand = 7 : (currentEqBand--);
 		vumeterSingle(kernelDisplayMatrix + currentEqBand, colValues[currentEqBand], DISPLAY_SIZE, FULL_SCALE, BAR_MODE + LINEAR_MODE, SELECTED_BRIGHTNESS);
         WS2812Update();
 	}
