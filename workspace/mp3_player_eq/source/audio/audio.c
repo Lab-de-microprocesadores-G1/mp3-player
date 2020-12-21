@@ -39,6 +39,7 @@
 #define AUDIO_BUFFER_COUNT              (2)
 #define AUDIO_BUFFER_SIZE               (1024)
 #define AUDIO_FLOAT_MAX                 (1)
+#define MAX_VOLUME                      (30)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -96,11 +97,16 @@ typedef struct {
    float32_t output[AUDIO_BUFFER_SIZE];
  } eq;
 
- float32_t volume;
-  
+  uint8_t volume;
+  char    volume_buffer[10];
 } audio_context_t;
 
+typedef enum {
+  AUDIO_OPTION_VOLUME_UP,             // Volume up option
+  AUDIO_OPTION_VOLUME_DOWN,           // Volume up option
 
+  AUDIO_OPTION_COUNT
+} audio_idle_menu_options_t;
 /*******************************************************************************
  * VARIABLES WITH GLOBAL SCOPE
  ******************************************************************************/
@@ -179,7 +185,6 @@ void audioInit(void)
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
-
     // Initialization of the timer
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
@@ -270,9 +275,20 @@ static void audioRunIdle(event_t event)
   switch (event.id)
   {
     case EVENTS_VOLUME_INCREASE:
+      if(context.volume < MAX_VOLUME)
+      {
+        context.volume++;
+      }
+      sprintf(context.volume_buffer, "Volumen %d", context.volume);
+      audioSetDisplayString(context.volume_buffer);
       break;
     case EVENTS_VOLUME_DECREASE:
-      break;
+      if(context.volume)
+      {
+        context.volume--;
+      }
+      sprintf(context.volume_buffer, "Volumen %d", context.volume);
+      audioSetDisplayString(context.volume_buffer);
     default:
       break;
   }
@@ -419,7 +435,7 @@ void audioProcess(uint16_t* frame)
     frame[i] = aux;
     // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
-  context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount;
+  context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount * context.volume;
 }
 
 
