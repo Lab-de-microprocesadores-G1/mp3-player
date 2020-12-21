@@ -50,12 +50,8 @@ void eqIirFilterFrame(float32_t * inputF32, float32_t * outputF32);
  */
 void eqIirSetFilterGains(float32_t gains[EQ_NUM_OF_FILTERS]);
 
-/**
- * @brief Sets equaliser number filterNum to the gain given.
- * @param gain        Filter gain for filter number filterNum.
- * @param filterNum   Number of filter to apply the gain to.
- */
-void eqIirSetFilterGain(float32_t gain, uint8_t filterNum);
+
+
 
 /*******************************************************************************
  ******************************************************************************/
