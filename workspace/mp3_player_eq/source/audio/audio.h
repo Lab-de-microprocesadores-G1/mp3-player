@@ -15,6 +15,7 @@
 #include "arm_math.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -50,6 +51,8 @@ void audioRun(event_t event);
  * @param index     Index of the filename in the directory
  */
 void audioSetFolder(const char* path, const char* file, uint8_t index);
+
+void setEqEnabled(bool eqEnabled);
 
 /*******************************************************************************
  ******************************************************************************/

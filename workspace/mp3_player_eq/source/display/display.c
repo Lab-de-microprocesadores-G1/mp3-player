@@ -17,8 +17,7 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define DEFAULT_COLUMN 	0.05
-#define SELECTED_COLUMN	0.9
+#define FACTOR 	0.2
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -52,6 +51,7 @@ static ws2812_pixel_t 	displayBuffer[DISPLAY_SIZE];	// Internal display buffer
 static bool 			alreadyInit = false;			// Internal flag for initialization process
 static bool				displayLocked = false;			// Internal flag for avoid updates when changing display content
 static uint8_t			currentCol;						// Column selected by user
+static uint8_t			currentValue;						// Column selected by user
 static bool				displayChanged = false;			// Internal flag for display changes
 
 /*******************************************************************************
@@ -67,6 +67,7 @@ void displayInit(void)
 		// Raise the already initialized flag, to avoid multiple initialization
 		alreadyInit = true;
 		currentCol = DISPLAY_UNSELECT_COLUMN;
+		currentValue = 8;
 
 		// Initialization of the lower layer WS2812 driver
 		WS2812Init();
@@ -90,13 +91,23 @@ void displayFlip(ws2812_pixel_t* buffer)
 		{
 			if (currentCol == DISPLAY_UNSELECT_COLUMN)
 			{
-				displayBuffer[i * DISPLAY_ROW_SIZE + j] = buffer[i * DISPLAY_ROW_SIZE + j];
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].r = buffer[i * DISPLAY_ROW_SIZE + j].r * FACTOR;
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].g = buffer[i * DISPLAY_ROW_SIZE + j].g * FACTOR;
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].b = buffer[i * DISPLAY_ROW_SIZE + j].b * FACTOR;
 			}
 			else
 			{
-				displayBuffer[i * DISPLAY_ROW_SIZE + j].r = buffer[i * DISPLAY_ROW_SIZE + j].r * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
-				displayBuffer[i * DISPLAY_ROW_SIZE + j].g = buffer[i * DISPLAY_ROW_SIZE + j].g * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
-				displayBuffer[i * DISPLAY_ROW_SIZE + j].b = buffer[i * DISPLAY_ROW_SIZE + j].b * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
+				if (j == currentCol && i < currentValue)
+				{
+					ws2812_pixel_t pixel = WS2812_COLOR_BLUE;
+					displayBuffer[i * DISPLAY_ROW_SIZE + j] = pixel;
+				}
+				else
+				{
+					displayBuffer[i * DISPLAY_ROW_SIZE + (DISPLAY_COL_SIZE - 1 - j)].r = buffer[i * DISPLAY_ROW_SIZE + j].r * FACTOR;
+					displayBuffer[i * DISPLAY_ROW_SIZE + (DISPLAY_COL_SIZE - 1 - j)].g = buffer[i * DISPLAY_ROW_SIZE + j].g * FACTOR;
+					displayBuffer[i * DISPLAY_ROW_SIZE + (DISPLAY_COL_SIZE - 1 - j)].b = buffer[i * DISPLAY_ROW_SIZE + j].b * FACTOR;
+				}
 			}
 		}
 	}
@@ -104,9 +115,10 @@ void displayFlip(ws2812_pixel_t* buffer)
 	displayChanged = true;
 }
 
-void displaySelectColumn(uint8_t colNumber)
+void displaySelectColumn(uint8_t colNumber, uint8_t colValue)
 {
 	currentCol = colNumber;
+	currentValue = colValue;
 }
 
 void displayClear(void)

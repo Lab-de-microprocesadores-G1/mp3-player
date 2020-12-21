@@ -31,7 +31,7 @@
 #define UI_LCD_LINE_NUMBER       	  1
 #define UI_FILE_SYSTEM_ROOT 	      ""
 #define UI_BUFFER_SIZE              256
-#define UI_EQUALISER_GAIN_COUNT     (19)
+#define UI_EQUALISER_GAIN_COUNT     (8)
 #define UI_EQUALISER_BAND_COUNT     (8)
 
 /*******************************************************************************
@@ -174,10 +174,10 @@ static const char* EQUALISER_MENU_OPTIONS[UI_EQUALISER_OPTION_COUNT] = {
 
 static const double GAIN_VALUES[UI_EQUALISER_GAIN_COUNT] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
 
-static const double DEFAULT_GAINS[][UI_EQUALISER_GAIN_COUNT] = {
-  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }, // Jazz Default Gains
-  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }, // Rock Default Gains
-  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }  // Classic Default Gains
+static const uint8_t DEFAULT_GAINS[][UI_EQUALISER_GAIN_COUNT] = {
+  { 0, 1, 2, 3, 4, 5, 6, 7 }, // Jazz Default Gains
+  { 0, 1, 2, 3, 4, 5, 6, 7 }, // Rock Default Gains
+  { 0, 1, 2, 3, 4, 5, 6, 7 }  // Classic Default Gains
 };
 
 /*******************************************************************************
@@ -205,6 +205,10 @@ void uiInit(void)
   {
     // Raise the already initialized flag, to avoid multiple initialization
     alreadyInit = true;
+    for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
+    {
+        eqContext.eqBandGain[i] = 3;
+    }
 
     // Initialize the LCD
     HD44780LcdInit();
@@ -452,13 +456,14 @@ static void uiRunEqualiser(event_t event)
           eqContext.eqState = UI_EQUALISER_STATE_CUSTOM;
           eqContext.hasEqBandSelected = false;
           eqContext.currentEqBandSelected = 0;
+          displaySelectColumn(eqContext.currentEqBandSelected, eqContext.eqBandGain[eqContext.currentEqBandSelected]);
         }
         else
         {
           for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
           {
             eqSetFilterGains(DEFAULT_GAINS[eqContext.eqOption]);
-            displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
+            displaySelectColumn(DISPLAY_UNSELECT_COLUMN, 3);
           }
           uiSetState(UI_STATE_MENU);
         }
@@ -475,7 +480,7 @@ static void uiRunEqualiser(event_t event)
       case EVENTS_RIGHT:
         if (eqContext.hasEqBandSelected)
         {
-          if (eqContext.eqBandGain[eqContext.currentEqBandSelected] > 0)
+          if (eqContext.eqBandGain[eqContext.currentEqBandSelected])
           {
             eqContext.eqBandGain[eqContext.currentEqBandSelected]--;
           }
@@ -485,15 +490,15 @@ static void uiRunEqualiser(event_t event)
           if (eqContext.currentEqBandSelected)
           {
             eqContext.currentEqBandSelected--;
-            displaySelectColumn(eqContext.currentEqBandSelected);
           }
         }
+        displaySelectColumn(eqContext.currentEqBandSelected, eqContext.eqBandGain[eqContext.currentEqBandSelected]);
         break;
 
       case EVENTS_LEFT:
         if (eqContext.hasEqBandSelected)
         {
-          if (eqContext.eqBandGain[eqContext.currentEqBandSelected] < UI_EQUALISER_GAIN_COUNT)
+          if ((eqContext.eqBandGain[eqContext.currentEqBandSelected]) < UI_EQUALISER_GAIN_COUNT)
           {
             eqContext.eqBandGain[eqContext.currentEqBandSelected]++;
           }
@@ -503,21 +508,19 @@ static void uiRunEqualiser(event_t event)
           if ((eqContext.currentEqBandSelected + 1) < UI_EQUALISER_BAND_COUNT)
           {
             eqContext.currentEqBandSelected++;
-            displaySelectColumn(eqContext.currentEqBandSelected);
           }
         }
+        displaySelectColumn(eqContext.currentEqBandSelected, eqContext.eqBandGain[eqContext.currentEqBandSelected]);
         break;
 
       case EVENTS_EXIT:
       case EVENTS_ENTER:
         if (eqContext.hasEqBandSelected)
         {
-          for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
-          {
-            eqSetFilterGain(GAIN_VALUES[eqContext.eqBandGain[i]], i);
-          }
-          displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
+          eqSetFilterGain(eqContext.eqBandGain[eqContext.currentEqBandSelected], eqContext.currentEqBandSelected);
+          displaySelectColumn(DISPLAY_UNSELECT_COLUMN, 3);
           uiSetState(UI_STATE_MENU);
+          eqContext.eqState = UI_EQUALISER_STATE_MENU;
         }
         else
         {

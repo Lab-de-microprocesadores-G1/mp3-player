@@ -37,7 +37,7 @@
 #define AUDIO_LCD_ROTATION_TIME_MS  	  		(350)
 #define AUDIO_LCD_LINE_NUMBER       	  		(0)
 #define AUDIO_FRAME_SIZE 				            (4096)
-#define AUDIO_FULL_SCALE 				            (50000)
+#define AUDIO_FULL_SCALE 				            (82e3)
 #define AUDIO_DEFAULT_SAMPLE_RATE       		(44100)
 #define AUDIO_MAX_FILENAME_LEN          		(128)
 #define AUDIO_BUFFER_COUNT              		(2)
@@ -46,7 +46,7 @@
 #define AUDIO_MAX_VOLUME                    (100)
 #define AUDIO_VOLUME_DURATION_MS            (2000)
 
-// #define AUDIO_ENABLE_FFT
+#define AUDIO_ENABLE_FFT
 #define AUDIO_ENABLE_EQ
 #define AUDIO_DEBUG_MODE
 
@@ -100,8 +100,8 @@ typedef struct {
  } fft;
 
  struct {
-   uint16_t input[AUDIO_BUFFER_SIZE];
-   uint16_t output[AUDIO_BUFFER_SIZE];
+	 q15_t input[AUDIO_BUFFER_SIZE];
+   q15_t output[AUDIO_BUFFER_SIZE];
  } eq;
 
   // Volume and message buffers
@@ -110,6 +110,8 @@ typedef struct {
   char    volumeBuffer[AUDIO_STRING_BUFFER_SIZE];
   char    messageBuffer[AUDIO_STRING_BUFFER_SIZE];
   tim_id_t  volumeTimer;
+
+  bool    eqEnabled;
 
 } audio_context_t;
 
@@ -212,7 +214,7 @@ void  onVolumeTimeout(void);
  
 // Mapping the FFT bin to the led matrix columns, according to the equaliser band-pass frequency.                   
 //                                        80Hz    150Hz   330Hz   680Hz     1,2kHz    3,9kHz    12kHz     18kHz
-static const uint32_t FFT_COLUMN_BIN[] = { 2,      3,      8,      16,       28,       91,       279,      418};
+static const uint32_t FFT_COLUMN_BIN[] = { 2 * 4,      8 * 4,      16 * 4,       28 * 4,		56 * 4,       91 * 4,       180 * 4,		350*4};
 
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -220,6 +222,7 @@ static const uint32_t FFT_COLUMN_BIN[] = { 2,      3,      8,      16,       28,
 
 static audio_context_t  context;
 static const pixel_t    clearPixel = {0,0,0};
+static float32_t        filterOutputF32[AUDIO_FRAME_SIZE];
 
 static const float32_t eqCoeffsTestFloat[8*6*3] = 
 { 
@@ -271,7 +274,7 @@ void audioInit(void)
   if (!context.alreadyInit)
   {
 #ifdef AUDIO_ENABLE_EQ
-
+    context.eqEnabled = true;
     // eqInit(AUDIO_FRAME_SIZE);
     // arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 8*6*3);
     // arm_biquad_cascade_df1_init_q15(&filterTest, 8*3, eqCoeffsTest, filterStateTest, 1);
@@ -291,7 +294,7 @@ void audioInit(void)
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
     // FFT initialization
-    cfftInit(CFFT_1024);
+    cfftInit(CFFT_4096);
     
     // MP3 Decoder init
     MP3DecoderInit();
@@ -346,6 +349,11 @@ void audioSetFolder(const char* path, const char* file, uint8_t index)
   strcpy(context.currentPath, path);
   audioSetState(AUDIO_STATE_PLAYING);
   audioPlay(file, index);
+}
+
+void setEqEnabled(bool eqEnabled)
+{
+  context.eqEnabled = eqEnabled;
 }
 
 /*******************************************************************************
@@ -687,22 +695,26 @@ void audioProcess(uint16_t* frame)
 
   // Data conditioning for next stage
   #ifdef AUDIO_ENABLE_EQ
-  for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
+  if (context.eqEnabled)
   {
-    context.eq.input[i] = (uint16_t)context.mp3.buffer[channelCount * i];
-    context.eq.output[i] = 0;
-  }  
-  // Equalising
-  // eqFilterFrame(context.eq.input, context.eq.output);
-  // arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 4096);
-  eqIirFilterFrame(context.eq.input, context.eq.output);
+    for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
+    {
+      context.eq.input[i] = (uint16_t)context.mp3.buffer[channelCount * i];
+      context.eq.output[i] = 0;
+    }  
+    // Equalising
+    // eqFilterFrame(context.eq.input, context.eq.output);
+    // arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 4096);
+    eqIirFilterFrame(context.eq.input, context.eq.output);
+    arm_q15_to_float(context.eq.output, filterOutputF32, AUDIO_FRAME_SIZE);
+  }
   #endif
 
   #ifdef AUDIO_ENABLE_FFT
   // Computing FFT
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
   {
-		context.fft.input[i*2] = (float32_t)context.mp3.buffer[i];
+    context.fft.input[i*2] = (float32_t)context.mp3.buffer[i];
 		context.fft.input[i*2+1] = 0;
 		context.fft.output[i*2] = 0;
 		context.fft.output[i*2+1] = 0;
@@ -724,8 +736,15 @@ void audioProcess(uint16_t* frame)
   {
     // DAC output is unsigned, mono and 12 bit long
 #ifdef AUDIO_ENABLE_EQ
-    uint16_t aux = (uint16_t)((context.eq.output[i] / 16.0 + 0.5) * volume + (DAC_FULL_SCALE / 2));
-    frame[i] = aux;
+    if (context.eqEnabled)
+    {
+      uint16_t aux = (uint16_t)((filterOutputF32[i] * 5e4 + 0.5) * volume + (DAC_FULL_SCALE / 2));
+      frame[i] = aux;
+    }
+    else
+    {
+      frame[i] = (int16_t)(context.mp3.buffer[channelCount * i] / 16.0 + 0.5) * volume + (DAC_FULL_SCALE / 2);
+    }
 #else
     frame[i] = (int16_t)(context.mp3.buffer[channelCount * i] / 16.0 + 0.5) * volume + (DAC_FULL_SCALE / 2);
 #endif

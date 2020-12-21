@@ -49,9 +49,10 @@ void displayFlip(ws2812_pixel_t* buffer);
 
 /**
  * @brief Changes current column brightness and gain
- * @param colNumber	  Number of column selected
+ * @param colNumber	  	Number of column selected
+ * @param colValue		Value
  */
-void displaySelectColumn(uint8_t colNumber);
+void displaySelectColumn(uint8_t colNumber, uint8_t colValue);
 
 /**
  * @brief Clears display

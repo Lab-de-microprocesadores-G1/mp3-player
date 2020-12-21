@@ -42,7 +42,7 @@ void eqIirInit(void);
  * @param inputF32  Pointer to input data to filter.
  * @param outputF32 Pointer to where the filtered data should be saved.
  */
-void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32);
+void eqIirFilterFrame(q15_t * inputF32, q15_t * outputF32);
 
 /**
  * @brief Sets all equaliser filter gains.

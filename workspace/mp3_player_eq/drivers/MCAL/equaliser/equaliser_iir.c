@@ -418,7 +418,7 @@ void eqIirInit(void)
   arm_biquad_cascade_df1_init_q15(&context.filter, IIR_EQ_STAGES, context.coeffsInQ15, context.stateVars, 1);
 }
 
-void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32)
+void eqIirFilterFrame(q15_t * inputF32, q15_t * outputF32)
 {
   arm_biquad_cascade_df1_q15(&(context.filter), (q15_t*) inputF32, (q15_t*) outputF32, IIR_EQ_FRAME_SIZE);
 }
@@ -441,6 +441,11 @@ void initBandWithGain(uint8_t band)
   for (uint16_t j = 0; j < IIR_EQ_STAGES*IIR_EQ_COEFFS; j++)
   { 
     context.coefficients[band*IIR_EQ_STAGES*IIR_EQ_COEFFS + j] = equaliserCoeff[band][context.filterBands[band].gain][j];
+
+    if (j == 0 || j == 2 || j == 3) // Lowering gain of first stage so that it doesn't saturate.
+    {
+      context.coefficients[band*IIR_EQ_STAGES*IIR_EQ_COEFFS + j] *= 0.003;
+    }
   }
 }
 
