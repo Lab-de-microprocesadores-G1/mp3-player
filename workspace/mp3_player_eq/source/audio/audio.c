@@ -31,12 +31,13 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define AUDIO_PROCESSING_RETRIES        (10)
 #define AUDIO_STRING_BUFFER_SIZE        (256)
 #define AUDIO_LCD_FPS_MS                (200)
-#define AUDIO_LCD_ROTATION_TIME_MS  	(350)
-#define AUDIO_LCD_LINE_NUMBER       	(0)
-#define AUDIO_FRAME_SIZE 				(1024)
-#define AUDIO_FULL_SCALE 				(300000)
+#define AUDIO_LCD_ROTATION_TIME_MS  	  (350)
+#define AUDIO_LCD_LINE_NUMBER       	  (0)
+#define AUDIO_FRAME_SIZE 				        (1024)
+#define AUDIO_FULL_SCALE 				        (300000)
 #define AUDIO_DEFAULT_SAMPLE_RATE       (44100)
 #define AUDIO_MAX_FILENAME_LEN          (AUDIO_BUFFER_SIZE)
 #define AUDIO_BUFFER_COUNT              (2)
@@ -203,7 +204,7 @@ void audioInit(void)
   {
     // arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 6*3);
     // arm_biquad_cascade_df1_init_q15(&filterTest, 3, eqCoeffsTest, filterStateTest, 1);
-    eqIirInit();
+    // eqIirInit();
 
     // Raise the already initialized flag
     context.alreadyInit = true;
@@ -436,7 +437,9 @@ static void audioFillMatrix(void)
 
 void audioProcess(uint16_t* frame)
 {
-  uint16_t sampleCount, channelCount = 1;
+  uint16_t attempts = AUDIO_PROCESSING_RETRIES;
+  uint16_t sampleCount;
+  uint16_t channelCount = 1;
   mp3decoder_result_t mp3Res = MP3DECODER_NO_ERROR;
   mp3decoder_frame_data_t frameData;
 
@@ -451,7 +454,7 @@ void audioProcess(uint16_t* frame)
   } 
   
   // Check if decoding samples is necessary
-  while ((context.mp3.samples < channelCount * AUDIO_BUFFER_SIZE) && (mp3Res == MP3DECODER_NO_ERROR))
+  while ((context.mp3.samples < channelCount * AUDIO_BUFFER_SIZE) && attempts)
   {
     // Decode next frame (STEREO output)
     mp3Res = MP3GetDecodedFrame(context.mp3.buffer + context.mp3.samples, MP3_DECODED_BUFFER_SIZE, &sampleCount);
@@ -469,7 +472,13 @@ void audioProcess(uint16_t* frame)
         memset(context.mp3.buffer, 0, AUDIO_BUFFER_SIZE * channelCount - context.mp3.samples);
         context.mp3.samples = AUDIO_BUFFER_SIZE*channelCount;
       }
+
       // Stop song and trigger next file open
+    }
+    else
+    {
+      // Verify the amount of retries
+      attempts--;
     }
   }
 
@@ -485,6 +494,7 @@ void audioProcess(uint16_t* frame)
   // eqFilterFrame(context.eq.input, context.eq.output);
   // arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 1024);
   eqIirFilterFrame(context.eq.input, context.eq.output);
+  #endif
 
   #ifdef AUDIO_ENABLE_FFT
   // Computing FFT
@@ -514,8 +524,8 @@ void audioProcess(uint16_t* frame)
     // DAC output is unsigned, mono and 12 bit long
 
     uint16_t aux = (uint16_t)((context.eq.output[i]) * context.volume / 16 + (DAC_FULL_SCALE / 2));
-    frame[i] = aux;
-    // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
+    // frame[i] = aux;
+    frame[i] = (uint16_t)(context.mp3.buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
 
   // Update MP3 decoding buffer
@@ -523,7 +533,7 @@ void audioProcess(uint16_t* frame)
   memmove(context.mp3.buffer, context.mp3.buffer + AUDIO_BUFFER_SIZE * channelCount, context.mp3.samples * sizeof(int16_t));
 
 #ifdef AUDIO_DEBUG_MODE
-    gpioWrite(PIN_PROCESSING, LOW);
+  gpioWrite(PIN_PROCESSING, LOW);
 #endif
 }
 
