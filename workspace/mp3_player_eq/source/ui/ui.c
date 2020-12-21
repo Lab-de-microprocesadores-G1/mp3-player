@@ -260,7 +260,7 @@ static void	uiLcdUpdate(void)
       {
         sprintf(messageBuffer, "%s", currentMessage);
       }
-      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, messageBuffer, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, messageBuffer, strlen(messageBuffer), UI_LCD_ROTATION_TIME_MS);
     }
   }
 }
