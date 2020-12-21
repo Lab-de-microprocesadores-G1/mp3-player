@@ -10,14 +10,17 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include "../drivers/MCAL/gpio/gpio.h"
 
+#include "../drivers/MCAL/gpio/gpio.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
 /***** BOARD defines **********************************************************/
+
+// Testpoints
+#define PIN_PROCESSING				PORTNUM2PIN(PC, 16)	// PTC16
 
 // On Board User Switches
 #define PIN_SW2         			PORTNUM2PIN(PC, 6)  // PTC6

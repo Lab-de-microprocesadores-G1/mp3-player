@@ -8,6 +8,7 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
+#include "board/board.h"
 #include "audio.h"
 
 #include <stdbool.h>
@@ -19,6 +20,7 @@
 #include "drivers/MCAL/dac_dma/dac_dma.h"
 #include "drivers/MCAL/cfft/cfft.h"
 #include "drivers/HAL/timer/timer.h"
+#include "drivers/MCAL/gpio/gpio.h"
 
 #include "lib/mp3decoder/mp3decoder.h"
 #include "lib/vumeter/vumeter.h"
@@ -29,18 +31,23 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define AUDIO_STRING_BUFFER_SIZE        (256)
 #define AUDIO_LCD_FPS_MS                (200)
-#define AUDIO_LCD_ROTATION_TIME_MS  	  (350)
-#define AUDIO_LCD_LINE_NUMBER       	  (0)
-#define AUDIO_FRAME_SIZE 					      (1024)
-#define AUDIO_FULL_SCALE 				  	    (300000)
+#define AUDIO_LCD_ROTATION_TIME_MS  	(350)
+#define AUDIO_LCD_LINE_NUMBER       	(0)
+#define AUDIO_FRAME_SIZE 				(1024)
+#define AUDIO_FULL_SCALE 				(300000)
 #define AUDIO_DEFAULT_SAMPLE_RATE       (44100)
-#define AUDIO_MAX_FILENAME_LEN          (256)
+#define AUDIO_MAX_FILENAME_LEN          (AUDIO_BUFFER_SIZE)
 #define AUDIO_BUFFER_COUNT              (2)
 #define AUDIO_BUFFER_SIZE               (1024)
 #define AUDIO_FLOAT_MAX                 (1)
 #define MAX_VOLUME                      (30)
 #define VOLUME_DURATION_MS              (2000)
+
+// #define AUDIO_ENABLE_FFT
+// #define AUDIO_ENABLE_EQ
+#define AUDIO_DEBUG_MODE
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -67,9 +74,6 @@ typedef struct {
   uint32_t                  currentIndex;                     // Index of the current file in the directory
   audio_state_t             currentState;                     // State of current audio
 
-  // MP3 buffer
-  int16_t                   decodedMP3Buffer[MP3_DECODED_BUFFER_SIZE + 2 * AUDIO_BUFFER_SIZE];  
-  uint16_t                  decodedMP3Samples;
   // Audio output buffer
   uint16_t                  audioBuffer[AUDIO_BUFFER_COUNT][AUDIO_BUFFER_SIZE];
 
@@ -81,34 +85,33 @@ typedef struct {
   
   // MP3 data
   struct {
-    mp3decoder_tag_data_t   tagData;                  // MP3 File ID3 Tag Data
-    mp3decoder_frame_data_t frameData;                // MP3 Frame Data
-    uint32_t                sampleRate;               
+    mp3decoder_tag_data_t     tagData;
+    mp3decoder_frame_data_t   frameData;              
+    uint32_t                  sampleRate;        
+    int16_t                   buffer[MP3_DECODED_BUFFER_SIZE + 2 * AUDIO_BUFFER_SIZE];  
+    uint16_t                  samples;       
   } mp3;      
   
- struct {
-   float32_t filteredOutput[AUDIO_FRAME_SIZE];
-   float32_t input[AUDIO_FRAME_SIZE * 2];
-   float32_t output[AUDIO_FRAME_SIZE * 2];
-   float32_t magOutput[AUDIO_FRAME_SIZE];
- } fft;
+  // FFT data
+  struct {
+    float32_t filteredOutput[AUDIO_FRAME_SIZE];
+    float32_t input[AUDIO_FRAME_SIZE * 2];
+    float32_t output[AUDIO_FRAME_SIZE * 2];
+    float32_t magOutput[AUDIO_FRAME_SIZE];
+  } fft;
 
- struct {
-   q15_t input[AUDIO_BUFFER_SIZE];
-   q15_t output[AUDIO_BUFFER_SIZE];
- } eq;
+  // Equaliser data
+  struct {
+    q15_t input[AUDIO_BUFFER_SIZE];
+    q15_t output[AUDIO_BUFFER_SIZE];
+  } eq;
 
+  // Volume and message buffers
   uint8_t volume;
-  char    volumeBuffer[10];
-  char    messageBuffer[50];
+  char    volumeBuffer[AUDIO_STRING_BUFFER_SIZE];
+  char    messageBuffer[AUDIO_STRING_BUFFER_SIZE];
 } audio_context_t;
 
-typedef enum {
-  AUDIO_OPTION_VOLUME_UP,             // Volume up option
-  AUDIO_OPTION_VOLUME_DOWN,           // Volume up option
-
-  AUDIO_OPTION_COUNT
-} audio_idle_menu_options_t;
 /*******************************************************************************
  * VARIABLES WITH GLOBAL SCOPE
  ******************************************************************************/
@@ -136,6 +139,12 @@ static void audioRunPlaying(event_t event);
 static void audioRunPaused(event_t event);
 
 /**
+ * @brief Cycles the audio module volume controller
+ * @param event   Next event to be run
+ */
+static void audioRunVolumeController(event_t event);
+
+/**
  * @brief Sets the new state of the audio module.
  * @param state   Next state
  */
@@ -161,12 +170,7 @@ static void audioLcdUpdate(void);
 /**
  * @brief Fills matrix with colValues
  */
-static void fillMatrix(void);
-
-/**
- * @brief Starts LCD with welcome
- */
-static void	audioLcdWelcome(void);
+static void audioFillMatrix(void);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -177,7 +181,7 @@ static void	audioLcdWelcome(void);
  ******************************************************************************/
 
 static audio_context_t  context;
-static const pixel_t clearPixel = {0,0,0};
+static const pixel_t    clearPixel = {0,0,0};
 
 static const float32_t eqCoeffsTestFloat[6*3] = 
 { 
@@ -199,20 +203,21 @@ void audioInit(void)
 {
   if (!context.alreadyInit)
   {
-    arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 6*3);
-    arm_biquad_cascade_df1_init_q15(&filterTest, 3, eqCoeffsTest, filterStateTest, 1);
-
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
     context.volume = MAX_VOLUME / 2;
+    
+    arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 6*3);
+    arm_biquad_cascade_df1_init_q15(&filterTest, 3, eqCoeffsTest, filterStateTest, 1);
+    
     // Initialization of the timer
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
-    //fft initialization
+    // FFT initialization
 	  cfftInit(CFFT_1024);
 
-    //equalisator initialisation
+    // Equaliser initialisation
     eqInit(AUDIO_FRAME_SIZE);
     
     // MP3 Decoder init
@@ -221,30 +226,41 @@ void audioInit(void)
     // DAC DMA init
     dacdmaInit();
     dacdmaSetBuffers(context.audioBuffer[0], context.audioBuffer[1], AUDIO_BUFFER_SIZE);
-    dacdmaSetFreq(AUDIO_DEFAULT_SAMPLE_RATE); 
+    dacdmaSetFreq(AUDIO_DEFAULT_SAMPLE_RATE);
 
-    //audioLcdWelcome();
+#ifdef AUDIO_DEBUG_MODE
+    gpioMode(PIN_PROCESSING, OUTPUT);
+#endif
   }
 }
 
 void audioRun(event_t event)
 {
-  switch (context.currentState)
+  // Run the volume controller for the audio module
+  if (event.id == EVENTS_VOLUME_DECREASE || event.id == EVENTS_VOLUME_INCREASE || event.id == EVENTS_VOLUME_TOGGLE)
   {
-    case AUDIO_STATE_IDLE:
-      audioRunIdle(event);
-      break;
-    
-    case AUDIO_STATE_PLAYING:
-      audioRunPlaying(event);
-      break;
-    
-    case AUDIO_STATE_PAUSED:
-      audioRunPlaying(event);
-      break;
+    audioRunVolumeController(event);
+  }
+  // Run the audio module controller, when not modifying the volume system
+  else
+  {
+    switch (context.currentState)
+    {
+      case AUDIO_STATE_IDLE:
+        audioRunIdle(event);
+        break;
+      
+      case AUDIO_STATE_PLAYING:
+        audioRunPlaying(event);
+        break;
+      
+      case AUDIO_STATE_PAUSED:
+        audioRunPaused(event);
+        break;
 
-    default:
-      break;
+      default:
+        break;
+    }
   }
 }
 
@@ -261,7 +277,7 @@ void audioSetFolder(const char* path, const char* file, uint8_t index)
     context.currentFile = file;
     context.currentIndex = index;
     context.currentState = AUDIO_STATE_PLAYING;
-    context.decodedMP3Samples = 0;
+    context.mp3.samples = 0;
 
     // Read ID3 tag if present
     if (!MP3GetTagData(&(context.mp3.tagData)))
@@ -282,11 +298,6 @@ void audioSetFolder(const char* path, const char* file, uint8_t index)
   }
 }
 
-void audioSetVolume(float32_t volume)
-{
-  context.volume = volume;
-}
-
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
@@ -297,28 +308,8 @@ static void audioRunIdle(event_t event)
 {
   switch (event.id)
   {
-    case EVENTS_VOLUME_INCREASE:
-      if(context.volume < MAX_VOLUME)
-      {
-        context.volume++;
-        sprintf(context.volumeBuffer, "Volumen %d", context.volume);
-      }
-      if(context.volume == MAX_VOLUME)
-      {
-        sprintf(context.volumeBuffer, "Volumen MAX");
-      }
 
-      audioSetDisplayString(context.volumeBuffer);
-      break;
-    case EVENTS_VOLUME_DECREASE:
-      if(context.volume)
-      {
-        context.volume--;
-      }
-      sprintf(context.volumeBuffer, "Volumen %d", context.volume);
-      audioSetDisplayString(context.volumeBuffer);
     default:
-      audioSetDisplayString(context.messageBuffer);
       break;
   }
 }
@@ -328,12 +319,12 @@ static void audioRunPlaying(event_t event)
   switch (event.id)
   {
     case EVENTS_PLAY_PAUSE:
-      if(context.currentState == AUDIO_STATE_PLAYING)
+      if (context.currentState == AUDIO_STATE_PLAYING)
       {
         context.currentState = AUDIO_STATE_PAUSED;
         dacdmaStop();
         context.messageBuffer[0] = HD4478_CUSTOM_PAUSE;
-        sprintf(context.messageBuffer + 1," - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+        sprintf(context.messageBuffer + 1, " - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
@@ -344,60 +335,59 @@ static void audioRunPlaying(event_t event)
       }
       audioSetDisplayString(context.messageBuffer);
       break;
+
     case EVENTS_PREVIOUS:
       //TODO! 
       break;
+
     case EVENTS_NEXT:
       //TODO! 
       break;
+
+    case EVENTS_FRAME_FINISHED:
+      audioProcess(event.data.frame);
+      break;
+
+    default:
+      break;
+  }
+}
+
+static void audioRunPaused(event_t event)
+{
+  audioRunPlaying(event);
+}
+
+static void audioRunVolumeController(event_t event)
+{
+  switch (event.id)
+  {
     case EVENTS_VOLUME_INCREASE:
-      if(context.volume < MAX_VOLUME)
+      if (context.volume < MAX_VOLUME)
       {
         context.volume++;
         sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       }
-      if(context.volume == MAX_VOLUME)
+      if (context.volume == MAX_VOLUME)
       {
         sprintf(context.volumeBuffer, "Volumen MAX");
       }
       audioSetDisplayString(context.volumeBuffer);
       break;
+      
     case EVENTS_VOLUME_DECREASE:
-      if(context.volume)
+      if (context.volume)
       {
         context.volume--;
       }
       sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       audioSetDisplayString(context.volumeBuffer);
       break;
-    case EVENTS_FRAME_FINISHED:
-      audioProcess(event.data.frame);
-      break;
+    
     default:
-      audioSetDisplayString(context.messageBuffer);
       break;
   }
 }
-
-/* ME PARECE AL PEDO
-static void audioRunPaused(event_t event)
-{
-  switch (event.id)
-  {
-    case EVENTS_PLAY_PAUSE:
-      break;
-    case EVENTS_PREVIOUS:
-      break;
-    case EVENTS_NEXT:
-      break;
-    case EVENTS_VOLUME_INCREASE:
-      break;
-    case EVENTS_VOLUME_DECREASE:
-      break;
-    default:
-      break;
-  }
-}*/
 
 static void audioSetState(audio_state_t state)
 {
@@ -411,11 +401,7 @@ static void	audioLcdUpdate(void)
     if (context.messageChanged)
     {
       context.messageChanged = false;
-      if (context.currentState == AUDIO_STATE_PLAYING)
-      {
-        HD44780WriteRotatingString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
-      }
-      else if (context.currentState == AUDIO_STATE_PAUSED)
+      if (context.currentState == AUDIO_STATE_PAUSED)
       {
         HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message));
       }
@@ -423,7 +409,6 @@ static void	audioLcdUpdate(void)
       {
         HD44780WriteRotatingString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
       }
-      
     }
   }
 }
@@ -434,7 +419,7 @@ static void audioSetDisplayString(const char* message)
   context.messageChanged = true;
 }
 
-static void fillMatrix(void)
+static void audioFillMatrix(void)
 {
   for(int i = 0; i < DISPLAY_COL_SIZE; i++)
   {
@@ -452,6 +437,10 @@ void audioProcess(uint16_t* frame)
   uint16_t sampleCount, channelCount = 1;
   mp3decoder_result_t mp3Res = MP3DECODER_NO_ERROR;
   mp3decoder_frame_data_t frameData;
+
+#ifdef AUDIO_DEBUG_MODE
+    gpioWrite(PIN_PROCESSING, HIGH);
+#endif
   
   // Get number of channels in next mp3 frame
   if (MP3GetNextFrameData(&frameData))
@@ -460,30 +449,42 @@ void audioProcess(uint16_t* frame)
   } 
   
   // Check if decoding samples is necessary
-  while ((context.decodedMP3Samples < channelCount * AUDIO_BUFFER_SIZE) && (mp3Res == MP3DECODER_NO_ERROR))
+  while ((context.mp3.samples < channelCount * AUDIO_BUFFER_SIZE) && (mp3Res == MP3DECODER_NO_ERROR))
   {
     // Decode next frame (STEREO output)
-    mp3Res = MP3GetDecodedFrame(context.decodedMP3Buffer, MP3_DECODED_BUFFER_SIZE, &sampleCount);
+    mp3Res = MP3GetDecodedFrame(context.mp3.buffer + context.mp3.samples, MP3_DECODED_BUFFER_SIZE, &sampleCount);
     
     if (mp3Res == MP3DECODER_NO_ERROR)
     {
       // Update sample count
-      context.decodedMP3Samples += sampleCount;
+      context.mp3.samples += sampleCount;
+    }
+    else if (mp3Res == MP3DECODER_FILE_END)
+    {
+      // If file ended and not enough samples, fill with zeros to process last samples
+      if (context.mp3.samples < AUDIO_BUFFER_SIZE * channelCount)
+      {
+        memset(context.mp3.buffer, 0, AUDIO_BUFFER_SIZE * channelCount - context.mp3.samples);
+        context.mp3.samples = AUDIO_BUFFER_SIZE*channelCount;
+      }
+      // Stop song and trigger next file open
     }
   }
 
   // Data conditioning for next stage
+  #ifdef AUDIO_ENABLE_EQ
   for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
   {
-    context.eq.input[i] = (q15_t)context.decodedMP3Buffer[channelCount * i];
+    context.eq.input[i] = (q15_t)context.mp3.buffer[channelCount * i];
     context.eq.output[i] = 0;
-    // context.eq.output[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
-  }
-  
+    // context.eq.output[i] = (float32_t)context.mp3.buffer[channelCount * i];
+  }  
   // Equalising
   // eqFilterFrame(context.eq.input, context.eq.output);
   arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 1024);
+  #endif
 
+  #ifdef AUDIO_ENABLE_FFT
   // Computing FFT
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
 	{
@@ -502,27 +503,27 @@ void audioProcess(uint16_t* frame)
 		arm_mean_f32(context.fft.magOutput + AUDIO_BUFFER_SIZE / 2 + i * AUDIO_BUFFER_SIZE / DISPLAY_COL_SIZE / 2, AUDIO_BUFFER_SIZE / DISPLAY_COL_SIZE / 2, context.display.colValues + i);
 	}
 
-  fillMatrix();
-  
+  audioFillMatrix();
+  #endif
+
   // Write samples to output buffer
   for (uint16_t i = 0 ; i < AUDIO_BUFFER_SIZE ; i++)
   {
     // DAC output is unsigned, mono and 12 bit long
-
-    uint16_t aux = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
-    frame[i] = aux;
-    // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
+    #ifdef AUDIO_ENABLE_EQ
+    frame[i] = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
+    #else
+    frame[i] = (uint16_t)(context.mp3.buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
+    #endif
   }
-  context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount;
-}
 
-static void	audioLcdWelcome(void)
-{
-  if (HD44780LcdInitReady())
-  {
-    sprintf(context.messageBuffer, "Bienvenido!!!");
-    audioSetDisplayString(context.messageBuffer);
-  }
+  // Update MP3 decoding buffer
+  context.mp3.samples -= AUDIO_BUFFER_SIZE * channelCount;
+  memmove(context.mp3.buffer, context.mp3.buffer + AUDIO_BUFFER_SIZE * channelCount, context.mp3.samples * sizeof(int16_t));
+
+#ifdef AUDIO_DEBUG_MODE
+    gpioWrite(PIN_PROCESSING, LOW);
+#endif
 }
 
 
