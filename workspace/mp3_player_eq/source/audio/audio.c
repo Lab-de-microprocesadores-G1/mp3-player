@@ -385,6 +385,7 @@ void audioProcess(uint16_t* frame)
   {
     context.eq.input[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
     context.eq.output[i] = 0;
+    // context.eq.output[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
   }
   
   // Equalising
@@ -393,7 +394,7 @@ void audioProcess(uint16_t* frame)
   // Computing FFT
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
 	{
-		context.fft.input[i*2] = context.eq.output[i] /= AUDIO_FLOAT_MAX;
+		context.fft.input[i*2] = context.eq.output[i];
 		context.fft.input[i*2+1] = 0;
 		context.fft.output[i*2] = 0;
 		context.fft.output[i*2+1] = 0;
@@ -415,7 +416,7 @@ void audioProcess(uint16_t* frame)
   {
     // DAC output is unsigned, mono and 12 bit long
 
-    uint16_t aux = (uint16_t)((context.eq.output[i]) + (DAC_FULL_SCALE / 2));
+    uint16_t aux = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
     frame[i] = aux;
     // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
