@@ -311,13 +311,15 @@ static void audioRunPlaying(event_t event)
       {
         context.currentState = AUDIO_STATE_PAUSED;
         dacdmaStop();
-        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PAUSE, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+        context.messageBuffer[0] = HD4478_CUSTOM_PAUSE;
+        sprintf(context.messageBuffer + 1," - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
         context.currentState = AUDIO_STATE_PLAYING;
         dacdmaResume();
-        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PLAY, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+        context.messageBuffer[0] = HD4478_CUSTOM_PLAY;
+        sprintf(context.messageBuffer + 1, " - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       audioSetDisplayString(context.messageBuffer);
       break;
