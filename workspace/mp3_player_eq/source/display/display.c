@@ -16,8 +16,9 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-#define DEFAULT_COLUMN 	0.2
-#define SELECTED_COLUMN	0.6
+
+#define DEFAULT_COLUMN 	0.05
+#define SELECTED_COLUMN	0.9
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -41,14 +42,17 @@ static void	onDisplayFpsUpdate(void);
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
+static const ws2812_pixel_t    clearPixel = WS2812_COLOR_BLACK;			// Clear byte
+
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
 static ws2812_pixel_t 	displayBuffer[DISPLAY_SIZE];	// Internal display buffer
-static bool 						alreadyInit = false;					// Internal flag for initialization process
-static bool							displayLocked = false;				// Internal flag for avoid updates when changing display content
-static int8_t						currentCol;										// Column selected by user
+static bool 			alreadyInit = false;			// Internal flag for initialization process
+static bool				displayLocked = false;			// Internal flag for avoid updates when changing display content
+static uint8_t			currentCol;						// Column selected by user
+static bool				displayChanged = false;			// Internal flag for display changes
 
 /*******************************************************************************
  *******************************************************************************
@@ -62,6 +66,7 @@ void displayInit(void)
 	{
 		// Raise the already initialized flag, to avoid multiple initialization
 		alreadyInit = true;
+		currentCol = DISPLAY_UNSELECT_COLUMN;
 
 		// Initialization of the lower layer WS2812 driver
 		WS2812Init();
@@ -70,6 +75,9 @@ void displayInit(void)
 		// Initialization of the timer driver
 		timerInit();
 		timerStart(timerGetId(), TIMER_MS2TICKS(DISPLAY_FPS_MS), TIM_MODE_PERIODIC, onDisplayFpsUpdate);
+
+		// Clear the display
+		displayClear();
 	}
 }
 
@@ -93,6 +101,7 @@ void displayFlip(ws2812_pixel_t* buffer)
 		}
 	}
 	displayLocked = false;
+	displayChanged = true;
 }
 
 void displaySelectColumn(uint8_t colNumber)
@@ -100,6 +109,19 @@ void displaySelectColumn(uint8_t colNumber)
 	currentCol = colNumber;
 }
 
+void displayClear(void)
+{
+	displayLocked = true;
+	for(int i = 0; i < DISPLAY_COL_SIZE; i++)
+	{
+		for(int j = 0; j < DISPLAY_COL_SIZE; j++)
+		{
+		  displayBuffer[i * DISPLAY_ROW_SIZE + j] = clearPixel;
+		}
+	}
+	displayLocked = false;
+	displayChanged = true;
+}
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
@@ -110,7 +132,10 @@ static void	onDisplayFpsUpdate(void)
 {
 	if (!displayLocked)
 	{
-		WS2812Update();
+		if (displayChanged)
+		{
+			WS2812Update();
+		}
 	}
 }
 
