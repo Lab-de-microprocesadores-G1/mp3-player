@@ -7,6 +7,9 @@
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
+
+#include <string.h>
+
 #include "dac_dma.h"
 #include "MK64F12.h"
 #include "hardware.h"
@@ -124,9 +127,9 @@ void dacdmaStart(void)
 
         dacdmaContext.currentBuffer = 0;
 
-        // Fill both buffers
-        dacdmaContext.updateCallback(dacdmaContext.ppBufferPtr[0]);
-        dacdmaContext.updateCallback(dacdmaContext.ppBufferPtr[1]);
+        // Set both buffers to 0
+        memset(dacdmaContext.ppBufferPtr[0], 0, dacdmaContext.bufferSize);
+        memset(dacdmaContext.ppBufferPtr[1], 0, dacdmaContext.bufferSize);
 
         // Configure DMA Software TCD fields common to both TCDs
         // Destination address: DAC DAT
@@ -180,6 +183,12 @@ void dacdmaStop(void)
 {
     // stop PIT to avoid DMA requests triggering
     pitStop(DACDMA_PIT_CHANNEL);
+}
+
+void dacdmaResume(void)
+{
+    // start PIT, DMA requests are triggered again
+    pitStart(DACDMA_PIT_CHANNEL);
 }
   
 uint16_t dacdmaGetFreq(void)

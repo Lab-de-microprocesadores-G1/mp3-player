@@ -63,6 +63,12 @@ void dacdmaStop(void);
 */
 void dacdmaStart(void);
 
+/**
+ * dacdmaResume()
+ * @brief resumes DAC DMA operation
+ */ 
+void dacdmaResume(void);
+
 /*  
 *  dacdmaGetFreq()
 * @brief getter for DAC frequency

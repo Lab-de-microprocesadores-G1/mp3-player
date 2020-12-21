@@ -525,8 +525,7 @@ bool sdhcStartTransfer(sdhc_command_t* command, sdhc_data_t* data)
 				}
 
 				// Set the block size and block count
-				SDHC->BLKATTR = (SDHC->BLKATTR & ~SDHC_BLKATTR_BLKCNT_MASK) | SDHC_BLKATTR_BLKCNT(data->blockCount);
-				SDHC->BLKATTR = (SDHC->BLKATTR & ~SDHC_BLKATTR_BLKSIZE_MASK) | SDHC_BLKATTR_BLKSIZE(data->blockSize);
+				SDHC->BLKATTR = (SDHC->BLKATTR & ~(SDHC_BLKATTR_BLKSIZE_MASK | SDHC_BLKATTR_BLKCNT_MASK)) | SDHC_BLKATTR_BLKCNT(data->blockCount) | SDHC_BLKATTR_BLKSIZE(data->blockSize);
 
 				// Sets the transferring mode selected by the user
 				SDHC->IRQSTATEN = (SDHC->IRQSTATEN & ~SDHC_IRQSTATEN_BRRSEN_MASK) | SDHC_IRQSTATEN_BRRSEN(data->transferMode == SDHC_TRANSFER_MODE_CPU ? 0b1 : 0b0);
