@@ -66,6 +66,7 @@ void pitStop(pit_channel_t channel)
 void pitSetInterval(pit_channel_t channel, uint32_t ticks)
 {
   PIT->CHANNEL[channel].LDVAL = ticks; // load cnt value
+  PIT->CHANNEL[channel].TFLG = PIT_TFLG_TIF(1);
 }
 /*******************************************************************************
  *******************************************************************************

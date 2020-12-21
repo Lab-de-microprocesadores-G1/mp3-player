@@ -13,6 +13,8 @@
 #include "drivers/MCAL/dac_dma/dac_dma.h"
 #include "drivers/HAL/keypad/keypad.h"
 #include "drivers/HAL/sd/sd.h"
+#include "drivers/MCAL/gpio/gpio.h"
+#include "board/board.h"
 #include "events.h"
 
 #include <stdbool.h>
@@ -20,6 +22,8 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+
+#define EVENT_DEBUG
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -109,6 +113,10 @@ void eventsInit(void)
 
 		// Registers the event generators for the internal event queue
 		registerEventGenerator(&eventQueue, hardwareQueueEventGenerator);
+
+#ifdef EVENT_DEBUG
+		gpioMode(PIN_FRAME_FINISHED, OUTPUT);
+#endif
 	}
 }
 
@@ -162,18 +170,18 @@ static void onKeyPadEvent(keypad_events_t event)
 		}
 		else if (event.id == KEYPAD_ROTATION_CLKW)
 		{
-			newEvent.id = EVENTS_VOLUME_DECREASE;
+			newEvent.id = EVENTS_VOLUME_INCREASE;
 		}
 		else if (event.id == KEYPAD_ROTATION_COUNTER_CLKW)
 		{
-			newEvent.id = EVENTS_VOLUME_INCREASE;
+			newEvent.id = EVENTS_VOLUME_DECREASE;
 		}
 	}
 	else if (event.source == KEYPAD_BUTTON_PREVIOUS)
 	{
 		if (event.id == KEYPAD_PRESSED)
 		{
-			newEvent.id = EVENTS_NEXT;
+			newEvent.id = EVENTS_PREVIOUS;
 		}
 	}
 	else if (event.source == KEYPAD_BUTTON_PLAY_PAUSE)
@@ -187,7 +195,7 @@ static void onKeyPadEvent(keypad_events_t event)
 	{
 		if (event.id == KEYPAD_PRESSED)
 		{
-			newEvent.id = EVENTS_PREVIOUS;
+			newEvent.id = EVENTS_NEXT;
 		}
 	}
 
@@ -218,6 +226,10 @@ static void onFrameFinished(uint16_t* frame)
 	event.id = EVENTS_FRAME_FINISHED;
 	event.data.frame = frame;
 	push(&hardwareQueue, (void*)(&event));
+
+#ifdef EVENT_DEBUG
+		gpioToggle(PIN_FRAME_FINISHED);
+#endif
 }
 
 /*******************************************************************************

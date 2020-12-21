@@ -19,9 +19,9 @@
 
 #define DISPLAY_ROW_SIZE		        (8)
 #define DISPLAY_COL_SIZE		        (8)
-#define DISPLAY_SIZE			          (DISPLAY_ROW_SIZE * DISPLAY_COL_SIZE)
-#define DISPLAY_FPS_MS			        (1000)
-#define DISPLAY_UNSELECT_COLUMN     (255)
+#define DISPLAY_SIZE			        (DISPLAY_ROW_SIZE * DISPLAY_COL_SIZE)
+#define DISPLAY_FPS_MS			        (50)
+#define DISPLAY_UNSELECT_COLUMN     	(255)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -52,6 +52,11 @@ void displayFlip(ws2812_pixel_t* buffer);
  * @param colNumber	  Number of column selected
  */
 void displaySelectColumn(uint8_t colNumber);
+
+/**
+ * @brief Clears display
+ */
+void displayClear(void);
 
 /*******************************************************************************
  ******************************************************************************/

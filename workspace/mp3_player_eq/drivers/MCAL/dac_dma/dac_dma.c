@@ -23,7 +23,7 @@
  ******************************************************************************/
 #define DACDMA_DAC_ID       0
 #define DACDMA_DMA_ID       0
-#define DACDMA_DMA_CHANNEL  DMA_CHANNEL_1
+#define DACDMA_DMA_CHANNEL  DMA_CHANNEL_0
 #define DACDMA_PIT_CHANNEL  DACDMA_DMA_CHANNEL
 #define DACDMA_TRIG_SOURCE  58                  // trigger always on
 
@@ -171,8 +171,11 @@ void dacdmaStart(void)
         // Enable period triggering, mux always enabled
         dacdmaContext.dmaConfig.pitEn = 1;
         dacdmaContext.dmaConfig.muxSource = DACDMA_TRIG_SOURCE;
-        // Disable fixed-priority arbitration
+        // Enable fixed-priority arbitration
         dacdmaContext.dmaConfig.fpArb = 0;
+        dacdmaContext.dmaConfig.ecp = 1;
+        dacdmaContext.dmaConfig.dpa = 0;
+        dacdmaContext.dmaConfig.priority = 12;
 
         dmasgaChannelConfig(DACDMA_DMA_CHANNEL, dacdmaContext.dmaConfig);
 
@@ -185,6 +188,7 @@ void dacdmaStop(void)
 {
     // stop PIT to avoid DMA requests triggering
     pitStop(DACDMA_PIT_CHANNEL);
+
 }
 
 void dacdmaResume(void)
