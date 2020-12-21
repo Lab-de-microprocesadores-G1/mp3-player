@@ -13,9 +13,7 @@
 #include "mp3decoder.h"
 #include  "lib/helix/pub/mp3dec.h"
 #include "lib/id3tagParser/read_id3.h"
-
-#include "board.h"
-#include "drivers/MCAL/gpio/gpio.h"
+#include <math.h>
 
 #ifdef __arm__
 #include "lib/fatfs/ff.h"
@@ -273,9 +271,7 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
           if ((dec.top > 0) && ((dec.bottom - dec.top) > 0) && (dec.bottom - dec.top < MP3_FRAME_BUFFER_BYTES))
           {
               //memcpy(dec.mp3FrameBuffer , dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
-        	  gpioWrite(PIN_FILE_TIME, HIGH);
               memmove(dec.mp3FrameBuffer, dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
-        	  gpioWrite(PIN_FILE_TIME, LOW);
               dec.bottom = dec.bottom - dec.top;
               dec.top = 0;
 
@@ -338,11 +334,7 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
           uint8_t* decPointer = dec.mp3FrameBuffer + dec.top;
           int bytesLeft = dec.bottom - dec.top;
 
-          gpioWrite(PIN_HELIX_TIME, HIGH);
-
           int res = MP3Decode(dec.helixDecoder, &decPointer, &(bytesLeft), outBuffer, MP3DECODER_MODE_NORMAL); //! autodecrements fileSize with bytes decoded. updated inbuf pointer, updated bytesLeft
-
-          gpioWrite(PIN_HELIX_TIME, LOW);
 
           if (res == ERR_MP3_NONE) // if decoding successful
           {
@@ -362,6 +354,26 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
 
               // update samples decoded
               *samplesDecoded = dec.lastFrameInfo.outputSamps;
+
+		  	  uint16_t channelCount = dec.lastFrameInfo.nChans;
+			  for (uint16_t i = 0 ; i < *samplesDecoded / channelCount ; i++)
+			  {
+				if (i > 0)
+				{
+			  	  static uint16_t maxDiff = 0;
+				  int16_t aux1 = outBuffer[channelCount * i];
+				  int16_t aux2 = outBuffer[channelCount * (i-1)];
+				  uint16_t currDiff = abs(aux1 - aux2);
+				  if (currDiff > maxDiff)
+				  {
+					maxDiff = currDiff;
+				  }
+				  if (currDiff >= 2000)
+				  {
+					currDiff++;
+				  }
+				 }
+				}
 
               // return success code
               ret = MP3DECODER_NO_ERROR;
@@ -577,22 +589,15 @@ void fileSeek(size_t pos)
 size_t readFile(void * buf, size_t count)
 {
     size_t ret = 0, read = 0;
-	gpioWrite(PIN_FILE_TIME, HIGH);
 
     if (dec.fileOpened)
     {
       #ifdef __arm__
       FRESULT fr;
-      size_t readLen = count > 512 ? 512 : count;
-      do
-      {
-    	  fr = f_read(dec.mp3File, ((uint8_t *)buf) + ret, readLen, &read);
-    	  ret += read;
-    	  readLen = (count - ret) > 512 ? 512 : count - ret;
-      } while ( (fr == FR_OK) && (ret < count) && !f_eof(dec.mp3File));
+      fr = f_read(dec.mp3File, ((uint8_t *)buf), count, &read);
 	  if (fr == FR_OK)
 	  {
-		// ret = read;
+		ret = read;
 	  }
 	  else
 	  {
@@ -602,7 +607,6 @@ size_t readFile(void * buf, size_t count)
       ret = fread(buf, 1, count, dec.mp3File);
       #endif
     }
-	gpioWrite(PIN_FILE_TIME, LOW);
 
     return ret;
 }

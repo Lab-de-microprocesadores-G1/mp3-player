@@ -79,7 +79,7 @@ typedef struct
 {
   uint8_t   muxSource;
   uint8_t   pitEn : 1;                // Enable period triggering
-  dma_tcd_t tcds[DMA_SGA_TCD_COUNT] __attribute__ ((aligned(32)));;
+  dma_tcd_t tcds[DMA_SGA_TCD_COUNT] __attribute__ ((aligned(32)));
 
   // Arbitration configurations
   uint8_t   fpArb : 1;                // Enable fixed-priority arbitration (Otherwise )

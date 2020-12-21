@@ -45,7 +45,7 @@ static uint32_t blockSize = BLOCK_SIZE;
 
 static float32_t firStateF32[BLOCK_SIZE + NUM_TAPS - 1];      // State of the FIR filter. Needed for initialisation.
 
-arm_fir_instance_f32 parallelFilter[EQ_NUM_OF_FILTERS];          // EQ filter implemented as parallel bandpass FIR filters.
+arm_fir_instance_f32 parallelFilter[BLOCK_SIZE];       // EQ filter implemented as parallel bandpass FIR filters.
 
 static const float32_t eqFirCoeffs32[EQ_NUM_OF_FILTERS][NUM_TAPS] __attribute__((aligned(32))) =     // Coefficients of each bandpass FIR filter. Computed with MATLAB.
 {

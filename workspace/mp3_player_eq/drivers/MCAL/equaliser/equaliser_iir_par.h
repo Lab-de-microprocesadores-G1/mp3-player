@@ -1,87 +1,59 @@
 /***************************************************************************//**
-  @file     dac_dma.h
+  @file     equaliser.h
   @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef MCAL_DAC_DMA_DAC_DMA_H_
-#define MCAL_DAC_DMA_DAC_DMA_H_
+#ifndef MCAL_EQUALISER_EQUALISER_IIR_PAR_H_
+#define MCAL_EQUALISER_EQUALISER_IIR_PAR_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
-#include <stdint.h>
-#include <stdbool.h>
+
+#include "arm_math.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define DAC_DMA_PPBUFFER_COUNT  2
-#define DAC_DMA_PPBUFFER_SIZE   2048
+#define EQ_NUM_OF_FILTERS			8
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
-typedef void  (*dacdma_update_callback_t) (uint16_t * frameToUpdate);
-
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
-
-/*
-*  dacdmaInit()
-* @brief initializes dac-dma
-*/
-void dacdmaInit(void);
-
-/*
-*  dacdmaSetBuffers()
-* @brief  sets ping pong buffers
-* @param  buffer1, buffer2 pointers to buffers
-* @param  bufferSize size of buffers
-* @param  callback   Function to be called when the buffers must be updated
-*/
-void dacdmaSetBuffers(uint16_t *buffer1, uint16_t *buffer2, uint16_t bufferSize, dacdma_update_callback_t callback);
-
-/*  
-*  dacdmaSetFreq()
-* @brief sets dac frequency
-*/
-void dacdmaSetFreq(uint16_t freq);
-
-/*  
-*  dacdmaStop()
-* @brief stops DAC
-*/
-void dacdmaStop(void);
-
-/*  
-*  dacdmaStart()
-* @brief starts DAC
-*/
-void dacdmaStart(void);
-
-/**
- * dacdmaResume()
- * @brief resumes DAC DMA operation
- */ 
-void dacdmaResume(void);
-
-/*  
-*  dacdmaGetFreq()
-* @brief getter for DAC frequency
-* @return DAC frequency
-*/
-uint16_t dacdmaGetFreq(void);
 
 /*******************************************************************************
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
 
+/**
+ * @brief Initialises equaliser.
+ * @param frameSize  Number of data numbers to be filtered when calling eqFilterFrame.
+ */
+void eqIirParInit(void);
+
+/**
+ * @brief Compute the equaliser filter on the data given.
+ * @param inputF32  Pointer to input data to filter.
+ * @param outputF32 Pointer to where the filtered data should be saved.
+ */
+void eqIirParFilterFrame(uint16_t * inputF32, uint16_t * outputF32);
+
+/**
+ * @brief Sets all equaliser filter gains.
+ * @param gains  Array with the filter gains for each of the equaliser bands.
+ */
+void eqIirParSetFilterGains(uint32_t band, uint32_t gain);
+
+
+
+
 /*******************************************************************************
  ******************************************************************************/
 
-
-#endif /* MCAL_DAC_DMA_DAC_DMA_H_ */
+#endif /* MCAL_EQUALISER_EQUALISER_IIR_PAR_H_ */
