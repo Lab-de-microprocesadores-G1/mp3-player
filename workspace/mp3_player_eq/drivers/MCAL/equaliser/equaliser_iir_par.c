@@ -8,7 +8,7 @@
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include "equaliser_iir.h"
+#include "equaliser_iir_par.h"
 #include "arm_math.h"
 #include "math_helper.h"
 
@@ -29,17 +29,12 @@
 
 typedef struct
 {
-  uint8_t           gain;
-}eq_iir_filter_t;
-
-typedef struct
-{        
-  eq_iir_filter_t               filterBands[IIR_EQ_BANDS];                                      // Array that contains a filter-type for each band.
-  arm_biquad_casd_df1_inst_q15  filter;                                                         // Actual filter instance used by ARM.
-  float32_t                     coefficients[IIR_EQ_BANDS * IIR_EQ_COEFFS * IIR_EQ_STAGES];     // Must be converted to q15_t* before using it to initalise filter.
-  q15_t                         coeffsInQ15[IIR_EQ_BANDS * IIR_EQ_STAGES * IIR_EQ_COEFFS];
-  q15_t                         stateVars[IIR_EQ_STATE_VARS * IIR_EQ_STAGES * IIR_EQ_BANDS];    // State variables used by ARM for filtering with DSP module.
-}eq_iir_context_t;
+  arm_biquad_casd_df1_inst_q15      filter;                                          // Actual filter instance used by ARM.
+  float32_t                         coefficients[IIR_EQ_COEFFS * IIR_EQ_STAGES];     // Must be converted to q15_t* before using it to initalise filter.
+  q15_t                             coeffsInQ15[IIR_EQ_STAGES * IIR_EQ_COEFFS];
+  q15_t                             stateVars[IIR_EQ_STATE_VARS * IIR_EQ_STAGES * IIR_EQ_BANDS];    // State variables used by ARM for filtering with DSP module.
+  uint8_t                           gain;
+}qe_iir_par_filter_t;
 
 /*******************************************************************************
  * VARIABLES WITH GLOBAL SCOPE
@@ -48,8 +43,6 @@ typedef struct
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
-
-void initBandWithGain(uint8_t);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -72,27 +65,27 @@ static const float32_t  equaliserCoeff[IIR_EQ_BANDS][IIR_EQ_GAIN_LEVELS][IIR_EQ_
       2/2,  0.0/2, 	-0.809985310456335/2, 	-1.04657658458247/2,	0.534814648688213/2,	0.370476473603739/2 }
   },
   {
-    { 1.01072457568661*0.000807981680029028*591.205111949767/2*1.2, 0.0/2, 	-2.00000000000000*0.000807981680029028*591.205111949767/2*1.2, 	0.989725411916175*0.000807981680029028*591.205111949767/2*1.2,	1.96917484672735/2,	0.970121794265049/2,
+    { 1.01072457568661*0.000807981680029028*591.205111949767/2, 0.0/2, 	-2.00000000000000*0.000807981680029028*591.205111949767/2, 	0.989725411916175*0.000807981680029028*591.205111949767/2,	1.96917484672735/2,	0.970121794265049/2,
       2/2,  0.0/2, 	1.16358783614474/2, 	0.760849536121614/2,	-0.0936004258199819/2,	-0.344079170483367/2,
       2/2,  0.0/2, 	-1.52537222956547/2, 	-0.423053519820128/2,	0.945160260816669/2,	0.0228829936642259/2 }
   },
   {
-    { 1.00272386528311*0.000239342330207526*995.772261520071/2*1.3, 0.0/2, 	-2*0.000239342330207526*995.772261520071/2*1.3, 	0.997305769626192*0.000239342330207526*995.772261520071/2*1.3,  1.98365742954945/2,	-0.983942761571608/2,
+    { 1.00272386528311*0.000239342330207526*995.772261520071/2, 0.0/2, 	-2*0.000239342330207526*995.772261520071/2, 	0.997305769626192*0.000239342330207526*995.772261520071/2,  1.98365742954945/2,	-0.983942761571608/2,
       2/2,  0.0/2, 	-0.390651211555079/2, 	0.680383010224290/2,  1.37652177558776/2,	-0.605576750784261/2,
       1.86884745346874/2, 0.0/2, 	-2/2, 	0.140575826278916/2,	1.56497537811220/2,	-0.572348978505266/2 }
   },
   {
-    { 1.00192198758327*2.72338740331284e-05*7235.17994671590/2*1.4, 0.0/2,  -2*2.72338740331284e-05*7235.17994671590/2*1.4,	0.998092975368662*2.72338740331284e-05*7235.17994671590/2*1.4,  1.99445083720081/2,	-0.994482725253394/2,
+    { 1.00192198758327*2.72338740331284e-05*7235.17994671590/2, 0.0/2,  -2*2.72338740331284e-05*7235.17994671590/2,	0.998092975368662*2.72338740331284e-05*7235.17994671590/2,  1.99445083720081/2,	-0.994482725253394/2,
       1.48608339064881/2, 0.0/2,	-2/2,	0.869830173270140/2,	1.56442746089939/2,	-0.688811817355399/2,
       1.28612855314640/2, 0.0/2,	-2/2,	0.716084086218801/2,	1.67323452092318/2,	-0.675085653207281/2 }
   },
   {
-    { 1.00087164556994*5.63376622144417e-06*46249.2848504937/2*1.2, 0.0/2, 	-2*5.63376622144417e-06*46249.2848504937/2*1.9, 	0.999131445036195*5.63376622144417e-06*46249.2848504937/2*1.9,  1.99748212282793/2,	-0.997488719311369/2,
+    { 1.00087164556994*5.63376622144417e-06*46249.2848504937/2/2, 0.0/2/2, 	-2*5.63376622144417e-06*46249.2848504937/2, 	0.999131445036195*5.63376622144417e-06*46249.2848504937/2,  1.99748212282793/2,	-0.997488719311369/2,
       1.16513571174038/2, 0.0/2, 	-2/2, 	0.903530810325367/2,	1.81231871956445/2,	-0.841171346261079/2,
       1.12970820602613/2, 0.0/2, 	-2/2, 	0.870748616732947/2,	1.83748886733712/2,	-0.837908570704190/2 }
   },
   { 
-    { 1.00047610364104*1.70860238912297e-06*167201.812858106/2*2.2, 0.0/2,	-2*1.70860238912297e-06*167201.812858106/2*2.2,	0.999524819919675*1.70860238912297e-06*167201.812858106/2*2.2,	1.99862444736334/2,	-0.998626419705476/2,
+    { 1.00047610364104*1.70860238912297e-06*167201.812858106/2, 0.0/2,	-2*1.70860238912297e-06*167201.812858106/2,	0.999524819919675*1.70860238912297e-06*167201.812858106/2,	1.99862444736334/2,	-0.998626419705476/2,
       1.08079073011060/2, 0.0/2,	-2.00000000000000/2,	0.939484732537213/2,	1.90046718405089/2,	-0.909458348044327/2,
       1.07084298161993/2, 0.0/2,	-2/2,	0.929293519106444/2,	1.90787535117889/2,	-0.908005564364528/2 }
   }
@@ -102,50 +95,53 @@ static const float32_t  equaliserCoeff[IIR_EQ_BANDS][IIR_EQ_GAIN_LEVELS][IIR_EQ_
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static eq_iir_context_t context;
+static qe_iir_par_filter_t  filters[IIR_EQ_BANDS];
+static uint16_t             parallelFilter[IIR_EQ_FRAME_SIZE];
+
 
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-void eqIirInit(void)
+void eqIirParInit(void)
 {
   for (uint16_t band = 0; band < IIR_EQ_BANDS; band++)
   {
-    context.filterBands[band].gain = 4;
-    initBandWithGain(band);
+    for (uint16_t i = 0; i < IIR_EQ_STAGES*IIR_EQ_COEFFS; i++)
+    {
+      filters[band].coefficients[i] = equaliserCoeff[band][0][i];
+    }
+
+    arm_float_to_q15(filters[band].coefficients, filters[band].coeffsInQ15, IIR_EQ_STAGES * IIR_EQ_COEFFS);
+    arm_biquad_cascade_df1_init_q15(&(filters[band].filter), IIR_EQ_STAGES, filters[band].coeffsInQ15, filters[band].stateVars, 1);
   }
-  
-  arm_float_to_q15(context.coefficients, context.coeffsInQ15, IIR_EQ_BANDS * IIR_EQ_STAGES * IIR_EQ_COEFFS);
-  arm_biquad_cascade_df1_init_q15(&context.filter, IIR_EQ_STAGES, context.coeffsInQ15, context.stateVars, 1);
 }
 
-void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32)
+void eqIirParFilterFrame(uint16_t * inputF32, uint16_t * outputF32)
 {
-  arm_biquad_cascade_df1_q15(&(context.filter), (q15_t*) inputF32, (q15_t*) outputF32, IIR_EQ_FRAME_SIZE);
+  // Call the FIR process function for every blockSize samples.
+  for (uint32_t band=0; band < EQ_NUM_OF_FILTERS; band++)
+  {
+    arm_biquad_cascade_df1_q15(&(filters[band].filter), (q15_t*) inputF32, (q15_t*) parallelFilter, IIR_EQ_FRAME_SIZE);
+    for (uint32_t k=0; k < IIR_EQ_FRAME_SIZE; k++)
+    {
+      outputF32[k] += parallelFilter[k] * 0.05;
+    }
+  }
 }
 
-void eqIirSetFilterGain(uint32_t band, uint32_t gain)
+void eqIirParSetFilterGain(uint32_t band, uint32_t gain)
 {
   // Gain must be between 0 and 7.
-  context.filterBands[band].gain = gain;
-  initBandWithGain(band);
+//   context.filterBands[band].gain = gain;
+//   eqIirParInit();
 }
-
 /*******************************************************************************
  *******************************************************************************
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-
-void initBandWithGain(uint8_t band)
-{
-  for (uint16_t j = 0; j < IIR_EQ_STAGES*IIR_EQ_COEFFS; j++)
-  { 
-    context.coefficients[band*IIR_EQ_STAGES*IIR_EQ_COEFFS + j] = equaliserCoeff[band][context.filterBands[band].gain][j];
-  }
-}
 
 /*******************************************************************************
  *******************************************************************************
@@ -154,3 +150,4 @@ void initBandWithGain(uint8_t band)
  ******************************************************************************/
 
 /******************************************************************************/
+
