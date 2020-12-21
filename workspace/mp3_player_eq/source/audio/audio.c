@@ -215,6 +215,9 @@ void audioInit(void)
     dacdmaInit();
     dacdmaSetBuffers(context.audioBuffer[0], context.audioBuffer[1], AUDIO_BUFFER_SIZE);
     dacdmaSetFreq(AUDIO_DEFAULT_SAMPLE_RATE); 
+
+    sprintf(context.messageBuffer, "Bienvenido!!!");
+    audioSetDisplayString(context.messageBuffer);
   }
 }
 
@@ -309,7 +312,6 @@ static void audioRunIdle(event_t event)
       sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       audioSetDisplayString(context.volumeBuffer);
     default:
-      sprintf(context.messageBuffer, "Bienvenido!!!");
       audioSetDisplayString(context.messageBuffer);
       break;
   }
