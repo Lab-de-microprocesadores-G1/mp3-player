@@ -432,11 +432,11 @@ void audioProcess(uint16_t* frame)
   {
     // DAC output is unsigned, mono and 12 bit long
 
-    uint16_t aux = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
+    uint16_t aux = (uint16_t)((context.eq.output[i]) * context.volume / 16 + (DAC_FULL_SCALE / 2));
     frame[i] = aux;
     // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
-  context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount * context.volume;
+  context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount;
 }
 
 
