@@ -17,10 +17,9 @@
  ******************************************************************************/
 #define IIR_EQ_GAIN_LEVELS  (8)   // Levels of gain
 #define IIR_EQ_BANDS        (8)   // Equaliser bands
-#define IIR_EQ_STAGES       ()    // Stages per filter
-#define IIR_EQ_COEFFS       ()    // Coefficients per stages
-#define IIR_EQ_STATE_VARS   ()    // State var
-#define IIR_EQ_MAX_GAIN     ()    // Maximum gain
+#define IIR_EQ_STAGES       (3)   // Stages per filter
+#define IIR_EQ_COEFFS       (6)   // Coefficients per stages
+#define IIR_EQ_STATE_VARS   (4)   // State var
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -52,13 +51,10 @@ eq_iir_filter_t calculateCoefficients(uint32_t freq, uint32_t gain, float32_t qF
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
-static const float32_t  equaliserCoeff[IIR_EQ_GAIN_LEVELS][IIR_EQ_BANDS][IIR_EQ_STAGES*IIR_EQ_COEFFS] = 
+static const q15_t  equaliserCoeff[IIR_EQ_GAIN_LEVELS][IIR_EQ_BANDS][IIR_EQ_STAGES*IIR_EQ_COEFFS] = 
 {
   {/* Llenarlo con números turbios*/}
 };
-
-static const float32_t eqBands[IIR_EQ_BANDS];
-static const float32_t eqQFactor[IIR_EQ_BANS]; 
 
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE

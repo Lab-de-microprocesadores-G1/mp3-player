@@ -122,6 +122,7 @@ static hd44780_lcd_context_t context;
 
 static const uint8_t customCharacters[HD44780_CUSTOM_COUNT][HD44780_CHARACTER_ROWS] =
 {
+		{},
 	// 	HD44780_CUSTOM_FOLDER
 	{
 		0b11100,
