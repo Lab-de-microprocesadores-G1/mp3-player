@@ -297,6 +297,7 @@ static void audioRunIdle(event_t event)
       sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       audioSetDisplayString(context.volumeBuffer);
     default:
+      sprintf(context.messageBuffer, "Bienvenido!!!");
       audioSetDisplayString(context.messageBuffer);
       break;
   }
