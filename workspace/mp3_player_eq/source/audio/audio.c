@@ -223,7 +223,7 @@ void audioInit(void)
     dacdmaSetBuffers(context.audioBuffer[0], context.audioBuffer[1], AUDIO_BUFFER_SIZE);
     dacdmaSetFreq(AUDIO_DEFAULT_SAMPLE_RATE); 
 
-    audioLcdWelcome();
+    //audioLcdWelcome();
   }
 }
 
