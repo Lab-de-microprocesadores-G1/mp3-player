@@ -122,6 +122,7 @@ static hd44780_lcd_context_t context;
 
 static const uint8_t customCharacters[HD44780_CUSTOM_COUNT][HD44780_CHARACTER_ROWS] =
 {
+		{},
 	// 	HD44780_CUSTOM_FOLDER
 	{
 		0b11100,
@@ -143,6 +144,28 @@ static const uint8_t customCharacters[HD44780_CUSTOM_COUNT][HD44780_CHARACTER_RO
 		0b11101,
 		0b11011,
 		0b00011
+	},
+	// HD44780_CUSTOM_PAUSE
+	{
+		0b00000,
+		0b01010,
+		0b01010,
+		0b01010,
+		0b01010,
+		0b01010,
+		0b01010,
+		0b00000
+	},
+	// HD44780_CUSTOM_PLAY
+	{
+		0b10000,
+		0b11000,
+		0b11100,
+		0b11110,
+		0b11100,
+		0b11000,
+		0b10000,
+		0b00000
 	},
 };
 

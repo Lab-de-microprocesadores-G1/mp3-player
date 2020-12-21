@@ -1,24 +1,23 @@
-/*******************************************************************************
-  @file     audio.h
-  @brief    Audio UI and Controller Module
+/***************************************************************************//**
+  @file     equaliser.h
+  @brief    ...
   @author   G. Davidov, F. Farall, J. Gaytán, L. Kammann, N. Trozzo
  ******************************************************************************/
 
-#ifndef _AUDIO_H
-#define _AUDIO_H_
+#ifndef MCAL_EQUALISER_IIR_H_
+#define MCAL_EQUALISER_IIR_H_
 
 /*******************************************************************************
  * INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include "events/events.h"
 #include "arm_math.h"
-
-#include <stdint.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+
+#define EQ_NUM_OF_FILTERS			8
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -33,25 +32,29 @@
  ******************************************************************************/
 
 /**
- * @brief Initializes the audio module.
+ * @brief Initialises equaliser.
+ * @param frameSize  Number of data numbers to be filtered when calling eqFilterFrame.
  */
-void audioInit(void);
+void eqIirInit(void);
 
 /**
- * @brief Cycles the audio module with the next user event.
- * @param event     Next event
+ * @brief Compute the equaliser filter on the data given.
+ * @param inputF32  Pointer to input data to filter.
+ * @param outputF32 Pointer to where the filtered data should be saved.
  */
-void audioRun(event_t event);
+void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32);
 
 /**
- * @brief Filename and path of current song, starts playing the audio.
- * @param path      Directory path for the audio files
- * @param file      Filename of the starting audio
- * @param index     Index of the filename in the directory
+ * @brief Sets all equaliser filter gains.
+ * @param gains  Array with the filter gains for each of the equaliser bands.
  */
-void audioSetFolder(const char* path, const char* file, uint8_t index);
+void eqIirSetFilterGains(uint32_t band, uint32_t gain);
+
+
+
 
 /*******************************************************************************
  ******************************************************************************/
 
-#endif
+
+#endif /* MCAL_EQUALISER_IIR_H_ */

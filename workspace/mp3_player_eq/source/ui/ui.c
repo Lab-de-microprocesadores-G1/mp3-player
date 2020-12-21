@@ -9,12 +9,14 @@
  ******************************************************************************/
 
 #include "ui.h"
-#include "../audio/audio.h"
+#include "audio/audio.h"
+#include "display/display.h"
 
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 
+#include "drivers/MCAL/equaliser/equaliser.h"
 #include "drivers/HAL/HD44780_LCD/HD44780_LCD.h"
 #include "drivers/HAL/timer/timer.h"
 #include "lib/fatfs/ff.h"
@@ -28,15 +30,19 @@
 #define UI_LCD_FPS_MS              (200)
 #define UI_LCD_LINE_NUMBER       	  1
 #define UI_FILE_SYSTEM_ROOT 	      ""
-#define UI_BUFFER_SIZE              512
-#define UI_EQUALISER_GAIN_MIN       (0.0)
-#define UI_EQUALISER_GAIN_STEP      (0.2)
-#define UI_EQUALISER_GAIN_MAX       (10.0)
+#define UI_BUFFER_SIZE              256
+#define UI_EQUALISER_GAIN_COUNT     (19)
 #define UI_EQUALISER_BAND_COUNT     (8)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
+
+typedef enum {
+  UI_STRING_FOLDER,
+  UI_STRING_FILE,
+  UI_STRING_OTHER
+} ui_string_type_t;
 
 typedef enum {
   UI_STATE_MENU,                // Displaying the main menu to the user
@@ -81,9 +87,9 @@ typedef struct {
   ui_equaliser_state_t        eqState;        // Current equaliser state
   ui_equaliser_menu_options_t eqOption;       // Current equaliser option selected
 
-  bool 		hasEqBandSelected;                  	// Whether a band is selected or not
-  uint16_t	currentEqBandSelected;              	// Index of the current equaliser band selected
-  double  	eqBandGain[UI_EQUALISER_BAND_COUNT]; 	// Equaliser gains
+  bool 		    hasEqBandSelected;                  	// Whether a band is selected or not
+  uint16_t	  currentEqBandSelected;              	// Index of the current equaliser band selected
+  uint32_t  	eqBandGain[UI_EQUALISER_BAND_COUNT]; 	// Equaliser gains
 } ui_equaliser_context_t;
 
 /*******************************************************************************
@@ -107,9 +113,10 @@ static void uiFileSystemOpenDirectory(void);
 
 /**
  * @brief Update the current string being displayed.
- * @param message New string to be updated
+ * @param message   New string to be updated
+ * @param type      Type of the string
  */
-static void uiSetDisplayString(const char* message);
+static void uiSetDisplayString(const char* message, ui_string_type_t type);
 
 /**
  * @brief Update the current state of the UI module.
@@ -165,18 +172,26 @@ static const char* EQUALISER_MENU_OPTIONS[UI_EQUALISER_OPTION_COUNT] = {
   "Custom"
 };
 
+static const double GAIN_VALUES[UI_EQUALISER_GAIN_COUNT] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
+
+static const double DEFAULT_GAINS[][UI_EQUALISER_GAIN_COUNT] = {
+  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }, // Jazz Default Gains
+  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }, // Rock Default Gains
+  { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }  // Classic Default Gains
+};
+
 /*******************************************************************************
  * STATIC VARIABLES AND CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
 
-static bool			    		messageChanged = false;		// Internal flag for changing the LCD message
-static bool         			alreadyInit = false;        // Internal flag for initialization process
-static ui_state_t   			currentState;         		// Current state of the user interface module
-static const char*  			currentMessage;             // Current message being displayed
+static bool			    		  messageChanged = false;		    // Internal flag for changing the LCD message
+static bool         			alreadyInit = false;          // Internal flag for initialization process
+static ui_state_t   			currentState;         		    // Current state of the user interface module
+static char               messageBuffer[UI_BUFFER_SIZE];// Buffer for message to print
 
 static ui_menu_context_t        menuContext;            	// Context for the menu state of the UI module
 static ui_file_system_context_t fsContext;              	// Context for the file system state of the UI module
-static ui_equaliser_context_t 	eqContext;                	// Context for the equalisator UI module
+static ui_equaliser_context_t 	eqContext;                // Context for the equalisator UI module
 
 /*******************************************************************************
  *******************************************************************************
@@ -237,14 +252,28 @@ static void	uiLcdUpdate(void)
     if (messageChanged)
     {
       messageChanged = false;
-      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, messageBuffer, strlen(messageBuffer), UI_LCD_ROTATION_TIME_MS);
     }
   }
 }
 
-static void uiSetDisplayString(const char* message)
+static void uiSetDisplayString(const char* message, ui_string_type_t type)
 {
-  currentMessage = message;
+  switch (type)
+  {
+    case UI_STRING_FOLDER:
+      messageBuffer[0] = HD44780_CUSTOM_FOLDER;
+      sprintf(messageBuffer + 1, " - %s", message);
+      break;
+    case UI_STRING_FILE:
+        messageBuffer[0] = HD44780_CUSTOM_MUSIC;
+      sprintf(messageBuffer + 1, " - %s", message);
+      break;
+    case UI_STRING_OTHER:
+    default:
+      sprintf(messageBuffer, "%s", message);
+      break;
+  }
   messageChanged = true;
 }
 
@@ -280,7 +309,7 @@ static void uiRunMenu(event_t event)
       {
         menuContext.currentOptionIndex--;
       }
-      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
+      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex], UI_STRING_OTHER);
       break;
 
     case EVENTS_RIGHT:
@@ -288,7 +317,7 @@ static void uiRunMenu(event_t event)
       {
         menuContext.currentOptionIndex++;
       }
-      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
+      uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex], UI_STRING_OTHER);
       break;
 
     case EVENTS_ENTER:
@@ -315,7 +344,7 @@ static void uiRunFileSystem(event_t event)
         }
         if (fsContext.currentError == FR_OK)
         {
-          uiSetDisplayString(fsContext.currentFile.fname);
+          uiSetDisplayString(fsContext.currentFile.fname, fsContext.currentFile.fattrib == AM_DIR ? UI_STRING_FOLDER : UI_STRING_FILE);
           if (fsContext.currentFileIndex)
           {
               fsContext.currentFileIndex--;
@@ -337,11 +366,11 @@ static void uiRunFileSystem(event_t event)
       fsContext.currentError = f_readdir(&(fsContext.currentDirectory), &(fsContext.currentFile));
       if (fsContext.currentError == FR_OK)
       {
-    	if (fsContext.currentFile.fname[0])
-    	{
-          uiSetDisplayString(fsContext.currentFile.fname);
-          fsContext.currentFileIndex++;
-    	}
+        if (fsContext.currentFile.fname[0])
+        {
+            uiSetDisplayString(fsContext.currentFile.fname, fsContext.currentFile.fattrib == AM_DIR ? UI_STRING_FOLDER : UI_STRING_FILE);
+            fsContext.currentFileIndex++;
+        }
       }
       else
       {
@@ -352,7 +381,8 @@ static void uiRunFileSystem(event_t event)
     case EVENTS_ENTER:
       if (fsContext.currentFile.fattrib == AM_DIR)
       {
-    	sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], strlen(fsContext.currentPath) ? "/%s" : "%s", fsContext.currentFile.fname);
+        // Appends the path
+    	  sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], strlen(fsContext.currentPath) ? "/%s" : "%s", fsContext.currentFile.fname);
 
         // Open the directory
         uiFileSystemOpenDirectory();  
@@ -404,7 +434,7 @@ static void uiRunEqualiser(event_t event)
         {
           eqContext.eqOption--;
         }
-        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
+        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption], UI_STRING_OTHER);
         break;
 
       case EVENTS_RIGHT:
@@ -412,7 +442,7 @@ static void uiRunEqualiser(event_t event)
         {
           eqContext.eqOption++;
         }
-        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
+        uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption], UI_STRING_OTHER);
         break;
 
       case EVENTS_EXIT:
@@ -425,6 +455,11 @@ static void uiRunEqualiser(event_t event)
         }
         else
         {
+          for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
+          {
+            eqSetFilterGains(DEFAULT_GAINS[eqContext.eqOption]);
+          }
+          displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
           uiSetState(UI_STATE_MENU);
         }
         break;
@@ -440,9 +475,9 @@ static void uiRunEqualiser(event_t event)
       case EVENTS_LEFT:
         if (eqContext.hasEqBandSelected)
         {
-          if ((eqContext.eqBandGain[eqContext.currentEqBandSelected] - UI_EQUALISER_GAIN_STEP) > UI_EQUALISER_GAIN_MIN)
+          if (eqContext.eqBandGain[eqContext.currentEqBandSelected] > 0)
           {
-            eqContext.eqBandGain[eqContext.currentEqBandSelected] -= UI_EQUALISER_GAIN_STEP;
+            eqContext.eqBandGain[eqContext.currentEqBandSelected]--;
           }
         }
         else
@@ -450,6 +485,7 @@ static void uiRunEqualiser(event_t event)
           if (eqContext.currentEqBandSelected)
           {
             eqContext.currentEqBandSelected--;
+            displaySelectColumn(eqContext.currentEqBandSelected);
           }
         }
         break;
@@ -457,9 +493,9 @@ static void uiRunEqualiser(event_t event)
       case EVENTS_RIGHT:
         if (eqContext.hasEqBandSelected)
         {
-          if ((eqContext.eqBandGain[eqContext.currentEqBandSelected] + UI_EQUALISER_GAIN_STEP) < UI_EQUALISER_GAIN_MAX)
+          if (eqContext.eqBandGain[eqContext.currentEqBandSelected] < UI_EQUALISER_GAIN_COUNT)
           {
-            eqContext.eqBandGain[eqContext.currentEqBandSelected] += UI_EQUALISER_GAIN_STEP;
+            eqContext.eqBandGain[eqContext.currentEqBandSelected]++;
           }
         }
         else
@@ -467,6 +503,7 @@ static void uiRunEqualiser(event_t event)
           if ((eqContext.currentEqBandSelected + 1) < UI_EQUALISER_BAND_COUNT)
           {
             eqContext.currentEqBandSelected++;
+            displaySelectColumn(eqContext.currentEqBandSelected);
           }
         }
         break;
@@ -475,6 +512,11 @@ static void uiRunEqualiser(event_t event)
       case EVENTS_ENTER:
         if (eqContext.hasEqBandSelected)
         {
+          for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
+          {
+            eqSetFilterGain(GAIN_VALUES[eqContext.eqBandGain[i]], i);
+          }
+          displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
           uiSetState(UI_STATE_MENU);
         }
         else
@@ -494,7 +536,7 @@ static void uiInitMenu(void)
   // Sets the initial option of the menu state, and changes the
   // corresponding string representing this options in the LCD display.
   menuContext.currentOptionIndex = UI_OPTION_FILE_SYSTEM;
-  uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex]);
+  uiSetDisplayString(MAIN_MENU_OPTIONS[menuContext.currentOptionIndex], UI_STRING_OTHER);
 }
 
 static void uiFileSystemOpenDirectory(void)
@@ -509,7 +551,7 @@ static void uiFileSystemOpenDirectory(void)
     fsContext.currentError = f_readdir(&(fsContext.currentDirectory), &(fsContext.currentFile));  
     if (fsContext.currentError == FR_OK)
     {
-      uiSetDisplayString(fsContext.currentFile.fname);
+      uiSetDisplayString(fsContext.currentFile.fname, fsContext.currentFile.fattrib == AM_DIR ? UI_STRING_FOLDER : UI_STRING_FILE);
       fsContext.currentFileIndex = 0;
     }
     else
@@ -537,7 +579,7 @@ static void uiInitEqualiser(void)
   // Sets the initial option of the equaliser state, and changes the
   // corresponding string representing this options in the LCD display.
   eqContext.eqOption = UI_EQUALISER_OPTION_JAZZ;
-  uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption]);
+  uiSetDisplayString(EQUALISER_MENU_OPTIONS[eqContext.eqOption], UI_STRING_OTHER);
 }
 
 /*******************************************************************************

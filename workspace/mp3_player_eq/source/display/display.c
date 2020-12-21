@@ -16,6 +16,8 @@
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
+#define DEFAULT_COLUMN 	0.2
+#define SELECTED_COLUMN	0.6
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -46,6 +48,7 @@ static void	onDisplayFpsUpdate(void);
 static ws2812_pixel_t 	displayBuffer[DISPLAY_SIZE];	// Internal display buffer
 static bool 						alreadyInit = false;					// Internal flag for initialization process
 static bool							displayLocked = false;				// Internal flag for avoid updates when changing display content
+static int8_t						currentCol;										// Column selected by user
 
 /*******************************************************************************
  *******************************************************************************
@@ -73,11 +76,28 @@ void displayInit(void)
 void displayFlip(ws2812_pixel_t* buffer)
 {
 	displayLocked = true;
-	for (uint32_t i = 0 ; i < DISPLAY_SIZE ; i++)
+	for (uint32_t i = 0; i < DISPLAY_COL_SIZE ; i++)
 	{
-		displayBuffer[i] = buffer[i];
+		for (uint32_t j = 0 ; j < DISPLAY_ROW_SIZE ; j++)
+		{
+			if (currentCol == DISPLAY_UNSELECT_COLUMN)
+			{
+				displayBuffer[i * DISPLAY_ROW_SIZE + j] = buffer[i * DISPLAY_ROW_SIZE + j];
+			}
+			else
+			{
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].r = buffer[i * DISPLAY_ROW_SIZE + j].r * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].g = buffer[i * DISPLAY_ROW_SIZE + j].g * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
+				displayBuffer[i * DISPLAY_ROW_SIZE + j].b = buffer[i * DISPLAY_ROW_SIZE + j].b * (currentCol == j ? SELECTED_COLUMN : DEFAULT_COLUMN);
+			}
+		}
 	}
 	displayLocked = false;
+}
+
+void displaySelectColumn(uint8_t colNumber)
+{
+	currentCol = colNumber;
 }
 
 /*******************************************************************************
