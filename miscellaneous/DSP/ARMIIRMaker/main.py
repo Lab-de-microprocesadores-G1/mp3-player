@@ -29,7 +29,10 @@ for j in range(8):
                     if i == 1:
                         outf.write('0,\t')
                     if i != 3:
-                        outf.write(str(float(lines[k][i]) / 2))
+                        aux = float(lines[k][i]) / 2
+                        if i >= 4:
+                            aux *= -1
+                        outf.write(str(aux))
                         outf.write(',\t')
                 outf.write('\n')
             outf.write('    },\n')
