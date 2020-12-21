@@ -396,7 +396,7 @@ static void	audioLcdUpdate(void)
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
-        HD44780WriString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+        HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message));
       }
     }
   }
