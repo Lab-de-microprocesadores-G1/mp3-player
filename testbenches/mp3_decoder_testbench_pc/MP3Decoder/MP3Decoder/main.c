@@ -43,11 +43,7 @@
 #define FILEPATH_WAV	"C:/Users/nicot/Downloads/sampleOut.wav"
 #define SAMPLE_RATE		44100
 #endif
-#ifdef BOCA
-#define FILEPATH		"C:/Users/nicot/Downloads/cronica-tv-boca-la-concha-tu-madre.mp3"
-#define FILEPATH_WAV	"C:/Users/nicot/Downloads/cronica-tv-boca-la-concha-tu-madre.wav"
-#define SAMPLE_RATE		48000
-#endif
+
 
 #define NUM_CHANNELS	1
 
@@ -148,7 +144,7 @@ int main(void)
 	}
 	else
 	{
-		printf("¿DANIEL == RANIEL?\n");
+		printf("Couldnt open file\n");
 	}
 	#endif
 
