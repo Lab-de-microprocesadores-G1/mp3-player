@@ -37,7 +37,7 @@ typedef struct
   eq_iir_filter_t               filterBands[IIR_EQ_BANDS];                                      // Array that contains a filter-type for each band.
   arm_biquad_casd_df1_inst_q15  filter;                                                         // Actual filter instance used by ARM.
   float32_t                     coefficients[IIR_EQ_BANDS * IIR_EQ_COEFFS * IIR_EQ_STAGES];     // Must be converted to q15_t* before using it to initalise filter.
-  q15_t                         stateVars[IIR_EQ_STATE_VARS * IIR_EQ_STAGES * IIR_EQ_BANDS];    // State variables used by ARM for filtering with DSP module.
+  q15_t                         stateVars[IIR_EQ_STATE_VARS * IIR_EQ_STAGES];    // State variables used by ARM for filtering with DSP module.
 }eq_iir_context_t;
 
 /*******************************************************************************
@@ -121,7 +121,7 @@ void eqIirInit(void)
   arm_biquad_cascade_df1_init_q15(&context.filter, IIR_EQ_STAGES * IIR_EQ_BANDS, coeffsInQ15, context.stateVars, 1);
 }
 
-void eqIirFilterFrame(float32_t * inputF32, float32_t * outputF32)
+void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32)
 {
   arm_biquad_cascade_df1_q15(&(context.filter), (q15_t*) inputF32, (q15_t*) outputF32, IIR_EQ_FRAME_SIZE);
 }
