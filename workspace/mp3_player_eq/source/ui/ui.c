@@ -250,9 +250,13 @@ static void	uiLcdUpdate(void)
         HD44780WriteChar(1, 0, HD44780_CUSTOM_FOLDER);
         HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
       }
-      if(fsContext.currentFile.fattrib == AM_ARC)
+      else if(fsContext.currentFile.fattrib == AM_ARC)
       {
         HD44780WriteChar(1, 0, HD44780_CUSTOM_MUSIC);
+        HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+      }
+      else
+      {
         HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
       }
     }
