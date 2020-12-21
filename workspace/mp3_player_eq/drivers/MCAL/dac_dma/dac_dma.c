@@ -186,6 +186,12 @@ void dacdmaStop(void)
     // stop PIT to avoid DMA requests triggering
     pitStop(DACDMA_PIT_CHANNEL);
 }
+
+void dacdmaResume(void)
+{
+  pitStart(DACDMA_PIT_CHANNEL);
+}
+
   
 uint16_t dacdmaGetFreq(void)
 {

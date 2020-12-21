@@ -40,6 +40,7 @@
 #define AUDIO_BUFFER_SIZE               (1024)
 #define AUDIO_FLOAT_MAX                 (1)
 #define MAX_VOLUME                      (30)
+#define VOLUME_DURATION_MS              (2000)
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -98,7 +99,8 @@ typedef struct {
  } eq;
 
   uint8_t volume;
-  char    volume_buffer[10];
+  char    volumeBuffer[10];
+  char    messageBuffer[50];
 } audio_context_t;
 
 typedef enum {
@@ -217,7 +219,7 @@ void audioRun(event_t event)
       break;
     
     case AUDIO_STATE_PAUSED:
-      audioRunPaused(event);
+      audioRunPlaying(event);
       break;
 
     default:
@@ -278,18 +280,24 @@ static void audioRunIdle(event_t event)
       if(context.volume < MAX_VOLUME)
       {
         context.volume++;
+        sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       }
-      sprintf(context.volume_buffer, "Volumen %d", context.volume);
-      audioSetDisplayString(context.volume_buffer);
+      if(context.volume == MAX_VOLUME)
+      {
+        sprintf(context.volumeBuffer, "Volumen MAX");
+      }
+
+      audioSetDisplayString(context.volumeBuffer);
       break;
     case EVENTS_VOLUME_DECREASE:
       if(context.volume)
       {
         context.volume--;
       }
-      sprintf(context.volume_buffer, "Volumen %d", context.volume);
-      audioSetDisplayString(context.volume_buffer);
+      sprintf(context.volumeBuffer, "Volumen %d", context.volume);
+      audioSetDisplayString(context.volumeBuffer);
     default:
+      audioSetDisplayString(context.messageBuffer);
       break;
   }
 }
@@ -299,23 +307,56 @@ static void audioRunPlaying(event_t event)
   switch (event.id)
   {
     case EVENTS_PLAY_PAUSE:
+      if(context.currentState == AUDIO_STATE_PLAYING)
+      {
+        context.currentState = AUDIO_STATE_PAUSED;
+        dacdmaStop();
+        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PAUSE, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+      }
+      else if (context.currentState == AUDIO_STATE_PAUSED)
+      {
+        context.currentState = AUDIO_STATE_PLAYING;
+        dacdmaResume();
+        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PLAY, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+      }
+      audioSetDisplayString(context.messageBuffer);
       break;
     case EVENTS_PREVIOUS:
+      //TODO! 
       break;
     case EVENTS_NEXT:
+      //TODO! 
       break;
     case EVENTS_VOLUME_INCREASE:
+      if(context.volume < MAX_VOLUME)
+      {
+        context.volume++;
+        sprintf(context.volumeBuffer, "Volumen %d", context.volume);
+      }
+      if(context.volume == MAX_VOLUME)
+      {
+        sprintf(context.volumeBuffer, "Volumen MAX");
+      }
+      audioSetDisplayString(context.volumeBuffer);
       break;
     case EVENTS_VOLUME_DECREASE:
+      if(context.volume)
+      {
+        context.volume--;
+      }
+      sprintf(context.volumeBuffer, "Volumen %d", context.volume);
+      audioSetDisplayString(context.volumeBuffer);
       break;
     case EVENTS_FRAME_FINISHED:
       audioProcess(event.data.frame);
       break;
     default:
+      audioSetDisplayString(context.messageBuffer);
       break;
   }
 }
 
+/* ME PARECE AL PEDO
 static void audioRunPaused(event_t event)
 {
   switch (event.id)
@@ -333,7 +374,7 @@ static void audioRunPaused(event_t event)
     default:
       break;
   }
-}
+}*/
 
 static void audioSetState(audio_state_t state)
 {
@@ -347,7 +388,14 @@ static void	audioLcdUpdate(void)
     if (context.messageChanged)
     {
       context.messageChanged = false;
-      HD44780WriteRotatingString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+      if (context.currentState == AUDIO_STATE_PLAYING)
+      {
+        HD44780WriteRotatingString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+      }
+      else if (context.currentState == AUDIO_STATE_PAUSED)
+      {
+        HD44780WriString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+      }
     }
   }
 }
