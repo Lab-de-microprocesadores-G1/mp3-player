@@ -35,20 +35,20 @@
  * @brief Initialises equaliser.
  * @param frameSize  Number of data numbers to be filtered when calling eqFilterFrame.
  */
-void eqIirInit(uint32_t frameSize);
+void eqIirInit(void);
 
 /**
  * @brief Compute the equaliser filter on the data given.
  * @param inputF32  Pointer to input data to filter.
  * @param outputF32 Pointer to where the filtered data should be saved.
  */
-void eqIirFilterFrame(float32_t * inputF32, float32_t * outputF32);
+void eqIirFilterFrame(uint16_t * inputF32, uint16_t * outputF32);
 
 /**
  * @brief Sets all equaliser filter gains.
  * @param gains  Array with the filter gains for each of the equaliser bands.
  */
-void eqIirSetFilterGains(float32_t gains[EQ_NUM_OF_FILTERS]);
+void eqIirSetFilterGains(uint32_t band, uint32_t gain);
 
 
 

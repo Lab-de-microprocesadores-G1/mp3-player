@@ -16,7 +16,7 @@
 #include <stdio.h>
 
 #include "drivers/HAL/HD44780_LCD/HD44780_LCD.h"
-#include "drivers/MCAL/equaliser/equaliser.h"
+#include "drivers/MCAL/equaliser/equaliser_iir.h"
 #include "drivers/MCAL/dac_dma/dac_dma.h"
 #include "drivers/MCAL/cfft/cfft.h"
 #include "drivers/HAL/timer/timer.h"
@@ -93,19 +93,17 @@ typedef struct {
     uint16_t                  samples;       
   } mp3;      
   
-  // FFT data
-  struct {
-    float32_t filteredOutput[AUDIO_FRAME_SIZE];
-    float32_t input[AUDIO_FRAME_SIZE * 2];
-    float32_t output[AUDIO_FRAME_SIZE * 2];
-    float32_t magOutput[AUDIO_FRAME_SIZE];
-  } fft;
+ struct {
+   float32_t filteredOutput[AUDIO_FRAME_SIZE];
+   float32_t input[AUDIO_FRAME_SIZE * 2];
+   float32_t output[AUDIO_FRAME_SIZE * 2];
+   float32_t magOutput[AUDIO_FRAME_SIZE];
+ } fft;
 
-  // Equaliser data
-  struct {
-    q15_t input[AUDIO_BUFFER_SIZE];
-    q15_t output[AUDIO_BUFFER_SIZE];
-  } eq;
+ struct {
+   uint16_t input[AUDIO_BUFFER_SIZE];
+   uint16_t output[AUDIO_BUFFER_SIZE];
+ } eq;
 
   // Volume and message buffers
   uint8_t volume;
@@ -204,6 +202,10 @@ void audioInit(void)
 {
   if (!context.alreadyInit)
   {
+    // arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 6*3);
+    // arm_biquad_cascade_df1_init_q15(&filterTest, 3, eqCoeffsTest, filterStateTest, 1);
+    eqIirInit();
+
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
@@ -484,20 +486,20 @@ void audioProcess(uint16_t* frame)
   #ifdef AUDIO_ENABLE_EQ
   for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
   {
-    context.eq.input[i] = (q15_t)context.mp3.buffer[channelCount * i];
+    context.eq.input[i] = (uint16_t)context.decodedMP3Buffer[channelCount * i];
     context.eq.output[i] = 0;
     // context.eq.output[i] = (float32_t)context.mp3.buffer[channelCount * i];
   }  
   // Equalising
   // eqFilterFrame(context.eq.input, context.eq.output);
-  arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 1024);
-  #endif
+  // arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 1024);
+  eqIirFilterFrame(context.eq.input, context.eq.output);
 
   #ifdef AUDIO_ENABLE_FFT
   // Computing FFT
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
 	{
-		context.fft.input[i*2] = context.eq.output[i];
+		context.fft.input[i*2] = (float32_t)context.eq.output[i];
 		context.fft.input[i*2+1] = 0;
 		context.fft.output[i*2] = 0;
 		context.fft.output[i*2+1] = 0;
@@ -519,11 +521,10 @@ void audioProcess(uint16_t* frame)
   for (uint16_t i = 0 ; i < AUDIO_BUFFER_SIZE ; i++)
   {
     // DAC output is unsigned, mono and 12 bit long
-    #ifdef AUDIO_ENABLE_EQ
-    frame[i] = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
-    #else
-    frame[i] = (uint16_t)(context.mp3.buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
-    #endif
+
+    uint16_t aux = (uint16_t)((context.eq.output[i]) * context.volume / 16 + (DAC_FULL_SCALE / 2));
+    frame[i] = aux;
+    // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
 
   // Update MP3 decoding buffer
