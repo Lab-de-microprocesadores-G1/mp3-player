@@ -198,6 +198,7 @@ void audioInit(void)
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
+    context.volume = MAX_VOLUME / 2;
     // Initialization of the timer
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
@@ -308,6 +309,7 @@ static void audioRunIdle(event_t event)
       sprintf(context.volumeBuffer, "Volumen %d", context.volume);
       audioSetDisplayString(context.volumeBuffer);
     default:
+      sprintf(context.messageBuffer, "Bienvenido!!!");
       audioSetDisplayString(context.messageBuffer);
       break;
   }
@@ -322,13 +324,15 @@ static void audioRunPlaying(event_t event)
       {
         context.currentState = AUDIO_STATE_PAUSED;
         dacdmaStop();
-        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PAUSE, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+        context.messageBuffer[0] = HD4478_CUSTOM_PAUSE;
+        sprintf(context.messageBuffer + 1," - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
         context.currentState = AUDIO_STATE_PLAYING;
         dacdmaResume();
-        sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PLAY, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
+        context.messageBuffer[0] = HD4478_CUSTOM_PLAY;
+        sprintf(context.messageBuffer + 1, " - %s - %s - %s", context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       audioSetDisplayString(context.messageBuffer);
       break;
@@ -405,7 +409,7 @@ static void	audioLcdUpdate(void)
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
-        HD44780WriteString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+        HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message));
       }
     }
   }
