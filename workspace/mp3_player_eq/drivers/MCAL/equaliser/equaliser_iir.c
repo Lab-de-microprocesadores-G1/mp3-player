@@ -20,6 +20,7 @@
 #define IIR_EQ_STAGES       ()    // Stages per filter
 #define IIR_EQ_COEFFS       ()    // Coefficients per stages
 #define IIR_EQ_STATE_VARS   ()    // State var
+#define IIR_EQ_MAX_GAIN     ()    // Maximum gain
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -46,7 +47,7 @@ typedef struct
 /*******************************************************************************
  * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
  ******************************************************************************/
-eq_iir_filter_t calculateCoefficients(float32_t band, float32_t gain, float32_t qFactor);
+eq_iir_filter_t calculateCoefficients(uint32_t freq, uint32_t gain, float32_t qFactor);
 
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
@@ -100,9 +101,24 @@ void eqIirSetFilterGains(float32_t gains[EQ_NUM_OF_FILTERS])
                         LOCAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
-static eq_iir_filter_t calculateCoefficients(float32_t band, float32_t gain, float32_t qFactor)
+static eq_iir_filter_t calculateCoefficients(float32_t freq, uint32_t gain, float32_t qFactor)
 {
-  /* Definir */
+  eq_iir_filter_t filter;
+  uin32_t g = gain + IIR_EQ_MAX_GAIN;
+  uint8_t band = 0;
+
+  for (uint8_t i = 0 ; i < IIR_EQ_BANDS ; i++)
+  {
+    if (freq == eqBands[i])
+    {
+      band = i;
+      break;
+    }
+  }
+
+	arm_float_to_q15(equaliserCoeff[g][band],context.filter.pCoeffs, IIR_EQ_COEFFS * IIR_EQ_STAGES);
+
+	return filter;
 }
 /*******************************************************************************
  *******************************************************************************

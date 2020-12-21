@@ -94,8 +94,8 @@ typedef struct {
  } fft;
 
  struct {
-   float32_t input[AUDIO_BUFFER_SIZE];
-   float32_t output[AUDIO_BUFFER_SIZE];
+   q15_t input[AUDIO_BUFFER_SIZE];
+   q15_t output[AUDIO_BUFFER_SIZE];
  } eq;
 
   uint8_t volume;
@@ -174,6 +174,14 @@ static void fillMatrix(void);
 static audio_context_t  context;
 static const pixel_t clearPixel = {0,0,0};
 
+static const float32_t eqCoeffsTestFloat[6*3] = 
+{ 
+  0.500000,0.000000,-0.965247,0.469577,0.920261,-0.429433,0.500000,0.000000,-0.984162,0.485172,0.983325,-0.483781,0.081832,0.000000,0.163664,0.081832,0.316046,-0.183314
+};
+static q15_t eqCoeffsTest[6*3];
+static arm_biquad_casd_df1_inst_q15 filterTest;
+static q15_t filterStateTest[4*3];
+
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
@@ -184,6 +192,9 @@ void audioInit(void)
 {
   if (!context.alreadyInit)
   {
+    arm_float_to_q15(eqCoeffsTestFloat, eqCoeffsTest, 6*3);
+    arm_biquad_cascade_df1_init_q15(&filterTest, 3, eqCoeffsTest, filterStateTest, 1);
+
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
@@ -394,7 +405,7 @@ static void	audioLcdUpdate(void)
       }
       else if (context.currentState == AUDIO_STATE_PAUSED)
       {
-        HD44780WriString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+        HD44780WriteString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
       }
     }
   }
@@ -447,13 +458,14 @@ void audioProcess(uint16_t* frame)
   // Data conditioning for next stage
   for (uint16_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
   {
-    context.eq.input[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
+    context.eq.input[i] = (q15_t)context.decodedMP3Buffer[channelCount * i];
     context.eq.output[i] = 0;
     // context.eq.output[i] = (float32_t)context.decodedMP3Buffer[channelCount * i];
   }
   
   // Equalising
-  eqFilterFrame(context.eq.input, context.eq.output);
+  // eqFilterFrame(context.eq.input, context.eq.output);
+  arm_biquad_cascade_df1_q15(&filterTest, context.eq.input, context.eq.output, 1024);
 
   // Computing FFT
   for (uint32_t i = 0; i < AUDIO_BUFFER_SIZE; i++)
@@ -480,7 +492,7 @@ void audioProcess(uint16_t* frame)
   {
     // DAC output is unsigned, mono and 12 bit long
 
-    uint16_t aux = (uint16_t)((context.eq.output[i]) * context.volume / 16 + (DAC_FULL_SCALE / 2));
+    uint16_t aux = (uint16_t)((context.eq.output[i]) / 16 + (DAC_FULL_SCALE / 2));
     frame[i] = aux;
     // frame[i] = (uint16_t)(context.decodedMP3Buffer[channelCount * i] / 16 + (DAC_FULL_SCALE / 2));
   }
