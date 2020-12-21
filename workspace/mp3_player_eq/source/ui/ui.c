@@ -181,6 +181,7 @@ static bool			    		  messageChanged = false;		// Internal flag for changing the
 static bool         			alreadyInit = false;        // Internal flag for initialization process
 static ui_state_t   			currentState;         		// Current state of the user interface module
 static const char*  			currentMessage;             // Current message being displayed
+static char               messageBuffer[20];          // Buffer for message to print
 
 static ui_menu_context_t        menuContext;            	// Context for the menu state of the UI module
 static ui_file_system_context_t fsContext;              	// Context for the file system state of the UI module
@@ -247,18 +248,19 @@ static void	uiLcdUpdate(void)
       messageChanged = false;
       if(fsContext.currentFile.fattrib == AM_DIR)
       {
-        HD44780WriteChar(1, 0, HD44780_CUSTOM_FOLDER);
-        HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+        messageBuffer[0] = HD44780_CUSTOM_FOLDER;
+        sprintf(messageBuffer + 1, " - %s", currentMessage);
       }
       else if(fsContext.currentFile.fattrib == AM_ARC)
       {
-        HD44780WriteChar(1, 0, HD44780_CUSTOM_MUSIC);
-        HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+        messageBuffer[0] = HD44780_CUSTOM_MUSIC;
+        sprintf(messageBuffer + 1, " - %s", currentMessage);
       }
       else
       {
-        HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, (uint8_t*)currentMessage, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
+        sprintf(messageBuffer, "%s", currentMessage);
       }
+      HD44780WriteRotatingString(UI_LCD_LINE_NUMBER, messageBuffer, strlen(currentMessage), UI_LCD_ROTATION_TIME_MS);
     }
   }
 }
