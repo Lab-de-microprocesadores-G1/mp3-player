@@ -310,18 +310,22 @@ static void audioRunPlaying(event_t event)
       if(context.currentState == AUDIO_STATE_PLAYING)
       {
         context.currentState = AUDIO_STATE_PAUSED;
+        dacdmaStop();
         sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PAUSE, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
-      else if (context.currentState == AUDIO_STATE_PLAYING)
+      else if (context.currentState == AUDIO_STATE_PAUSED)
       {
         context.currentState = AUDIO_STATE_PLAYING;
+        dacdmaResume();
         sprintf(context.messageBuffer, "%d - %s - %s - %s", HD4478_CUSTOM_PLAY, context.mp3.tagData.title, context.mp3.tagData.artist, context.mp3.tagData.album);
       }
       audioSetDisplayString(context.messageBuffer);
       break;
     case EVENTS_PREVIOUS:
+      //TODO! 
       break;
     case EVENTS_NEXT:
+      //TODO! 
       break;
     case EVENTS_VOLUME_INCREASE:
       if(context.volume < MAX_VOLUME)
@@ -333,7 +337,6 @@ static void audioRunPlaying(event_t event)
       {
         sprintf(context.volumeBuffer, "Volumen MAX");
       }
-
       audioSetDisplayString(context.volumeBuffer);
       break;
     case EVENTS_VOLUME_DECREASE:
@@ -371,7 +374,7 @@ static void audioRunPaused(event_t event)
     default:
       break;
   }
-}/*
+}*/
 
 static void audioSetState(audio_state_t state)
 {
