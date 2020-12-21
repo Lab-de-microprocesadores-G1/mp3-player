@@ -187,6 +187,7 @@ void audioInit(void)
     // Raise the already initialized flag
     context.alreadyInit = true;
     context.currentState = AUDIO_STATE_IDLE;
+    context.volume = MAX_VOLUME / 2;
     // Initialization of the timer
     timerStart(timerGetId(), TIMER_MS2TICKS(AUDIO_LCD_FPS_MS), TIM_MODE_PERIODIC, audioLcdUpdate);
 
