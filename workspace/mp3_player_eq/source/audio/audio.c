@@ -163,6 +163,11 @@ static void audioLcdUpdate(void);
  */
 static void fillMatrix(void);
 
+/**
+ * @brief Starts LCD with welcome
+ */
+static void	audioLcdWelcome(void);
+
 /*******************************************************************************
  * ROM CONST VARIABLES WITH FILE LEVEL SCOPE
  ******************************************************************************/
@@ -218,8 +223,6 @@ void audioInit(void)
     dacdmaSetBuffers(context.audioBuffer[0], context.audioBuffer[1], AUDIO_BUFFER_SIZE);
     dacdmaSetFreq(AUDIO_DEFAULT_SAMPLE_RATE); 
 
-    sprintf(context.messageBuffer, "Bienvenido!!!");
-    audioSetDisplayString(context.messageBuffer);
   }
 }
 
@@ -507,6 +510,14 @@ void audioProcess(uint16_t* frame)
   context.decodedMP3Samples -= AUDIO_BUFFER_SIZE * channelCount;
 }
 
+static void	audioLcdWelcome(void)
+{
+  if (HD44780LcdInitReady())
+  {
+    sprintf(context.messageBuffer, "Bienvenido!!!");
+    HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, context.messageBuffer, strlen(context.messageBuffer));
+  }
+}
 
 
 /******************************************************************************/
