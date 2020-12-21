@@ -419,6 +419,11 @@ static void	audioLcdUpdate(void)
       {
         HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message));
       }
+      else
+      {
+        HD44780WriteRotatingString(AUDIO_LCD_LINE_NUMBER, (uint8_t*)context.message, strlen(context.message), AUDIO_LCD_ROTATION_TIME_MS);
+      }
+      
     }
   }
 }
@@ -516,7 +521,7 @@ static void	audioLcdWelcome(void)
   if (HD44780LcdInitReady())
   {
     sprintf(context.messageBuffer, "Bienvenido!!!");
-    HD44780WriteNewLine(AUDIO_LCD_LINE_NUMBER, context.messageBuffer, strlen(context.messageBuffer));
+    audioSetDisplayString(context.messageBuffer);
   }
 }
 
