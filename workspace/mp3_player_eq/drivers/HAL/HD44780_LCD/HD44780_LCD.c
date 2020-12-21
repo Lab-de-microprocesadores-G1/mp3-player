@@ -22,7 +22,7 @@
 #define HD44780_SPACE_BETWEEN_ROTATIONS		10
 
 // Max number of characters to buffer on each line
-#define HD44780_MAX_LINE_LENGTH				50
+#define HD44780_MAX_LINE_LENGTH				256
 
 // Custom characters row count (8th row is the same as the cursor)
 #define HD44780_CHARACTER_ROWS				8

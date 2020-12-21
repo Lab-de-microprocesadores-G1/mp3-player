@@ -27,7 +27,7 @@
 
 #define MP3DECODER_MODE_NORMAL  0
 #define MP3_FRAME_BUFFER_BYTES  6913            // MP3 buffer size (in bytes)
-#define DEFAULT_ID3_FIELD       "Unknown"
+#define DEFAULT_ID3_FIELD       0
 #define MP3_REC_MAX_DEPTH       5
 
 #ifndef __arm__
@@ -229,17 +229,22 @@ bool MP3GetLastFrameData(mp3decoder_frame_data_t* data)
 bool MP3GetNextFrameData(mp3decoder_frame_data_t* data)
 {
     bool ret = false;
-    MP3FrameInfo nextFrame;
-    int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
-    if (offset >= 0)
+
+    if(dec.bytesRemaining != 0)
     {
-        int res = MP3GetNextFrameInfo(dec.helixDecoder, &nextFrame, dec.mp3FrameBuffer + dec.top + offset);
-        if (res == 0)
+        MP3FrameInfo nextFrame;
+        int offset = MP3FindSyncWord(dec.mp3FrameBuffer + dec.top, dec.bottom - dec.top);
+        if (offset >= 0)
         {
-            copyFrameInfo(data, &nextFrame);
-            ret = true;
+            int res = MP3GetNextFrameInfo(dec.helixDecoder, &nextFrame, dec.mp3FrameBuffer + dec.top + offset);
+            if (res == 0)
+            {
+                copyFrameInfo(data, &nextFrame);
+                ret = true;
+            }
         }
     }
+
     return ret;
 }
 
@@ -368,6 +373,8 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
                   printf("[Error] Buffer underflow and file empty\n");
                   #endif
 
+                  // close  file
+                  closeFile();  
                   return MP3DECODER_FILE_END;
               }
               #ifdef MP3_PC_TESTBENCH
@@ -384,6 +391,7 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
                   #ifdef MP3_PC_TESTBENCH
                   printf("Dropped frame\n");
                   #endif
+                  closeFile();
                   return MP3DECODER_FILE_END;
               }
               else
@@ -399,8 +407,9 @@ mp3decoder_result_t MP3GetDecodedFrameRec(short* outBuffer, uint16_t bufferSize,
               }
           }
       }
-      else
+      else // no remaining info in file/buffer => close file
       {
+          closeFile();
           ret = MP3DECODER_FILE_END;
       }
   }
@@ -526,11 +535,18 @@ bool openFile(const char * filename)
 
 void closeFile(void)
 {
-    #ifdef __arm__
-    f_close(dec.mp3File);
-    #else
-    fclose(dec.mp3File);
-    #endif
+    if(dec.fileOpened)
+    {
+        
+        #ifdef __arm__
+        f_close(dec.mp3File);
+        #else
+        fclose(dec.mp3File);
+        #endif
+
+    }
+    
+    dec.fileOpened = false;
 }
 
 size_t currentFileSize()

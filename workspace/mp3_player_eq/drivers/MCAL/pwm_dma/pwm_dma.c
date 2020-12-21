@@ -19,7 +19,7 @@
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
-#define DMA_CHANNEL   0
+#define DMA_CHANNEL   1
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -172,8 +172,11 @@ void pwmdmaStart(uint16_t* firstFrame, uint16_t* secondFrame, size_t frameSize, 
   // Disable period triggering, mux selects FTM
   context.dmaConfig.pitEn = 0;
   context.dmaConfig.muxSource = pwmdmaFtm2DmaChannel(context.ftmInstance, context.ftmChannel);
-  // Disable fixed-priority arbitration
+  // Enable fixed-priority arbitration
   context.dmaConfig.fpArb = 0;
+  context.dmaConfig.ecp = 1;
+  context.dmaConfig.dpa = 0;
+  context.dmaConfig.priority = 4;
 
   dmasgaChannelConfig(DMA_CHANNEL, context.dmaConfig);
 

@@ -21,6 +21,7 @@
 
 // Testpoints
 #define PIN_PROCESSING				PORTNUM2PIN(PC, 16)	// PTC16
+#define PIN_FRAME_FINISHED			PORTNUM2PIN(PB, 18)	// PTB18
 
 // On Board User Switches
 #define PIN_SW2         			PORTNUM2PIN(PC, 6)  // PTC6

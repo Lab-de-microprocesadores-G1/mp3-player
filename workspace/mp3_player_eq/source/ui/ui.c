@@ -382,7 +382,7 @@ static void uiRunFileSystem(event_t event)
       if (fsContext.currentFile.fattrib == AM_DIR)
       {
         // Appends the path
-    	  sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], strlen(fsContext.currentPath) ? "/%s" : "%s", fsContext.currentFile.fname);
+    	  sprintf(&fsContext.currentPath[strlen(fsContext.currentPath)], "/%s", fsContext.currentFile.fname);
 
         // Open the directory
         uiFileSystemOpenDirectory();  
@@ -404,7 +404,7 @@ static void uiRunFileSystem(event_t event)
       else
       {
         // Append the folder name to the current directory path
-        for (uint32_t i = 1 ; i < strlen(fsContext.currentPath) ; i++)
+        for (uint32_t i = 1 ; i <= strlen(fsContext.currentPath) ; i++)
         {
           if (fsContext.currentPath[strlen(fsContext.currentPath) - i] == '/')
           {
@@ -458,8 +458,8 @@ static void uiRunEqualiser(event_t event)
           for (uint8_t i = 0 ; i < UI_EQUALISER_BAND_COUNT ; i++)
           {
             eqSetFilterGains(DEFAULT_GAINS[eqContext.eqOption]);
+            displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
           }
-          displaySelectColumn(DISPLAY_UNSELECT_COLUMN);
           uiSetState(UI_STATE_MENU);
         }
         break;
@@ -472,7 +472,7 @@ static void uiRunEqualiser(event_t event)
   {
     switch (event.id)
     {
-      case EVENTS_LEFT:
+      case EVENTS_RIGHT:
         if (eqContext.hasEqBandSelected)
         {
           if (eqContext.eqBandGain[eqContext.currentEqBandSelected] > 0)
@@ -490,7 +490,7 @@ static void uiRunEqualiser(event_t event)
         }
         break;
 
-      case EVENTS_RIGHT:
+      case EVENTS_LEFT:
         if (eqContext.hasEqBandSelected)
         {
           if (eqContext.eqBandGain[eqContext.currentEqBandSelected] < UI_EQUALISER_GAIN_COUNT)
